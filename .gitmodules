@@ -1,0 +1,6 @@
+[submodule "plutosdr-fw"]
+	path = plutosdr-fw
+	url = https://github.com/osqzss/plutosdr-fw.git
+[submodule "fw"]
+	path = fw
+	url = https://github.com/osqzss/plutosdr-fw.git

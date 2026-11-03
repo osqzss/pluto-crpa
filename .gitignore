@@ -1,0 +1,8 @@
+tools/
+*.jou
+*.log
+*.str
+.Xil/
+__pycache__/
+*.vcd
+*.wdb
