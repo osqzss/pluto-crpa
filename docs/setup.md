@@ -568,7 +568,9 @@ Procedure (ADI wiki "Firmware Updates", Mass Storage Update):
      cp * /media/$USER/PlutoSDR/
      sync
      ```
-     Use this if copying `pluto.frm` alone does not update the device (`/opt/VERSIONS` unchanged).
+     Use this only if copying `pluto.frm` alone does not update the device (`/opt/VERSIONS` unchanged).
+
+   **Result (2026-11-04, Rev C):** copying `pluto.frm` alone updated the device. The bootloader (`boot.frm`) was not replaced, so the original u-boot and its DFU recovery remain in place.
 3. Eject the drive; do not unplug. On Linux, eject the base device, not the partition:
    ```bash
    lsblk                    # e.g. sdb with partition sdb1
@@ -578,10 +580,14 @@ Procedure (ADI wiki "Firmware Updates", Mass Storage Update):
 
 ### 9.5 Verification
 
+Host tools: `sudo apt install -y libiio-utils` (Ubuntu 24.04: libiio 0.25). A source build is only needed if the host cannot talk to the Pluto's iiod (major version mismatch). Use the network backend `ip:192.168.2.1`; the USB backend may need ADI's udev rules.
+
 ```bash
 ssh root@192.168.2.1 'cat /opt/VERSIONS; uname -a'   # build date and fw/hdl/linux commits
-iio_info -s                                         # Pluto listed (package libiio-utils)
-iio_attr -u ip:192.168.2.1 -d                       # ad9361-phy, cf-ad9361-lpc, cf-ad9361-dds-core-lpc, ...
+iio_info -V                                         # host libiio version
+ssh root@192.168.2.1 'iio_info -V'                  # Pluto libiio version
+iio_attr -u ip:192.168.2.1 -d                       # list IIO devices
+iio_attr -u ip:192.168.2.1 -c cf-ad9361-lpc         # RX channels (voltage0/1 only = 1R1T)
 ```
 
 `info.html` on the Pluto drive also shows the installed firmware version; compare before and after flashing.
@@ -596,6 +602,25 @@ diff <(cat ~/Work/pluto-crpa/fw/br2-external/board/adi/pluto/VERSIONS) \
 ```
 
 If the Pluto still reports the previous version after flashing `pluto.frm` alone, use the full unzipped archive (Section 9.4, Rev C).
+
+`/opt/VERSIONS` is part of the root filesystem, so its `u-boot` line shows the u-boot built with this firmware, not the bootloader actually running on the device (which is unchanged when only `pluto.frm` is flashed).
+
+**Result (2026-11-04, unmodified upstream master, Rev C):**
+
+```
+device-fw v0.39-19-g2414
+hdl dev_prj_2018_r1-3136-g4840c8
+br2-external 2025.05-0.3.0-54-g46fb
+linux v6.12-43124-gbf1d49
+u-boot b234c
+buildroot 2026.02-3
+```
+
+- `/opt/VERSIONS` matches `fw/br2-external/board/adi/pluto/VERSIONS` line by line (`g2414` = fw commit `2414114`, branch `crpa`).
+- Kernel: `6.12.77-gbf1d49f17fa9`, built 2026-11-04 10:35 JST.
+- libiio: host 0.25, Pluto 0.26; the apt host tools work over `ip:192.168.2.1`.
+- IIO devices (6): `ad9361-phy`, `xadc`, `one-bit-adc-dac`, `cf-ad9361-dds-core-lpc`, `cf-ad9361-lpc`, `iio-axi-tdd-0`.
+- `iio-axi-tdd-0` is the Linux device of the `axi_tdd_0` core in the hdl design; removing that core from the hdl requires a matching device tree change.
 
 ### 9.6 Recovery (DFU)
 
