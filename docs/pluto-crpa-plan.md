@@ -189,11 +189,11 @@ Timing: all constraints met.
 
 **Decisions:**
 - Only 8 DSP48 remain; the CRPA needs about 10-20. **Remove rx_fir_decimator and tx_fir_interpolator** (DSP 72 -> 28, LUT approx. -1,200, FF approx. -3,200). They are only needed below approx. 2 MSPS; this project uses fs = 10 MSPS.
-- Consequence: sample rates below approx. 2 MSPS will no longer work.
+- Consequence: the FPGA x8 decimation/interpolation path is gone. Measured floor with the AD9361 internal FIR off: 2.084 MSPS (`results/t0b_hw_test.md`). Lower rates need a valid FIR loaded; 0.521 MSPS was accepted in 1R1T, but without a confirmed valid filter.
 - **Known limitation (until Task 6):** `zynq-pluto-sdr.dtsi` still sets `adi,axi-decimation-core-available` and `adi,axi-interpolation-core-available`. The drivers therefore still offer and accept f/8 on the `cf-ad9361-lpc` and `cf-ad9361-dds-core-lpc` `sampling_frequency` attributes. With the FIRs removed, a write of f/8 has no effect on the hardware: the data stays at f while the attribute reports f/8, with no error. Do not write f/8 to these cores; set the rate through `ad9361-phy`. Both properties are removed in Task 6.
 - Further reserves if needed: disable DC filter / IQ correction / DDS inside axi_ad9361 via parameters (check exact parameter names in `projects/pluto/system_bd.tcl` and `library/axi_ad9361/axi_ad9361_ip.tcl`), remove axi_tdd (FDD only).
 
-**T0b result: FIRs removed.** Build: `results/hdl/20261104-1348_387ca1761/`, hdl `387ca1761`, Vivado 2025.1, xc7z010clg225-1, routed. All timing constraints met. Not yet tested on hardware.
+**T0b result: FIRs removed.** Build: `results/hdl/20261104-1348_387ca1761/`, hdl `387ca1761`, Vivado 2025.1, xc7z010clg225-1, routed. All timing constraints met. Digital loopback passed in 1R1T and 2R2T: `results/t0b_hw_test.md`.
 
 | Resource | T0 | T0b | Change | Available | T0b util. |
 |---|---|---|---|---|---|
@@ -233,7 +233,7 @@ Timing: all constraints met.
 | Stage | Content | Pass criteria |
 |---|---|---|
 | T0 | Reproduce default build, utilization and timing | **Done** (Section 6.5) |
-| T0b | Default design without FIR decimator/interpolator | Builds, timing met (**done**, Section 6.5); Pluto works at fs >= approx. 2 MSPS (**pending**) |
+| T0b | Default design without FIR decimator/interpolator | Builds, timing met; Pluto works at fs >= approx. 2 MSPS. **Done** for the digital data path, 1R1T and 2R2T (`results/t0b_hw_test.md`); RF is covered by T1 |
 | T1 | Pass-through RX1 -> TX1 via PL, with LO offset | COTS receiver gets a fix; C/N0 degradation acceptable |
 | T2 | Fixed weights w = [1,0] / [0,1] / [1,1] | Each path received; combining gain as expected |
 | T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune |
@@ -285,6 +285,7 @@ pluto-crpa/                       # parent repository (main)
 | `./scripts/setup.sh` | Link `ip/crpa_core` into `fw/hdl/library/crpa_core` (excluded from git) |
 | `./scripts/build_hdl.sh 2>&1 \| tee results/build_hdl.log` | Build `fw/hdl/projects/pluto` and write `util_placed.rpt`, `util_hier.rpt`, `timing_summary.rpt` to `results/hdl/<date>-<time>_<hdl commit>/` (30-60 min) |
 | `./scripts/record_env.sh >> docs/environment.md` | Append a snapshot of host, Vivado and commit hashes |
+| `./scripts/loopback_test.py [uri]` | Digital loopback check of the FPGA data path over libiio; TX_LO down and maximum attenuation during the test (about 1 min) |
 
 `build_hdl.sh` wraps `source "$VIVADO_SETTINGS"` in `set +u` / `set -u` because the Vivado settings scripts reference unset variables.
 
@@ -301,9 +302,9 @@ pluto-crpa/                       # parent repository (main)
 - [x] Unmodified firmware built and flashed (`pluto.frm` only, Rev C); `/opt/VERSIONS` matches the build (fw 2414114, hdl 4840c8, linux bf1d49); libiio host 0.25, Pluto 0.26; IIO devices: ad9361-phy, xadc, one-bit-adc-dac, cf-ad9361-dds-core-lpc, cf-ad9361-lpc, iio-axi-tdd-0
 
 - [x] T0b build: FIRs removed (hdl `387ca1761`), DSP 72 -> 28, timing met (Section 6.5)
+- [x] T0b hardware: firmware flashed, `/opt/VERSIONS` matches; digital loopback bit-exact in 1R1T and 2R2T, 2.084-30.72 MSPS in 2R2T, with all four streams sample-aligned (`results/t0b_hw_test.md`). Current device setting: `mode=2r2t`, reported as AD9363A
 
 ### 10.2 Open items
-- [ ] T0b hardware test: build firmware with the T0b bitstream, flash, check operation at fs >= approx. 2 MSPS
 - [ ] Record environment in `docs/environment.md` (`scripts/record_env.sh`)
 - [ ] 2R2T (CMOS) `l_clk` ratio, valid pattern, bit alignment
 - [ ] LO offset Delta and fs (LO leakage and IQ image)
@@ -322,7 +323,7 @@ pluto-crpa/                       # parent repository (main)
 Work through these in order. Mark progress in Section 10 when a task is finished.
 
 ### Task 1: FIR removal baseline (T0b)
-Status: steps 1-5 done (Section 6.5); the T0b hardware test is still open (Section 10.2).
+Status: **done** (Section 6.5, `results/t0b_hw_test.md`). Device tree cleanup moved to Task 6.
 
 1. Read `fw/hdl/projects/pluto/system_bd.tcl` and identify how `rx_fir_decimator`, `tx_fir_interpolator` and their control signals (decimation/interpolation enable, rate_gen) connect axi_ad9361, cpack and upack.
 2. Report the planned rewiring to the user before editing.

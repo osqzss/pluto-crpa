@@ -1,0 +1,42 @@
+uri: ip:192.168.2.1 | channels: 4 | fw_version: v0.39-21-g27fb
+hw_model: Analog Devices PlutoSDR Rev.C (Z7010-AD9361)
+saved: {'lo': '0', 'gain': {'voltage0': '-10.000000', 'voltage1': '-10.000000'}, 'fs': '30719999', 'fir': '0', 'lb': '0'}
+safety: TX_LO powerdown 1 | TX gain ['-89.750000 dB', '-89.750000 dB']
+
+fs=30720000 (FIR off): rc=0 phy=30719999
+  BBPLL:983039992 ADC:245759998 R2:122879999 R1:61439999 RF:30719999 RXSAMP:30719999
+  loop=1                     PASS  n=8192 offsets=[821] tx_running=True ch0:bad=0 ch1:bad=0 ch2:bad=0 ch3:bad=0
+  loop=0 control             PASS  n=8192 offsets=[27, 713, 881, 3428] tx_running=True ch0:bad=8187 ch1:bad=8191 ch2:bad=8190 ch3:bad=8187
+
+fs=10000000 (FIR off): rc=0 phy=10000000
+  BBPLL:1280000001 ADC:80000000 R2:40000000 R1:20000000 RF:10000000 RXSAMP:10000000
+  loop=1                     PASS  n=8192 offsets=[1070] tx_running=True ch0:bad=0 ch1:bad=0 ch2:bad=0 ch3:bad=0
+  loop=0 control             PASS  n=8192 offsets=[2030, 2642, 3483, 4095] tx_running=True ch0:bad=8187 ch1:bad=8190 ch2:bad=8188 ch3:bad=8189
+
+fs=3000000 (FIR off): rc=0 phy=2999999
+  BBPLL:1151999995 ADC:35999999 R2:11999999 R1:5999999 RF:2999999 RXSAMP:2999999
+  loop=1                     PASS  n=8192 offsets=[1308] tx_running=True ch0:bad=0 ch1:bad=0 ch2:bad=0 ch3:bad=0
+  loop=0 control             PASS  n=8192 offsets=[2741, 2772, 3819, 4094] tx_running=True ch0:bad=8190 ch1:bad=8187 ch2:bad=8190 ch3:bad=8190
+
+fs=2100000 (FIR off): rc=0 phy=2100000
+  BBPLL:806400006 ADC:25200000 R2:8400000 R1:4200000 RF:2100000 RXSAMP:2100000
+  loop=1                     PASS  n=8192 offsets=[3290] tx_running=True ch0:bad=0 ch1:bad=0 ch2:bad=0 ch3:bad=0
+  loop=0 control             PASS  n=8192 offsets=[304, 396, 1385, 4090] tx_running=True ch0:bad=8188 ch1:bad=8189 ch2:bad=8188 ch3:bad=8189
+
+fs=2084000 (FIR off): rc=0 phy=2084000
+  BBPLL:800256001 ADC:25008000 R2:8336000 R1:4168000 RF:2084000 RXSAMP:2084000
+  loop=1                     PASS  n=8192 offsets=[3248] tx_running=True ch0:bad=0 ch1:bad=0 ch2:bad=0 ch3:bad=0
+  loop=0 control             PASS  n=8192 offsets=[11, 1108, 1252, 1451] tx_running=True ch0:bad=8189 ch1:bad=8190 ch2:bad=8186 ch3:bad=8189
+refused without FIR? fs=2083333 rc=1
+refused without FIR? fs=2000000 rc=1
+
+channel enables at 10 MSPS
+  TX all, RX ch0/1           PASS  n=8192 offsets=[2765] tx_running=True ch0:bad=0 ch1:bad=0
+  TX all, RX ch2/3           PASS  n=8192 offsets=[2006] tx_running=True ch2:bad=0 ch3:bad=0
+  TX ch0/1, RX ch0/1         PASS  n=8192 offsets=[1814] tx_running=True ch0:bad=0 ch1:bad=0
+  TX ch2/3, RX ch2/3         PASS  n=8192 offsets=[1448] tx_running=True ch2:bad=0 ch3:bad=0
+
+restore rc: 0 0 0 0 [0, 0] 0
+after: fs 30719999 gain ['-10.000000 dB', '-10.000000 dB'] lo_pd 0 fir 0 loop 0
+
+FAILS: 0
