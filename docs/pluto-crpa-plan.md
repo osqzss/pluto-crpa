@@ -190,7 +190,23 @@ Timing: all constraints met.
 **Decisions:**
 - Only 8 DSP48 remain; the CRPA needs about 10-20. **Remove rx_fir_decimator and tx_fir_interpolator** (DSP 72 -> 28, LUT approx. -1,200, FF approx. -3,200). They are only needed below approx. 2 MSPS; this project uses fs = 10 MSPS.
 - Consequence: sample rates below approx. 2 MSPS will no longer work.
+- **Known limitation (until Task 6):** `zynq-pluto-sdr.dtsi` still sets `adi,axi-decimation-core-available` and `adi,axi-interpolation-core-available`. The drivers therefore still offer and accept f/8 on the `cf-ad9361-lpc` and `cf-ad9361-dds-core-lpc` `sampling_frequency` attributes. With the FIRs removed, a write of f/8 has no effect on the hardware: the data stays at f while the attribute reports f/8, with no error. Do not write f/8 to these cores; set the rate through `ad9361-phy`. Both properties are removed in Task 6.
 - Further reserves if needed: disable DC filter / IQ correction / DDS inside axi_ad9361 via parameters (check exact parameter names in `projects/pluto/system_bd.tcl` and `library/axi_ad9361/axi_ad9361_ip.tcl`), remove axi_tdd (FDD only).
+
+**T0b result: FIRs removed.** Build: `results/hdl/20261104-1348_387ca1761/`, hdl `387ca1761`, Vivado 2025.1, xc7z010clg225-1, routed. All timing constraints met. Not yet tested on hardware.
+
+| Resource | T0 | T0b | Change | Available | T0b util. |
+|---|---|---|---|---|---|
+| LUT | 12,693 | 11,470 | -1,223 | 17,600 | 65% |
+| FF | 22,208 | 18,985 | -3,223 | 35,200 | 54% |
+| **DSP48** | **72** | **28** | **-44** | **80** | **35%** |
+| RAMB36 | 2 | 2 | 0 | 60 | 3% |
+
+| Clock | Freq. | T0 WNS | T0b WNS | T0 WHS | T0b WHS |
+|---|---|---|---|---|---|
+| clk_fpga_0 | 100 MHz | 0.946 ns | 1.180 ns | 0.010 ns | 0.015 ns |
+| clk_fpga_1 | 200 MHz | 3.396 ns | 3.628 ns | 0.131 ns | 0.160 ns |
+| rx_clk | 61.44 MHz | 3.679 ns | 7.297 ns | 0.017 ns | 0.024 ns |
 
 ---
 
@@ -217,7 +233,7 @@ Timing: all constraints met.
 | Stage | Content | Pass criteria |
 |---|---|---|
 | T0 | Reproduce default build, utilization and timing | **Done** (Section 6.5) |
-| T0b | Default design without FIR decimator/interpolator | Builds, timing met; Pluto works at fs >= approx. 2 MSPS |
+| T0b | Default design without FIR decimator/interpolator | Builds, timing met (**done**, Section 6.5); Pluto works at fs >= approx. 2 MSPS (**pending**) |
 | T1 | Pass-through RX1 -> TX1 via PL, with LO offset | COTS receiver gets a fix; C/N0 degradation acceptable |
 | T2 | Fixed weights w = [1,0] / [0,1] / [1,1] | Each path received; combining gain as expected |
 | T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune |
@@ -282,8 +298,12 @@ pluto-crpa/                       # parent repository (main)
 - [x] `scripts/setup.sh`: custom IP link created and excluded from git
 - [x] T0: default design built; utilization and timing recorded (Section 6.5)
 - [x] Decision: remove FIR decimator/interpolator
+- [x] Unmodified firmware built and flashed (`pluto.frm` only, Rev C); `/opt/VERSIONS` matches the build (fw 2414114, hdl 4840c8, linux bf1d49); libiio host 0.25, Pluto 0.26; IIO devices: ad9361-phy, xadc, one-bit-adc-dac, cf-ad9361-dds-core-lpc, cf-ad9361-lpc, iio-axi-tdd-0
+
+- [x] T0b build: FIRs removed (hdl `387ca1761`), DSP 72 -> 28, timing met (Section 6.5)
 
 ### 10.2 Open items
+- [ ] T0b hardware test: build firmware with the T0b bitstream, flash, check operation at fs >= approx. 2 MSPS
 - [ ] Record environment in `docs/environment.md` (`scripts/record_env.sh`)
 - [ ] 2R2T (CMOS) `l_clk` ratio, valid pattern, bit alignment
 - [ ] LO offset Delta and fs (LO leakage and IQ image)
@@ -302,6 +322,8 @@ pluto-crpa/                       # parent repository (main)
 Work through these in order. Mark progress in Section 10 when a task is finished.
 
 ### Task 1: FIR removal baseline (T0b)
+Status: steps 1-5 done (Section 6.5); the T0b hardware test is still open (Section 10.2).
+
 1. Read `fw/hdl/projects/pluto/system_bd.tcl` and identify how `rx_fir_decimator`, `tx_fir_interpolator` and their control signals (decimation/interpolation enable, rate_gen) connect axi_ad9361, cpack and upack.
 2. Report the planned rewiring to the user before editing.
 3. On the hdl `crpa` branch, remove both FIR blocks and connect axi_ad9361 directly to cpack/upack. Leave any control outputs that lose their sink unconnected or tied off as appropriate; do not edit `library/`.
@@ -330,6 +352,7 @@ Work through these in order. Mark progress in Section 10 when a task is finished
 
 ### Task 6: PS application and device tree
 - UIO node in `sw/dts/`, C application in `sw/app/` (Section 7).
+- Remove `adi,axi-decimation-core-available` and `adi,axi-interpolation-core-available` from the device tree (Section 6.5). `fw/linux` has no fork yet (detached HEAD, `origin` = ADI upstream), so decide between a fork and a patch for this and the UIO node.
 
 ---
 
