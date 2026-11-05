@@ -277,6 +277,7 @@ pluto-crpa/                       # parent repository (main)
 |-- sw/app/                       # PS application (C)
 |-- sw/dts/                       # device tree fragments
 |-- scripts/                      # setup, build, simulation, hardware check and report scripts
+|-- requirements.txt              # Python packages for .venv/ (the venv is git-ignored)
 |-- tools/                        # sysroot etc. (git-ignored)
 `-- results/                      # reports and measurement logs
 ```
@@ -294,15 +295,15 @@ pluto-crpa/                       # parent repository (main)
 | `./scripts/record_env.sh >> docs/environment.md` | Append a snapshot of host, Vivado and commit hashes |
 | `./scripts/loopback_test.py [uri]` | Digital loopback check of the FPGA data path over libiio; TX_LO down and maximum attenuation during the test (about 1 min) |
 | `./scripts/sim_ad9361_if.sh [log]` | xsim characterization of the unmodified axi_ad9361 core, both rx frame alignments (about 40 s) |
-| `$PY model/test_model.py` | Checks of the bit-true model (under 1 s) |
-| `$PY model/gen_vectors.py` | Write RTL test vectors to `model/vectors/` (not committed) |
-| `$PY model/sim_pi.py > results/t3_model.txt` | Performance sweeps of the bit-true path with the PS loop (about 2 min) |
-| `$PY scripts/gps_rx_check.py` | RX-only GPS C/A search on both inputs, at both +delta and -delta; TX_LO down. `PY` needs numpy: see below |
+| `.venv/bin/python model/test_model.py` | Checks of the bit-true model (under 1 s) |
+| `.venv/bin/python model/gen_vectors.py` | Write RTL test vectors to `model/vectors/` (not committed) |
+| `.venv/bin/python model/sim_pi.py > results/t3_model.txt` | Performance sweeps of the bit-true path with the PS loop (about 15 s) |
+| `.venv/bin/python scripts/gps_rx_check.py` | RX-only GPS C/A search on both inputs, at both +delta and -delta; TX_LO down. |
 | `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control, conducted use only. `--check` is read-only (under 1 s). Default is a dry run with the TX LO parked at 2400 MHz (about 2 s). `--on --tx-att DB` asks for a typed confirmation, then stays in the foreground with commands `rx`, `tx`, `level`, `status`, `note`, `quit`; logs to `results/t1_<date>-<time>.txt`. `--off` forces the safe state. Other settings: `--delta`, `--fs`, `--bw`, `--rx-gain`, `--log`, `--poll` |
 | `python3 scripts/test_t1_passthrough.py` | Tests of `t1_passthrough.py` against stand-in iio tools, no Pluto and no RF (about 3 min) |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
-numpy is not installed in the system Python and this host has no pip or `python3-venv`. Vivado's Python has numpy 2.2.2: `PY=/tools/Xilinx/2025.1/Vivado/tps/lnx64/python-3.13.0/bin/python3`, run with `LD_LIBRARY_PATH` set to its `lib` directory.
+Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
 
 `build_hdl.sh` wraps `source "$VIVADO_SETTINGS"` in `set +u` / `set -u` because the Vivado settings scripts reference unset variables.
 
@@ -375,7 +376,7 @@ Status: **done** (`docs/fixed_point.md`).
 Status: **tooling done; the RF test is for the user to run.** Setup and rules are in that file. Procedure:
 
 1. Reference: bladeRF -> attenuators -> u-blox without the Pluto; note the C/N0.
-2. With the full setup cabled, run `$PY scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order.
+2. With the full setup cabled, run `.venv/bin/python scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order.
 3. Connector mapping: terminate one splitter leg in 50 ohm and repeat, then swap legs. With both legs connected a swap of the RX ports does not show.
 4. Dry run: `./scripts/t1_passthrough.py`.
 5. Transmit: `./scripts/t1_passthrough.py --on --tx-att DB`, starting with high attenuation. Set `rx` by `level` so that the ADC does not clip, then lower `tx` in steps while watching C/N0 on the other PC. Record it with `note`.
