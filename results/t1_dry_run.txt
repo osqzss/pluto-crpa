@@ -1,0 +1,6 @@
+2026-11-05T13:18:26 DRY RUN: path set with TX muted; TX LO stays parked
+2026-11-05T13:18:26 RX LO 1578419998 | TX LO 2400000000 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+2026-11-05T13:18:26 RX gain manual 60.000000 dB / manual 60.000000 dB | RSSI 112.75 dB / 113.50 dB
+2026-11-05T13:18:26 TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 2 | data_sel [8, 8, 3, 3]
+2026-11-05T13:18:27 ADC ch0/1 -41.9 dBFS peak 64 clipped 0/131072 | ch2/3 -34.1 dBFS peak 339 clipped 0/131072
+2026-11-05T13:18:27 Safe state: TX attenuation 89.75 dB, path off, TX LO powered down at 2400000000 Hz

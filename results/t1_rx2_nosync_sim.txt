@@ -1,0 +1,82 @@
+INFO  FRAME_ALIGN=0, l_clk period 50 ns
+PASS  adc r1_mode register reads 0
+PASS  dac rate register reads 1
+PASS  adc_r1_mode and dac_r1_mode outputs low
+PASS  adc_enable_* high after channel enable
+PASS  dac_enable_* high with data_sel = 2
+PASS  adc_valid_i0 pulses seen
+PASS  adc_valid_i0 period is exactly 2 l_clk
+PASS  adc_valid_i0, q0, i1, q1 coincide
+PASS  adc_data_* = sign-extended 12-bit words of one sample
+PASS  no rx sample lost or repeated
+PASS  rx latency constant
+PASS  with DC filter off, adc_data_* hold through the non-valid cycle
+INFO  rx latency: I0 capture cycle to adc_valid_i0 = 14 l_clk
+PASS  dac_valid_i0 period is exactly 2 l_clk
+PASS  dac_valid_i0, q0, i1, q1 coincide
+INFO  before any dac sync: dac_valid_i0 coincides with adc_valid_i0 0 times, opposite 399 times
+PASS  adc/dac valid phase constant before sync
+INFO  after dac sync: dac_valid_i0 coincides with adc_valid_i0 0 times, opposite 500 times
+FAIL  after sync dac_valid_i0 coincides with adc_valid_i0
+PASS  dac_valid_i0 period still 2 l_clk after sync
+PASS  tx frames seen on the pins
+PASS  tx pin word order is i0 q0 i1 q1
+PASS  tx_frame_out high for i0 q0, low for i1 q1
+PASS  all four streams read in the same cycle, fixed phase to dac_valid_i0
+PASS  tx latency constant
+INFO  tx read cycle minus dac_valid_i0 cycle, modulo 2 = 1
+INFO  tx latency: read cycle to last word (q) on pins = 11 l_clk
+PASS  dac_enable_i0 low when data_sel is not DMA
+PASS  data_sel 8: frames seen
+PASS  data_sel 8: rx ch0/1 words reach tx ch0/1
+PASS  data_sel 8: no sample lost or repeated on ch0/1
+INFO  data_sel 8: tx ch2/3 frames all zero 0, carrying rx ch2/3 199, of 199
+INFO  data_sel 8: rx I0 capture cycle to last word on pins = 15 l_clk
+INFO  reg 0x0054 clock monitor = 13099 (expected about 13107)
+PASS  reg 0x0054 = l_clk cycles per 65536 axi clocks, within 0.2%
+INFO  reg 0x005c status with toggling frame = 0x0000000d
+INFO  frame stuck low:  adc_valid_i0 high 100 of 100 cycles, reg 0x005c = 0x0000000c
+INFO  frame stuck high: adc_valid_i0 high 0 of 100 cycles, reg 0x005c = 0x0000000c
+RESULT FAIL FRAME_ALIGN=0 errors=1
+
+INFO  FRAME_ALIGN=1, l_clk period 50 ns
+PASS  adc r1_mode register reads 0
+PASS  dac rate register reads 1
+PASS  adc_r1_mode and dac_r1_mode outputs low
+PASS  adc_enable_* high after channel enable
+PASS  dac_enable_* high with data_sel = 2
+PASS  adc_valid_i0 pulses seen
+PASS  adc_valid_i0 period is exactly 2 l_clk
+PASS  adc_valid_i0, q0, i1, q1 coincide
+PASS  adc_data_* = sign-extended 12-bit words of one sample
+PASS  no rx sample lost or repeated
+PASS  rx latency constant
+PASS  with DC filter off, adc_data_* hold through the non-valid cycle
+INFO  rx latency: I0 capture cycle to adc_valid_i0 = 15 l_clk
+PASS  dac_valid_i0 period is exactly 2 l_clk
+PASS  dac_valid_i0, q0, i1, q1 coincide
+INFO  before any dac sync: dac_valid_i0 coincides with adc_valid_i0 0 times, opposite 399 times
+PASS  adc/dac valid phase constant before sync
+INFO  after dac sync: dac_valid_i0 coincides with adc_valid_i0 0 times, opposite 500 times
+FAIL  after sync dac_valid_i0 coincides with adc_valid_i0
+PASS  dac_valid_i0 period still 2 l_clk after sync
+PASS  tx frames seen on the pins
+PASS  tx pin word order is i0 q0 i1 q1
+PASS  tx_frame_out high for i0 q0, low for i1 q1
+PASS  all four streams read in the same cycle, fixed phase to dac_valid_i0
+PASS  tx latency constant
+INFO  tx read cycle minus dac_valid_i0 cycle, modulo 2 = 1
+INFO  tx latency: read cycle to last word (q) on pins = 11 l_clk
+PASS  dac_enable_i0 low when data_sel is not DMA
+PASS  data_sel 8: frames seen
+PASS  data_sel 8: rx ch0/1 words reach tx ch0/1
+PASS  data_sel 8: no sample lost or repeated on ch0/1
+INFO  data_sel 8: tx ch2/3 frames all zero 0, carrying rx ch2/3 199, of 199
+INFO  data_sel 8: rx I0 capture cycle to last word on pins = 16 l_clk
+INFO  reg 0x0054 clock monitor = 13099 (expected about 13107)
+PASS  reg 0x0054 = l_clk cycles per 65536 axi clocks, within 0.2%
+INFO  reg 0x005c status with toggling frame = 0x0000000d
+INFO  frame stuck low:  adc_valid_i0 high 100 of 100 cycles, reg 0x005c = 0x0000000c
+INFO  frame stuck high: adc_valid_i0 high 0 of 100 cycles, reg 0x005c = 0x0000000c
+RESULT FAIL FRAME_ALIGN=1 errors=1
+

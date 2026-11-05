@@ -298,7 +298,8 @@ pluto-crpa/                       # parent repository (main)
 | `$PY model/gen_vectors.py` | Write RTL test vectors to `model/vectors/` (not committed) |
 | `$PY model/sim_pi.py > results/t3_model.txt` | Performance sweeps of the bit-true path with the PS loop (about 2 min) |
 | `$PY scripts/gps_rx_check.py` | RX-only GPS C/A search on both inputs, at both +delta and -delta; TX_LO down. `PY` needs numpy: see below |
-| `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control. Dry run by default; `--on --tx-gain DB` transmits, `--off` stops. Conducted use only |
+| `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control, conducted use only. `--check` is read-only (under 1 s). Default is a dry run with the TX LO parked at 2400 MHz (about 2 s). `--on --tx-att DB` asks for a typed confirmation, then stays in the foreground with commands `rx`, `tx`, `level`, `status`, `note`, `quit`; logs to `results/t1_<date>-<time>.txt`. `--off` forces the safe state. Other settings: `--delta`, `--fs`, `--bw`, `--rx-gain`, `--log`, `--poll` |
+| `python3 scripts/test_t1_passthrough.py` | Tests of `t1_passthrough.py` against stand-in iio tools, no Pluto and no RF (about 3 min) |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 numpy is not installed in the system Python and this host has no pip or `python3-venv`. Vivado's Python has numpy 2.2.2: `PY=/tools/Xilinx/2025.1/Vivado/tps/lnx64/python-3.13.0/bin/python3`, run with `LD_LIBRARY_PATH` set to its `lib` directory.
@@ -322,10 +323,14 @@ numpy is not installed in the system Python and this host has no pip or `python3
 - [x] Environment recorded in `docs/environment.md` (latest snapshot 2026-11-05: kernel 7.0.0-42, fw `27fb31b`, hdl `387ca1761`)
 - [x] Task 2 from source and simulation: `l_clk` = 2 x fs, valid pattern, bit alignment, TX read cycle, latency, driver `data_sel` behavior (`docs/interface.md`; `results/t2_if_sim.txt`, all checks pass for both frame alignments). No ILA capture needed for Tasks 3-5
 - [x] Task 3: bit-true model, PS weight loop, scenario generator and test vectors (`model/`, `docs/fixed_point.md`, `results/t3_model.txt`). Ideal-model results only; no hardware impairments
+- [x] T1 tooling: `scripts/t1_passthrough.py` rewritten for `docs/t1_passthrough_plan.md`, 46 offline tests pass (`scripts/test_t1_passthrough.py`). On the Pluto: `--check` and the dry run pass, final state read back as safe (`results/t1_dry_run.txt`). `--on` has not been run
 - [x] Task 2 on hardware: `scripts/if_check.py` passes; `l_clk` = 2.000 x fs at 3, 10 and 30.72 MSPS, driver register values as documented (`results/t2_if_check.txt`)
 
 ### 10.2 Open items
-- [ ] T1 not run: needs a GPS signal at RX1 and a receiver on TX1. RX-only check on 2026-11-05 found no GPS on either input (flat spectrum, no PRN). Dry run of `scripts/t1_passthrough.py` passed
+- [ ] T1 not run with RF: the user runs it by hand (procedure in Section 11). RX-only check on 2026-11-05 found no GPS on either input (flat spectrum, no PRN); it was run before the simulator setup
+- [ ] T1 reference: C/N0 with bladeRF -> attenuators -> u-blox, without the Pluto, and the acceptable degradation
+- [ ] RX2 end to end: RX2 -> TX1 does not exist with `data_sel = 8`. RX2 is checked RX-only at T1 and through `crpa_core` at T2 (`docs/interface.md`, Section 4)
+- [ ] Dry run on 2026-11-05 read ch2/3 about 8 dB above ch0/1 (-34 against -42 dBFS at 60 dB gain); the cabling at that time was not recorded. Check with the setup in place
 - [ ] Connector mapping of `i0/q0` and `i1/q1`, and I/Q order at RF (T1, T2)
 - [ ] LO offset Delta and fs (LO leakage and IQ image)
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
@@ -366,8 +371,18 @@ Status: **done** (`docs/fixed_point.md`).
 - PI weight computation (floating point, PS reference).
 - Test vector export for the RTL testbench.
 
+### T1 pass-through tooling and test (`docs/t1_passthrough_plan.md`)
+Status: **tooling done; the RF test is for the user to run.** Setup and rules are in that file. Procedure:
+
+1. Reference: bladeRF -> attenuators -> u-blox without the Pluto; note the C/N0.
+2. With the full setup cabled, run `$PY scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order.
+3. Connector mapping: terminate one splitter leg in 50 ohm and repeat, then swap legs. With both legs connected a swap of the RX ports does not show.
+4. Dry run: `./scripts/t1_passthrough.py`.
+5. Transmit: `./scripts/t1_passthrough.py --on --tx-att DB`, starting with high attenuation. Set `rx` by `level` so that the ADC does not clip, then lower `tx` in steps while watching C/N0 on the other PC. Record it with `note`.
+6. Vary Delta and fs for LO leakage and image. If the script ends with `SAFE STATE NOT CONFIRMED`, or is killed, or USB drops, power-cycle the Pluto.
+
 ### Task 4: crpa_core RTL (`ip/crpa_core/`)
-Next task. Requirements from `docs/interface.md`, Section 8; formats and vectors from `docs/fixed_point.md`.
+Next task, independent of the T1 RF test. Requirements from `docs/interface.md`, Section 8; formats and vectors from `docs/fixed_point.md`.
 
 - Datapath on `l_clk`: weight multiply, sum, round/saturate, covariance accumulators.
 - AXI-Lite on `clk_fpga_0` using `up_axi`; CDC via `up_xfer_cntrl` / `up_xfer_status`.

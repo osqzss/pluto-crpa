@@ -77,6 +77,8 @@ The two alignments behave the same except for that 1 cycle of latency. Which one
 
 **Internal loopback (`data_sel = 8`).** The TX channel has a built-in path from the raw ADC data (`DATA_SEL_LB`). The driver sets it with debugfs `loopback` = 2 (`iio_attr -D ad9361-phy loopback 2`; `ad9361_hdl_loopback`), and `loopback` = 0 restores the previous `data_sel`. With `data_sel = 8` on all TX channels, RX ch0/1 reach TX ch0/1 with no sample lost, and after a sync TX ch2/3 are all zero (Sim). It bypasses the RX format and IQ stages. So **an RX1 -> TX1 pass-through exists in the current firmware, without `crpa_core`**. This allows T1 before Task 5, so the DAC mux of plan Section 6.2 has no pass-through setting.
 
+**RX2 with `data_sel = 8`.** Each TX channel only takes the ADC data of its own index (`axi_ad9361_tx.v`), so **RX2 -> TX1 does not exist**. RX2 -> TX2 depends on the strobe phase, because `axi_ad9361_cmos_if` drives `adc_data[47:24]` to zero in the non-valid cycle. After a sync TX ch2/3 read that zero. With the sync removed from a copy of the testbench, the strobes stay opposite and TX ch2/3 carry RX ch2/3 in 199 of 199 frames, with RX1 -> TX1 still correct (Sim, `results/t1_rx2_nosync_sim.txt`; its one FAIL per alignment is the after-sync phase check, expected without a sync). No way to get that phase on hardware has been confirmed, so do not rely on it. RX2 reaches TX1 through `crpa_core` with weights `[0,1]`.
+
 ## 5. Driver behavior the PS application must handle
 
 | Situation | Effect on TX `data_sel` | Source |
@@ -93,6 +95,7 @@ So the application must write `data_sel = 2` at startup and again after any of t
 
 Other points:
 
+- A powered-down TX LO is not strictly silent. `adi,tx-lo-powerdown-managed-enable` is set on Pluto, so `ad9361_tx_quad_calib` powers the TX LO up for the calibration and then restores it. It runs on every `rf_bandwidth` write and, in auto mode, on a TX retune of more than 100 MHz from the last calibrated frequency (`ad9361.c`, source only, not measured at the port). So any tool that writes bandwidth with the TX LO "down" (`scripts/gps_rx_check.py`, for example) can emit briefly at the current TX LO frequency. The `powerdown` attribute reads the driver's cached state, not the chip.
 - With the DAC mux on `crpa_core` and no TX DMA running, upack keeps reading and underflows. This only sets a sticky status bit.
 - Core registers through debugfs or `iio_reg` need the magic bit: `0x80000000 | offset` on `cf-ad9361-lpc`. Without it the access goes to AD9361 SPI registers (`axiadc_reg_access`).
 
