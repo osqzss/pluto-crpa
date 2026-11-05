@@ -6,3 +6,4 @@ tools/
 __pycache__/
 *.vcd
 *.wdb
+model/vectors/

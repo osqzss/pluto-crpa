@@ -1,0 +1,67 @@
+Common: fs 10 MSPS, delta 3 MHz, C/N0 in 45 dB-Hz, sat -30 deg, jammer 40 deg, offset +200 kHz
+        block 1 ms unless noted; C/N0 in = element 1 with no combining, same samples
+
+A. J/N sweep, noise 30 LSB rms, load = 1 x noise power
+  J/N   clip   sat  null   C/N0in C/N0out  y rms  weights
+ None      0     0   nan    44.9    44.9   30.0  |w1| 1.000 |w2| 0.005
+    0      0     0   3.9    38.4    43.1   37.5  |w1| 1.000 |w2| 0.328
+   10      0     0  17.8    29.7    45.8   42.2  |w1| 1.000 |w2| 0.832
+   20      0     0  37.1    23.1    47.3   42.5  |w1| 1.000 |w2| 0.980
+   30      0     0  57.2    17.7    47.5   42.5  |w1| 1.000 |w2| 0.998
+   35      0     0  67.6    15.1    47.6   42.5  |w1| 1.000 |w2| 0.999
+   40 833480     0  32.8    17.7    32.8  542.3  |w1| 1.000 |w2| 0.974
+
+B. Noise level vs. quantization, J/N 30 dB, load = 1 x noise power
+  noise  clip  null   C/N0in C/N0out
+   2.0      0  56.9    17.7    47.3
+   5.0      0  57.2    17.7    47.5
+  10.0      0  57.2    17.7    47.5
+  16.0      0  57.2    17.7    47.5
+  30.0      0  57.2    17.7    47.5
+  45.0      0  57.2    17.7    47.5
+
+B2. Lower RX gain for more jammer headroom: noise rms vs. largest J/N, load = 1 x noise power
+  noise   J/N  clip  null   C/N0in C/N0out
+  16.0    40      0  78.8    12.5    47.6
+  16.0    45 777339  35.2    17.0    32.5
+   5.0    50      0 103.7     7.5    47.5
+   5.0    55 768000  35.9    16.6    32.0
+   2.0    58      0  97.7     3.6    47.2
+   2.0    62 640000  43.4    15.5    30.9
+   1.0    62      0  99.7     1.2    46.6
+
+C. Diagonal load (x noise power), noise 30 LSB rms
+  load  | no jammer: C/N0out  w        | J/N 10: null C/N0out | J/N 30: null C/N0out
+   0.0  |    44.9  |w1| 1.000 |w2| 0.010 |  23.4    47.0 |  63.5    47.6
+   0.1  |    44.9  |w1| 1.000 |w2| 0.009 |  22.7    46.9 |  62.6    47.6
+   1.0  |    44.9  |w1| 1.000 |w2| 0.005 |  17.8    45.8 |  57.2    47.5
+  10.0  |    44.9  |w1| 1.000 |w2| 0.001 |   6.5    38.2 |  42.3    46.9
+ 100.0  |    44.9  |w1| 1.000 |w2| 0.000 |   0.9    31.1 |  23.4    36.3
+1000.0  |    44.9  |w1| 1.000 |w2| 0.000 |   0.1    29.8 |   7.0    23.6
+
+D. Block length and smoothing, J/N 30 dB, noise 30 LSB rms, load 1
+  N       alpha  null  C/N0out
+    100   0.0  57.1    47.2
+   1000   0.0  57.2    47.5
+  10000   0.0  57.2    47.5
+   1000   0.5  57.2    47.6
+   1000   0.9  57.2    47.6
+  10000   0.9  57.0    47.5
+
+E. Satellite angle, jammer 40 deg, J/N 30 dB: measured vs. theory (signal gain / noise gain)
+  sat   C/N0out  theory
+ -90.0    42.5    42.5
+ -30.0    47.5    47.8
+   0.0    46.3    46.6
+  20.0    40.7    41.2
+  30.0    34.0    35.0
+  35.0    29.0    28.7
+  38.0    29.0    20.6
+  40.0    29.0    -inf
+
+F. Channel 2 mismatch, J/N 30 dB, noise 30 LSB rms, load 1
+  gain dB phase deg  null  C/N0out
+    0.0       0.0  57.2    47.5
+    1.0      10.0  57.7    47.5
+    3.0      77.0  58.6    47.5
+   -6.0    -120.0  53.1    47.4

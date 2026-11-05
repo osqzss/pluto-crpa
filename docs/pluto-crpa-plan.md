@@ -84,11 +84,12 @@ ANT2 -[BiasT/LNA/L1 SAW]- RX2 --+          (PL)    |       +-- TX2 (unused)
 
 ## 5. Signal Processing Design
 
-### 5.1 Data format (to be verified from the hdl source)
-- axi_ad9361 2R2T outputs: `adc_data_i0/q0/i1/q1` (16 bit; 12-bit ADC value, sign-extended or MSB-aligned) with `adc_valid_*`.
-- DAC inputs: `dac_data_i0/q0` (16 bit, upper 12 bits significant) with `dac_valid_*`.
+### 5.1 Data format
+Details and evidence: `docs/interface.md`.
+- axi_ad9361 2R2T outputs: `adc_data_i0/q0/i1/q1`, 12-bit two's complement, sign-extended and LSB-aligned in 16 bits, with `adc_valid_*`.
+- DAC inputs: `dac_data_i0/q0/i1/q1`, 16 bit. The core uses `[15:4]` and truncates `[3:0]`.
+- `l_clk` = 2 x fs for every fs (20 MHz at 10 MSPS, 61.44 MHz at 30.72 MSPS). Valid is high 1 cycle in 2, so there are always 2 `l_clk` cycles per sample.
 - ADC and DAC sides run on the same `l_clk` (constrained as `rx_clk`, 61.44 MHz max), so no CDC is needed in the data path.
-- **Verify before implementing**: ratio of `l_clk` to sample rate in CMOS 2R2T mode, valid pattern, bit alignment. Use the hdl source first, ILA second.
 
 ### 5.2 Combining
 ```
@@ -96,22 +97,23 @@ y[n] = conj(w1) * x1[n] + conj(w2) * x2[n]
 ```
 - Weights w1, w2: complex, Q1.15 (16 bit).
 - Complex multiply: 3-4 DSP48 per channel.
-- Output: round and saturate back to 16 bit; output scale (shift or gain) set by register.
+- Output: round half up once after the sum, saturate to 12 bits, then shift left by 4 for the DAC input. Output gain 2^s by `OUT_SHIFT`, s = 0..15. Hold the output between updates (`docs/interface.md`, Section 4).
+- Unity weight is 0x7FFF, which passes S12 input bit exactly. Widths and rounding: `docs/fixed_point.md`.
 
 ### 5.3 Covariance estimation (PL)
 - Integrate R11 = sum |x1|^2, R22 = sum |x2|^2, R21 = sum x2 * conj(x1) (complex).
-- Integration length N set by register (e.g. 10,000 samples = 1 ms at 10 MSPS). Accumulators ~48 bit.
+- Integration length N set by a 24-bit register, 1..2^24 - 1 (e.g. 10,000 samples = 1 ms at 10 MSPS). Accumulators 48 bit signed; this limit is what rules out overflow.
 - Latch results at the end of integration and set a ready flag for the PS; optional interrupt.
-- Since `l_clk` is much faster than fs, multipliers may be time-shared.
+- `l_clk` is only 2 x fs, so a multiplier can be shared by at most 2 uses per sample. Sharing is not needed: about 16 DSP48 unshared, 52 free.
 
 ### 5.4 Weight computation (PS)
 - Power inversion with constraint w1 = 1 (reference element):
   ```
   w = inv(R) * e1  ~  [R22, -R21]^T
   ```
-  No matrix inversion is needed. Normalize so that |w1| is equivalent to 1.
-- Diagonal loading (R + delta*I) to avoid nulling on noise alone when J/N is low.
-- Update period ~1 ms; IIR smoothing as a parameter.
+  No matrix inversion is needed. Scale so that the larger of |w1|, |w2| is 1: |w2| can exceed |w1| when the jammer is stronger on element 1.
+- Diagonal loading (R + delta*I). Starting value 0.1 x noise power per sample (`docs/fixed_point.md`).
+- Update period ~1 ms; IIR smoothing on R as a parameter, starting at 0.
 - Future options: LMS in the PL (fast-varying jammers), MVDR (after calibration).
 
 ### 5.5 Fixed-point verification
@@ -132,9 +134,10 @@ y[n] = conj(w1) * x1[n] + conj(w2) * x2[n]
 ### 6.2 Integration in the block design
 - Tap the axi_ad9361 ADC outputs into crpa_core in parallel with the existing cpack path.
 - DAC input mux:
-  - 0: existing upack/DMA (normal Pluto operation)
+  - 0: existing upack/DMA (normal Pluto operation); default after reset
   - 1: crpa_core output
-  - 2: RX1 pass-through (test)
+- No pass-through setting in this mux (decided 2026-11-05): the TX channel's `data_sel = 8` already provides RX1 -> TX1 (`docs/interface.md`, Section 4).
+- The mux only takes effect with TX `data_sel = 2`, which the PS has to set (Section 7).
 - Capture mux: raw RX data or combined data.
 
 ### 6.3 Clock domains and CDC
@@ -151,10 +154,10 @@ y[n] = conj(w1) * x1[n] + conj(w2) * x2[n]
 | 0x00 | VERSION | IP version |
 | 0x04 | CTRL | enable, path select, integration start, soft reset |
 | 0x08 | STATUS | integration done, overflow |
-| 0x0C | INT_LEN | integration length N |
+| 0x0C | INT_LEN | integration length N, 24 bits, 1..2^24 - 1 |
 | 0x10 | W1 | {w1_q, w1_i} (Q1.15) |
 | 0x14 | W2 | {w2_q, w2_i} |
-| 0x18 | OUT_SCALE | output shift or gain |
+| 0x18 | OUT_SHIFT | output gain 2^s, s = 0..15 |
 | 0x20- | R11, R22, R21_re, R21_im | integration results (64 bit each, two words) |
 | 0x40- | PEAK / OVF_CNT | saturation counters |
 
@@ -215,6 +218,7 @@ Timing: all constraints met.
 - User-space application on the standard Pluto Linux (plutosdr-fw).
 - Register access: UIO (preferred; add a device tree node) or `/dev/mem`.
 - AD9363 configuration via libiio (`ad9361-phy` attributes): 2R2T, LO, fs, bandwidth, manual gain, TX attenuation.
+- Set TX `data_sel = 2` at startup and after any TX buffer close or DDS attribute write; the driver default is DDS (`docs/interface.md`, Section 5). Refuse to start unless the core is in 2R2T.
 - Weight loop: wait for integration done (interrupt or polling) -> read R -> compute w -> write w.
 - Logging: R, w, output power, saturation counters to CSV (retrieved over USB).
 - Cross-compilation: **use the sysroot from the firmware actually flashed to the Pluto** (the Buildroot staging output of our own master-based build), not the release sysroot.
@@ -234,7 +238,7 @@ Timing: all constraints met.
 |---|---|---|
 | T0 | Reproduce default build, utilization and timing | **Done** (Section 6.5) |
 | T0b | Default design without FIR decimator/interpolator | Builds, timing met; Pluto works at fs >= approx. 2 MSPS. **Done** for the digital data path, 1R1T and 2R2T (`results/t0b_hw_test.md`); RF is covered by T1 |
-| T1 | Pass-through RX1 -> TX1 via PL, with LO offset | COTS receiver gets a fix; C/N0 degradation acceptable |
+| T1 | Pass-through RX1 -> TX1 via PL, with LO offset. Can run on the current firmware with debugfs `loopback` = 2, which sets TX `data_sel = 8` (`docs/interface.md`, Section 4). Also check connector mapping and I/Q order | COTS receiver gets a fix; C/N0 degradation acceptable |
 | T2 | Fixed weights w = [1,0] / [0,1] / [1,1] | Each path received; combining gain as expected |
 | T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune |
 | T4 | Conducted CW jammer into one channel (or both with phase offset); PI enabled | Null depth, C/N0 recovery |
@@ -261,7 +265,10 @@ pluto-crpa/                       # parent repository (main)
 |-- README.md
 |-- docs/
 |   |-- pluto-crpa-plan.md        # this file
+|   |-- setup.md                  # development environment setup
 |   |-- environment.md            # host, Vivado, fw/hdl commits (record_env.sh)
+|   |-- interface.md              # axi_ad9361 data interface (CMOS, 2R2T)
+|   |-- fixed_point.md            # crpa_core widths, rounding, saturation, simulated performance
 |   `-- regmap.md                 # crpa_core register map
 |-- fw/                           # plutosdr-fw fork, branch crpa (based on upstream master)
 |   `-- hdl/                      # ADI hdl fork, branch crpa
@@ -269,7 +276,7 @@ pluto-crpa/                       # parent repository (main)
 |-- model/                        # Python bit-true model, test vector generation
 |-- sw/app/                       # PS application (C)
 |-- sw/dts/                       # device tree fragments
-|-- scripts/                      # setup.sh, build_hdl.sh, report_util.tcl, record_env.sh
+|-- scripts/                      # setup, build, simulation, hardware check and report scripts
 |-- tools/                        # sysroot etc. (git-ignored)
 `-- results/                      # reports and measurement logs
 ```
@@ -286,6 +293,15 @@ pluto-crpa/                       # parent repository (main)
 | `./scripts/build_hdl.sh 2>&1 \| tee results/build_hdl.log` | Build `fw/hdl/projects/pluto` and write `util_placed.rpt`, `util_hier.rpt`, `timing_summary.rpt` to `results/hdl/<date>-<time>_<hdl commit>/` (30-60 min) |
 | `./scripts/record_env.sh >> docs/environment.md` | Append a snapshot of host, Vivado and commit hashes |
 | `./scripts/loopback_test.py [uri]` | Digital loopback check of the FPGA data path over libiio; TX_LO down and maximum attenuation during the test (about 1 min) |
+| `./scripts/sim_ad9361_if.sh [log]` | xsim characterization of the unmodified axi_ad9361 core, both rx frame alignments (about 40 s) |
+| `$PY model/test_model.py` | Checks of the bit-true model (under 1 s) |
+| `$PY model/gen_vectors.py` | Write RTL test vectors to `model/vectors/` (not committed) |
+| `$PY model/sim_pi.py > results/t3_model.txt` | Performance sweeps of the bit-true path with the PS loop (about 2 min) |
+| `$PY scripts/gps_rx_check.py` | RX-only GPS C/A search on both inputs, at both +delta and -delta; TX_LO down. `PY` needs numpy: see below |
+| `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control. Dry run by default; `--on --tx-gain DB` transmits, `--off` stops. Conducted use only |
+| `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
+
+numpy is not installed in the system Python and this host has no pip or `python3-venv`. Vivado's Python has numpy 2.2.2: `PY=/tools/Xilinx/2025.1/Vivado/tps/lnx64/python-3.13.0/bin/python3`, run with `LD_LIBRARY_PATH` set to its `lib` directory.
 
 `build_hdl.sh` wraps `source "$VIVADO_SETTINGS"` in `set +u` / `set -u` because the Vivado settings scripts reference unset variables.
 
@@ -303,13 +319,18 @@ pluto-crpa/                       # parent repository (main)
 
 - [x] T0b build: FIRs removed (hdl `387ca1761`), DSP 72 -> 28, timing met (Section 6.5)
 - [x] T0b hardware: firmware flashed, `/opt/VERSIONS` matches; digital loopback bit-exact in 1R1T and 2R2T, 2.084-30.72 MSPS in 2R2T, with all four streams sample-aligned (`results/t0b_hw_test.md`). Current device setting: `mode=2r2t`, reported as AD9363A
+- [x] Environment recorded in `docs/environment.md` (latest snapshot 2026-11-05: kernel 7.0.0-42, fw `27fb31b`, hdl `387ca1761`)
+- [x] Task 2 from source and simulation: `l_clk` = 2 x fs, valid pattern, bit alignment, TX read cycle, latency, driver `data_sel` behavior (`docs/interface.md`; `results/t2_if_sim.txt`, all checks pass for both frame alignments). No ILA capture needed for Tasks 3-5
+- [x] Task 3: bit-true model, PS weight loop, scenario generator and test vectors (`model/`, `docs/fixed_point.md`, `results/t3_model.txt`). Ideal-model results only; no hardware impairments
+- [x] Task 2 on hardware: `scripts/if_check.py` passes; `l_clk` = 2.000 x fs at 3, 10 and 30.72 MSPS, driver register values as documented (`results/t2_if_check.txt`)
 
 ### 10.2 Open items
-- [ ] Record environment in `docs/environment.md` (`scripts/record_env.sh`)
-- [ ] 2R2T (CMOS) `l_clk` ratio, valid pattern, bit alignment
+- [ ] T1 not run: needs a GPS signal at RX1 and a receiver on TX1. RX-only check on 2026-11-05 found no GPS on either input (flat spectrum, no PRN). Dry run of `scripts/t1_passthrough.py` passed
+- [ ] Connector mapping of `i0/q0` and `i1/q1`, and I/Q order at RF (T1, T2)
 - [ ] LO offset Delta and fs (LO leakage and IQ image)
-- [ ] Output normalization in PL or PS
-- [ ] Diagonal loading delta and smoothing constant
+- [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
+- [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
+- [ ] CTRL semantics for integration in Task 4: the vectors assume consecutive free-running blocks; the draft register map has an "integration start" bit
 - [ ] UIO vs. `/dev/mem`; interrupt vs. polling
 - [ ] Target receiver input level and external attenuation
 - [ ] COTS GNSS receiver to use and how to read C/N0 (NMEA/UBX)
@@ -332,23 +353,29 @@ Status: **done** (Section 6.5, `results/t0b_hw_test.md`). Device tree cleanup mo
 5. Build with `scripts/build_hdl.sh`; compare utilization and timing with T0 and record them in Section 6.5.
 
 ### Task 2: Verify the ADC/DAC interface
+Status: **done**, from source, simulation and hardware (`docs/interface.md`, `results/t2_if_check.txt`). ILA capture not needed; the plan for one is in `docs/interface.md`, Section 7.
+
 - From `library/axi_ad9361/` (CMOS interface, 2R2T), document in `docs/regmap.md` or a new `docs/interface.md`: port names, widths, valid pattern, bit alignment, `l_clk` vs. sample rate.
 - Plan an ILA capture if the source is ambiguous.
 
 ### Task 3: Python bit-true model (`model/`)
+Status: **done** (`docs/fixed_point.md`).
+
 - Signal + noise + CW jammer generator for two elements.
 - Fixed-point combiner and covariance integrator matching Section 5.
 - PI weight computation (floating point, PS reference).
 - Test vector export for the RTL testbench.
 
 ### Task 4: crpa_core RTL (`ip/crpa_core/`)
+Next task. Requirements from `docs/interface.md`, Section 8; formats and vectors from `docs/fixed_point.md`.
+
 - Datapath on `l_clk`: weight multiply, sum, round/saturate, covariance accumulators.
 - AXI-Lite on `clk_fpga_0` using `up_axi`; CDC via `up_xfer_cntrl` / `up_xfer_status`.
 - Testbench in `ip/crpa_core/tb/` comparing against model vectors.
 - IP packaging in ADI library style (`Makefile`, `crpa_core_ip.tcl`).
 
 ### Task 5: Block design integration
-- Add crpa_core to `projects/pluto/system_bd.tcl`, with DAC and capture muxes (Section 6.2).
+- Add crpa_core to `projects/pluto/system_bd.tcl`, with DAC and capture muxes (Section 6.2; two-way DAC mux, no pass-through setting).
 - Build, record utilization and timing.
 
 ### Task 6: PS application and device tree

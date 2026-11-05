@@ -4,7 +4,7 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 Signals from two antennas are weighted and combined in the Zynq PL, then re-transmitted at GPS L1 to a commercial off-the-shelf (COTS) GNSS receiver. Adaptive weights are computed on the Zynq PS using power inversion.
 
-> **Status:** Early development. The default PlutoSDR design builds and has been characterized (T0). Next: FIR removal baseline (T0b). Interfaces and register maps may change.
+> **Status:** Early development. The FIR decimator and interpolator are removed and verified on hardware by digital loopback (T0b), the axi_ad9361 data interface is documented, and the Python bit-true model is done. Next: `crpa_core` RTL and the first RF test (T1). Interfaces and register maps may change.
 
 ## Overview
 
@@ -26,16 +26,18 @@ Signals from two antennas are weighted and combined in the Zynq PL, then re-tran
 | Stage | Description | Status |
 |---|---|---|
 | T0 | Build the default Pluto design; record utilization and timing | Done |
-| T0b | Remove the PL FIR decimator/interpolator to free DSP48 slices (72 -> 28 of 80) | Next |
-| - | Bit-true Python model; `crpa_core` RTL and testbench; integration into the block design | Planned |
-| T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Planned |
+| T0b | Remove the PL FIR decimator/interpolator to free DSP48 slices (72 -> 28 of 80) | Done |
+| - | Verify the axi_ad9361 data interface | Done |
+| - | Bit-true Python model | Done |
+| - | `crpa_core` RTL and testbench; integration into the block design | Next |
+| T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Next: waiting for RF setup |
 | T2 | Fixed weights ([1,0], [0,1], [1,1]); check combining gain | Planned |
 | T3 | Inter-channel amplitude/phase measurement with a common signal | Planned |
 | T4 | Conducted CW jammer; adaptive power inversion; null depth and C/N0 recovery | Planned |
 | T5 | Jammer power sweep; J/S improvement | Planned |
 | T6 | Over-the-air test in a shielded environment (authorized only) | Planned |
 
-Default design resources (XC7Z010, T0): LUT 72%, FF 63%, DSP48 90%, BRAM 3%; all timing constraints met. See [docs/pluto-crpa-plan.md](docs/pluto-crpa-plan.md) for details.
+Design resources without the FIRs (XC7Z010, T0b): LUT 65%, FF 54%, DSP48 35%, BRAM 3%; all timing constraints met. See [docs/pluto-crpa-plan.md](docs/pluto-crpa-plan.md) for details.
 
 ## Hardware
 
@@ -47,12 +49,12 @@ Default design resources (XC7Z010, T0): LUT 72%, FF 63%, DSP48 90%, BRAM 3%; all
 
 ```
 CLAUDE.md  Instructions for Claude Code
-docs/      Development plan, setup guide, environment record, register map
+docs/      Development plan, setup guide, environment record, interface notes, register map
 fw/        plutosdr-fw fork (submodule, branch crpa); fw/hdl is the ADI hdl fork (branch crpa)
 ip/        crpa_core IP (Verilog): rtl/, tb/
 model/     Python bit-true reference model
 sw/        PS application and device tree fragments
-scripts/   Setup, build, report and environment scripts
+scripts/   Setup, build, simulation, hardware check, report and environment scripts
 results/   Utilization/timing reports and measurement logs
 ```
 
@@ -78,6 +80,8 @@ Full firmware build: `cd fw && make` (see `fw/README.md`).
 - [docs/pluto-crpa-plan.md](docs/pluto-crpa-plan.md): design specification, status, task list and work rules
 - [docs/setup.md](docs/setup.md): development environment setup
 - [docs/environment.md](docs/environment.md): recorded host, Vivado and commit versions
+- [docs/interface.md](docs/interface.md): axi_ad9361 data interface (CMOS, 2R2T)
+- [docs/fixed_point.md](docs/fixed_point.md): `crpa_core` fixed-point design and simulated performance
 
 ## Caution
 
