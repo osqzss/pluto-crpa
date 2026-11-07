@@ -85,7 +85,19 @@ One contiguous 1 s capture through the splitter, mixed by +3 MHz, decimated to 2
 - All 11 simulated PRNs are found on both channels at -Delta, with the same Doppler on both. This confirms the I/Q order of Plan Section 4.1 for this unit. The mirrored side was not searched in this run.
 - Doppler against ephemeris shows one common offset of about -5.2 kHz (-3.3 ppm), expected to be the bladeRF to Pluto clock difference. It was about -2.8 kHz on the first unit.
 - The channels agree within 0.5 dB in SNR. ch2/3 is about 0.4 dB lower in signal. The delay difference averages about 0.1 ns over the 11 PRNs, spread within +/-7 ns. Inter-channel phase was not measured.
-- ch0/1 and ch2/3 cannot be mapped to connectors from this run, because both inputs are on the splitter.
+- ch0/1 and ch2/3 cannot be mapped to connectors from this run, because both inputs are on the splitter. See the next section.
+
+## Second-unit findings: connector mapping
+One splitter leg terminated in 50 ohm by the user, the other leg connected, `bladegps` running. Same settings and corrected search as above (one contiguous 1 s capture per case, Doppler -11 to +2 kHz).
+
+| Terminated | Stream | Steady rms (LSB) | -3.000 MHz tone (dB over median) | Simulated PRNs found | Highest PRN not simulated |
+|---|---|---|---|---|---|
+| RX2 | ch0/1 | 17.6 | 21.6 | 11 of 11, ratios 18.6-125.6 | 2.77 |
+| RX2 | ch2/3 | 14.8 | not in top bins | 0 of 11, all 1.29-1.36 | 1.39 |
+| RX1 | ch0/1 | 15.2 | not in top bins | 0 of 11, all 1.29-1.38 | 1.38 |
+| RX1 | ch2/3 | 16.7 | 20.8 | 11 of 11, ratios 16.7-121.0 | 2.74 |
+
+Result: `i0/q0` (ch0/1) follows RX1 and `i1/q1` (ch2/3) follows RX2, confirmed in both directions. The common Doppler offset in these runs is about -4.5 kHz, against about -5.2 kHz earlier in the session.
 
 ## Analysis error corrected
 The first version of the long search applied the code-drift compensation with the wrong sign, doubling the drift. On the second unit it gave ratios up to 18 instead of 120, and false delay differences of up to about 5.6 us on high-Doppler PRNs. The table above is from the corrected search on the same saved capture.
