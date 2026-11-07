@@ -10,7 +10,7 @@ Context
 
 Test setup (conducted only, never radiate)
 -  GPS simulator SDR (bladeRF, gps-sdr-sim)
-    -> fixed attenuator (30 dB) -> 2-way in-phase splitter
+    -> fixed attenuator (40 dB; changed from 30 dB by the user, 2026-11-07) -> 2-way in-phase splitter
     -> RX1 and RX2 of the CRPA Pluto
 -  CRPA Pluto TX1 -> DC block -> 50 dB attenuator -> u-blox M8T (USB)
 -  Pluto is connected to this host.
