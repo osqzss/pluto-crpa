@@ -326,13 +326,16 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] Task 3: bit-true model, PS weight loop, scenario generator and test vectors (`model/`, `docs/fixed_point.md`, `results/t3_model.txt`). Ideal-model results only; no hardware impairments
 - [x] T1 tooling: `scripts/t1_passthrough.py` rewritten for `docs/t1_passthrough_plan.md`, 46 offline tests pass (`scripts/test_t1_passthrough.py`). On the Pluto: `--check` and the dry run pass, final state read back as safe (`results/t1_dry_run.txt`). `--on` has not been run
 - [x] Task 2 on hardware: `scripts/if_check.py` passes; `l_clk` = 2.000 x fs at 3, 10 and 30.72 MSPS, driver register values as documented (`results/t2_if_check.txt`)
+- [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
-- [ ] T1 not run with RF: the user runs it by hand (procedure in Section 11). RX-only check on 2026-11-05 found no GPS on either input (flat spectrum, no PRN); it was run before the simulator setup
+- [ ] T1 pass-through not run with RF: the user runs it by hand (procedure in Section 11). The RX-only step passes on the second Pluto
 - [ ] T1 reference: C/N0 with bladeRF -> attenuators -> u-blox, without the Pluto, and the acceptable degradation
 - [ ] RX2 end to end: RX2 -> TX1 does not exist with `data_sel = 8`. RX2 is checked RX-only at T1 and through `crpa_core` at T2 (`docs/interface.md`, Section 4)
-- [ ] Dry run on 2026-11-05 read ch2/3 about 8 dB above ch0/1 (-34 against -42 dBFS at 60 dB gain); the cabling at that time was not recorded. Check with the setup in place
-- [ ] Connector mapping of `i0/q0` and `i1/q1`, and I/Q order at RF (T1, T2)
+- [ ] First Pluto (serial `1044734c960500110c000900418f4f7ca2`) RX2 fault: location not found (chip, board or RX2 connection). It likely explains the 8 dB difference seen in the dry run on 2026-11-05, which was on this unit
+- [ ] Second Pluto so far tested RX-only, in one session. Inter-channel phase not measured. About 3 dB higher ch0/1 floor at low gain not investigated (`results/t1_rx_unit_compare.md`)
+- [ ] bladeRF carrier at L1 stays after `bladegps` exits, and is also present while it runs. Effect on the C/N0 reference and the T1 result not evaluated. Whether TX is left enabled not determined
+- [ ] Connector mapping of `i0/q0` and `i1/q1` (T1, T2). I/Q order at RF is confirmed as Section 4.1 assumes, signal at -Delta, on both channels of the second Pluto
 - [ ] LO offset Delta and fs (LO leakage and IQ image)
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
@@ -373,10 +376,10 @@ Status: **done** (`docs/fixed_point.md`).
 - Test vector export for the RTL testbench.
 
 ### T1 pass-through tooling and test (`docs/t1_passthrough_plan.md`)
-Status: **tooling done; the RF test is for the user to run.** Setup and rules are in that file. Procedure:
+Status: **tooling done; the RF test is for the user to run.** Setup and rules are in that file. Use the second Pluto, the CRPA unit (`results/t1_rx_unit_compare.md`). After any reboot, check the state first: TX_LO comes up powered on at 2450 MHz. For noise floor or reference measurements, unplug the bladeRF from USB, because stopping `bladegps` does not remove its carrier at L1. Procedure:
 
 1. Reference: bladeRF -> attenuators -> u-blox without the Pluto; note the C/N0.
-2. With the full setup cabled, run `.venv/bin/python scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order.
+2. With the full setup cabled, run `.venv/bin/python scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order. Done on the second Pluto with a longer temporary search, not with this script.
 3. Connector mapping: terminate one splitter leg in 50 ohm and repeat, then swap legs. With both legs connected a swap of the RX ports does not show.
 4. Dry run: `./scripts/t1_passthrough.py`.
 5. Transmit: `./scripts/t1_passthrough.py --on --tx-att DB`, starting with high attenuation. Set `rx` by `level` so that the ADC does not clip, then lower `tx` in steps while watching C/N0 on the other PC. Record it with `note`.

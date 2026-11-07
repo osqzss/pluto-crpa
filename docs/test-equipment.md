@@ -98,6 +98,10 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
   `tx wait`.
 - Select a specific device with `-d "*:serial=<serial>"` if more than one
   bladeRF is ever connected.
+- A carrier at 1575.42 MHz stays on after `bladegps` exits and disappears when
+  the bladeRF is unplugged from USB (2026-11-07,
+  `results/t1_rx_unit_compare.md`). Do not treat a stopped `bladegps` as no RF
+  at L1. Unplug the bladeRF for noise floor measurements.
 
 ---
 
@@ -179,6 +183,16 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
   conflict. If a second Pluto is ever connected, stop and ask the user.
 - See `docs/pluto-crpa-plan.md` (Sections 4, 7, 9.3) and
   `docs/interface.md` for configuration and scripts.
+- Units: second Pluto, serial `1044734c96050011f2ff2100408f4f2ac3`, is the CRPA
+  unit, with matched RX channels. First Pluto, serial
+  `1044734c960500110c000900418f4f7ca2`, has excess noise and bursts on RX2
+  (`results/t1_rx_unit_compare.md`). Connect only one at a time: both use
+  192.168.2.1.
+- After a reboot, TX_LO is powered on at 2450 MHz and the RX settings are back at
+  defaults (LO 2400 MHz, 30.72 MSPS, 71 dB). Check before each run.
+- 2R2T needs only `fw_setenv mode 2r2t`. The chip variant uses `attr_name` and
+  `attr_val`; a variable named `compatible` is not read by U-Boot, and the first
+  Pluto still has that unused setting. Both units run as `ad9363a`.
 
 ---
 
