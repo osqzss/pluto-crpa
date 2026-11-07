@@ -226,6 +226,8 @@ class Base(unittest.TestCase):
         o = open(self.out, "w")
         self.addCleanup(o.close)
         args = list(extra) or ["--tx-att", "60"]
+        if "--min-tx-att" not in args:
+            args += ["--min-tx-att", "0"]
         logargs = ["--log", self.logfile] if log else []
         self.proc = subprocess.Popen(
             [sys.executable, script, "--on", "--poll", "0.2", *logargs, *args],
@@ -368,6 +370,10 @@ class Refusals(Base):
     def test_tx_att_without_on(self):
         self.assert_refused("--tx-att", "30", rc=2)
 
+    def test_on_without_min_tx_att(self):
+        self.assert_refused("--on", "--tx-att", "60", rc=2)
+        self.assertIn("--min-tx-att", self.output())
+
     def test_min_tx_att_without_on(self):
         self.assert_refused("--min-tx-att", "50", rc=2)
 
@@ -421,7 +427,7 @@ class Refusals(Base):
         self.assertIn("cannot check", self.output())
 
     def test_on_needs_terminal(self):
-        self.assert_refused("--on", "--tx-att", "30")
+        self.assert_refused("--on", "--tx-att", "30", "--min-tx-att", "0")
         self.assertIn("interactive", self.output())
 
     def test_wrong_confirmation(self):

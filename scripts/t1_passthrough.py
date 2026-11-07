@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """T1: RX1 -> TX1 pass-through in the PL on the current firmware (TX data_sel = 8).
 
-Conducted or shielded use only: TX1 must go through a DC block and attenuation to the
-GNSS receiver.
+Conducted or shielded use only: TX1 must go through a DC block to the GNSS receiver, with
+at least 50 dB in total between external attenuators and the TX attenuation set here.
 
 Usage: scripts/t1_passthrough.py --check [settings]              read-only checks
        scripts/t1_passthrough.py [settings]                      dry run
-       scripts/t1_passthrough.py --on --tx-att DB [settings]     transmit, interactive
+       scripts/t1_passthrough.py --on --tx-att DB --min-tx-att DB [settings]   transmit
        scripts/t1_passthrough.py --off                           force the safe state
 Settings: --delta HZ --fs HZ --bw HZ --rx-gain DB. Needs iio_attr, iio_reg, iio_readdev.
-With --on, --min-tx-att DB sets a floor for --tx-att and the tx command. Use it when the
-attenuation is inside the Pluto, so that a mistyped value cannot reach the receiver. The
-floor is not a limit on loop gain: it does not depend on the rx command.
+--on needs --min-tx-att DB, a floor for --tx-att and the tx command: 50 minus the external
+attenuation in the TX1 path, so 50 with none. The tool cannot see the external attenuator;
+the operator states it through this value. The floor is not a limit on loop gain: it does
+not depend on the rx command.
 
 Dry run: checks the settings and the Pluto, sets up RX and the path with TX attenuation
 at maximum and the TX LO powered down and parked at 2400 MHz, reads the levels, removes
@@ -424,9 +425,10 @@ class Lines:
 def confirm(args, lines):
     print("About to transmit, at TX attenuation %.2f dB (minimum allowed %.2f dB):\n"
           "  RX LO = TX LO = %d Hz (L1 + %d), fs %d, bandwidth %d, RX gain %d dB\n"
-          "Required: TX1 -> DC block -> attenuator -> receiver, by cable. RX1 and RX2 fed by\n"
-          "cable through attenuators. TX2 and no port connected to an antenna.\n"
-          "Type %s to confirm the setup is conducted with the attenuators in place: "
+          "Required: TX1 -> DC block -> receiver, by cable, with external attenuation plus\n"
+          "the minimum above at least 50 dB. RX1 and RX2 fed by cable through attenuators.\n"
+          "TX2 and no port connected to an antenna.\n"
+          "Type %s to confirm the setup is conducted and meets this: "
           % (args.tx_att, args.min_tx_att, L1 + args.delta, args.delta, args.fs, args.bw, args.rx_gain, CONFIRM),
           end="", flush=True)
     while not lines.eof:
@@ -544,7 +546,8 @@ def main():
     ap.add_argument("--check", action="store_true", help="read-only: checks, settings, levels")
     ap.add_argument("--tx-att", type=float, help="TX1 attenuation in dB; needed with --on")
     ap.add_argument("--min-tx-att", type=float,
-                    help="with --on: refuse TX1 attenuation below this, in dB (default 0)")
+                    help="needed with --on: refuse TX1 attenuation below this, in dB; "
+                         "50 minus the external attenuation in the TX1 path")
     ap.add_argument("--rx-gain", type=int, default=60, help="manual, both channels (default 60)")
     ap.add_argument("--delta", type=int, default=3000000, help="LO = L1 + delta, Hz (default 3 MHz)")
     ap.add_argument("--fs", type=int, default=10000000, help="sample rate, Hz (default 10 MSPS)")
@@ -556,6 +559,8 @@ def main():
         ap.error("--on, --off and --check exclude each other")
     if args.on and args.tx_att is None:
         ap.error("--on needs an explicit --tx-att")
+    if args.on and args.min_tx_att is None:
+        ap.error("--on needs an explicit --min-tx-att: 50 minus the external TX1 attenuation")
     if not args.on and args.tx_att is not None:
         ap.error("--tx-att is only used with --on")
     if not args.on and args.min_tx_att is not None:

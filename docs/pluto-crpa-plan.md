@@ -57,7 +57,7 @@ ANT2 -[BiasT/LNA/L1 SAW]- RX2 --+          (PL)    |       +-- TX2 (unused)
 | Antenna spacing | lambda/2 = approx. 9.5 cm (L1 wavelength approx. 19.03 cm) |
 | Antenna power | Pluto provides no bias voltage; use external bias tees for active antennas |
 | RF front end | External LNA and L1 SAW filter as needed (avoid saturation from strong out-of-band signals) |
-| TX to receiver | **Always insert a DC block** (the receiver supplies antenna bias). Add fixed attenuation to set a proper receiver input level |
+| TX to receiver | **Always insert a DC block** (the receiver supplies antenna bias). Set the receiver input level with TX attenuation: at least 50 dB in total with any external attenuator (`docs/test-equipment.md`, Section 2) |
 | Calibration | 2-way in-phase splitter, variable attenuator, CW source, combiner for jammer injection |
 
 ---
@@ -72,7 +72,7 @@ ANT2 -[BiasT/LNA/L1 SAW]- RX2 --+          (PL)    |       +-- TX2 (unused)
 
 ### 4.2 Gain control
 - **RX gain: manual mode, identical value on both channels.** Independent per-channel AGC would break the inter-channel amplitude ratio that the weights rely on.
-- TX attenuation together with external attenuators sets the receiver input level.
+- TX attenuation sets the receiver input level, together with any external attenuators. Prefer attenuation inside the Pluto: at 0 dB TX attenuation and 60 dB RX gain, TX-to-RX coupling raises RX1 by 1.3 dB (`results/t1_passthrough.md`).
 - The combined output power varies strongly with nulling; normalize it (AGC) in the PL or PS.
 
 ### 4.3 Other
@@ -299,7 +299,7 @@ pluto-crpa/                       # parent repository (main)
 | `.venv/bin/python model/gen_vectors.py` | Write RTL test vectors to `model/vectors/` (not committed) |
 | `.venv/bin/python model/sim_pi.py > results/t3_model.txt` | Performance sweeps of the bit-true path with the PS loop (about 15 s) |
 | `.venv/bin/python scripts/gps_rx_check.py` | RX-only GPS C/A search on both inputs, at both +delta and -delta; TX_LO down. |
-| `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control, conducted use only. `--check` is read-only (under 1 s). Default is a dry run with the TX LO parked at 2400 MHz (about 2 s). `--on --tx-att DB` asks for a typed confirmation, then stays in the foreground with commands `rx`, `tx`, `level`, `status`, `note`, `quit`; logs to `results/t1_<date>-<time>.txt`. `--off` forces the safe state. `--min-tx-att DB` (with `--on`) refuses a lower `--tx-att` or `tx`. Other settings: `--delta`, `--fs`, `--bw`, `--rx-gain`, `--log`, `--poll` |
+| `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control, conducted use only. `--check` is read-only (under 1 s). Default is a dry run with the TX LO parked at 2400 MHz (about 2 s). `--on --tx-att DB` asks for a typed confirmation, then stays in the foreground with commands `rx`, `tx`, `level`, `status`, `note`, `quit`; logs to `results/t1_<date>-<time>.txt`. `--off` forces the safe state. `--min-tx-att DB` (required with `--on`, 50 minus the external TX1 attenuation) refuses a lower `--tx-att` or `tx`. Other settings: `--delta`, `--fs`, `--bw`, `--rx-gain`, `--log`, `--poll` |
 | `python3 scripts/test_t1_passthrough.py` | Tests of `t1_passthrough.py` against stand-in iio tools, no Pluto and no RF (about 3 min) |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
@@ -328,10 +328,11 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] Task 2 on hardware: `scripts/if_check.py` passes; `l_clk` = 2.000 x fs at 3, 10 and 30.72 MSPS, driver register values as documented (`results/t2_if_check.txt`)
 - [x] Connector mapping and I/Q order at RF on the second Pluto: `i0/q0` = RX1 and `i1/q1` = RX2, by terminating each splitter leg in turn; signal at -Delta on both channels, as Section 4.1 assumes (`results/t1_rx_unit_compare.md`)
 - [x] T1 reference: bladeRF -> 40 dB -> DC block -> u-blox without the Pluto, mean C/N0 45.1 dB-Hz over 11 PRNs, carrier left in (`results/t1_reference.md`). Acceptable degradation through the pass-through, set by the user: 3-5 dB per comparison with this table
+- [x] T1 RX1 -> TX1 pass-through with RF on the second Pluto (`results/t1_passthrough.md`): 3D fix with 11 satellites. C/N0 against the reference: -2.9 dB mean with TX1 attenuation 50 dB and no external attenuator; -3.8 dB mean with 0 dB and 50 dB external. Both within the 3-5 dB limit. At 0 dB attenuation RX1 rises 1.3 dB, so keep TX attenuation inside the Pluto
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
-- [ ] T1 pass-through not run with RF: the user runs it by hand (procedure in Section 11). The RX-only step passes on the second Pluto
+- [ ] T1 remaining: vary Delta and fs for LO leakage and image (Section 11, step 6).
 - [ ] RX2 end to end: RX2 -> TX1 does not exist with `data_sel = 8`. RX2 is checked RX-only at T1 and through `crpa_core` at T2 (`docs/interface.md`, Section 4)
 - [ ] First Pluto (serial `1044734c960500110c000900418f4f7ca2`) RX2 fault: location not found (chip, board or RX2 connection). It likely explains the 8 dB difference seen in the dry run on 2026-11-05, which was on this unit
 - [ ] Second Pluto so far tested RX-only, in one session. Inter-channel phase not measured. About 3 dB higher ch0/1 floor at low gain not investigated (`results/t1_rx_unit_compare.md`)
@@ -382,7 +383,7 @@ Status: **tooling done; the RF test is for the user to run.** Setup and rules ar
 2. With the full setup cabled, run `.venv/bin/python scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order. Done on the second Pluto with a longer temporary search, not with this script.
 3. Connector mapping: terminate one splitter leg in 50 ohm and repeat, then swap legs. With both legs connected a swap of the RX ports does not show. Done on the second Pluto: `i0/q0` = RX1, `i1/q1` = RX2.
 4. Dry run: `./scripts/t1_passthrough.py`.
-5. Transmit: `./scripts/t1_passthrough.py --on --tx-att DB`, starting with high attenuation. Set `rx` by `level` so that the ADC does not clip, then lower `tx` in steps while watching C/N0 on the other PC. Record it with `note`.
+5. Transmit, no external attenuator: `./scripts/t1_passthrough.py --on --tx-att 80 --min-tx-att 50`, starting with high attenuation. Set `rx` by `level` so that the ADC does not clip, then lower `tx` in steps while watching C/N0 on the other PC. Record it with `note`.
 6. Vary Delta and fs for LO leakage and image. If the script ends with `SAFE STATE NOT CONFIRMED`, or is killed, or USB drops, power-cycle the Pluto.
 
 ### Task 4: crpa_core RTL (`ip/crpa_core/`)

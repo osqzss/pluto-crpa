@@ -12,7 +12,9 @@ Test setup (conducted only, never radiate)
 -  GPS simulator SDR (bladeRF, gps-sdr-sim)
     -> fixed attenuator (40 dB; changed from 30 dB by the user, 2026-11-07) -> 2-way in-phase splitter
     -> RX1 and RX2 of the CRPA Pluto
--  CRPA Pluto TX1 -> DC block -> 50 dB attenuator -> u-blox M8T (USB)
+-  CRPA Pluto TX1 -> DC block -> u-blox M8T (USB), with TX attenuation 50 dB in the
+    Pluto (changed from a 50 dB external attenuator by the user, 2026-11-07,
+    `results/t1_passthrough.md`). External plus TX attenuation at least 50 dB.
 -  Pluto is connected to this host.
 -  The other devices are connected another PC controlled by the user.
 
@@ -31,7 +33,8 @@ Requirements
 Safety
 - Dry run by default. Transmission (Pluto) only with an
   explicit --on flag, and only after an interactive prompt where I
-  confirm the setup is conducted (cabled) with attenuators in place.
+  confirm the setup is conducted (cabled) with at least 50 dB of external plus
+  TX attenuation. --on needs --min-tx-att, 50 minus the external attenuation.
 - On exit, Ctrl-C or any error: disable pass-through, set TX LO away 
   and TX attenuation to maximum.
 - Refuse to run if the Pluto is not in 2R2T or the settings look

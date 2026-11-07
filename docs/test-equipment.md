@@ -28,7 +28,7 @@ Test setup for T1 (conducted only):
 
 ```
 bladeRF or B205mini TX -> fixed attenuator -> 2-way splitter -> Pluto RX1, RX2
-Pluto TX1 -> DC block -> 50 dB attenuator -> u-blox M8T
+Pluto TX1 -> DC block -> u-blox M8T, with TX attenuation 50 dB set in the Pluto
 Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
 ```
 
@@ -38,7 +38,16 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
 
 - **Conducted or shielded tests only. Never radiate GPS signals.** Every TX
   output (bladeRF, B205mini, Pluto) must be cabled to its load through
-  attenuators.
+  attenuators. Exception, Pluto TX1 only: the attenuation may be inside the
+  Pluto. A DC block is always required, and external attenuation plus TX
+  attenuation must stay at 50 dB or more. `t1_passthrough.py --on` enforces this
+  with `--min-tx-att`, which is required: 50 minus the external attenuation, so
+  50 with none. The script cannot see the external attenuator, so the value is
+  the operator's statement of the cabling.
+- Keep TX attenuation inside the Pluto where possible. At TX attenuation 0 dB and
+  RX gain 60 dB, RX1 rises 1.3 dB through TX-to-RX coupling, an estimated loop
+  gain of -6 dB (`results/t1_passthrough.md`). Do not raise RX gain at low TX
+  attenuation.
 - **Claude Code must not start any transmission on its own.** Before starting
   the simulator TX or enabling Pluto TX, ask the user to confirm in the
   session that the setup is cabled and the attenuators are in place. One
