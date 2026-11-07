@@ -2,6 +2,7 @@ tools/
 *.jou
 *.log
 *.str
+*.ubx
 .Xil/
 __pycache__/
 *.vcd

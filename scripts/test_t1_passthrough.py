@@ -283,6 +283,14 @@ class Settings(unittest.TestCase):
                    dict(tx_att=-1), dict(tx_att=90), dict(tx_att=10.1)):
             self.assertTrue(self.ok(**kw), kw)
 
+    def test_min_tx_att(self):
+        self.assertEqual(self.ok(tx_att=50, min_tx_att=50), [])
+        self.assertEqual(self.ok(tx_att=80, min_tx_att=50), [])
+        for kw in (dict(tx_att=49.75, min_tx_att=50), dict(tx_att=0, min_tx_att=50),
+                   dict(min_tx_att=-1), dict(min_tx_att=90), dict(min_tx_att=10.1),
+                   dict(min_tx_att=float("nan"))):
+            self.assertTrue(self.ok(**kw), kw)
+
 
 class Dry(Base):
     def test_dry_run_keeps_tx_away_from_l1(self):
@@ -359,6 +367,17 @@ class Refusals(Base):
 
     def test_tx_att_without_on(self):
         self.assert_refused("--tx-att", "30", rc=2)
+
+    def test_min_tx_att_without_on(self):
+        self.assert_refused("--min-tx-att", "50", rc=2)
+
+    def test_tx_att_below_min_refused(self):
+        self.assert_refused("--on", "--tx-att", "49.75", "--min-tx-att", "50")
+        self.assertIn("below the minimum", self.output())
+
+    def test_bad_min_tx_att_refused(self):
+        self.assert_refused("--on", "--tx-att", "60", "--min-tx-att", "90")
+        self.assertIn("--min-tx-att", self.output())
 
     def test_on_and_off(self):
         self.assert_refused("--on", "--off", "--tx-att", "30", rc=2)
@@ -483,6 +502,24 @@ class On(Base):
         self.assertEqual(self.state(), before)
         self.send("q")
         self.assertEqual(self.proc.wait(60), 0)
+
+    def test_min_tx_att_floor(self):
+        self.start_on("--tx-att", "80", "--min-tx-att", "50")
+        self.wait_output("min_tx_att 50.00")
+        before = self.state()
+        for cmd in ("tx 49.75", "tx 0"):
+            self.send(cmd)
+            self.wait_output("below the minimum")
+        self.send("note after")
+        self.wait_output("NOTE after")
+        self.assertIsNone(self.proc.poll())
+        self.assertEqual(self.state(), before)
+        self.send("tx 50")
+        self.wait_output("TX1 attenuation 50.00")
+        self.assertEqual(self.state()["-o.voltage0.hardwaregain"], "-50.000000 dB")
+        self.send("quit")
+        self.assertEqual(self.proc.wait(60), 0, self.output())
+        self.assert_safe()
 
     def test_signals_end_safe(self):
         for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT):

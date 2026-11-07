@@ -9,6 +9,9 @@ Usage: scripts/t1_passthrough.py --check [settings]              read-only check
        scripts/t1_passthrough.py --on --tx-att DB [settings]     transmit, interactive
        scripts/t1_passthrough.py --off                           force the safe state
 Settings: --delta HZ --fs HZ --bw HZ --rx-gain DB. Needs iio_attr, iio_reg, iio_readdev.
+With --on, --min-tx-att DB sets a floor for --tx-att and the tx command. Use it when the
+attenuation is inside the Pluto, so that a mistyped value cannot reach the receiver. The
+floor is not a limit on loop gain: it does not depend on the rx command.
 
 Dry run: checks the settings and the Pluto, sets up RX and the path with TX attenuation
 at maximum and the TX LO powered down and parked at 2400 MHz, reads the levels, removes
@@ -124,15 +127,17 @@ def avail_range(text):
     return lo, step, hi
 
 
-def check_tx_att(att):
+def check_tx_att(att, min_att=0.0):
     if not 0 <= att <= TX_MAX_ATT:
         return "TX attenuation %g dB is outside 0 to %g" % (att, TX_MAX_ATT)
     if abs(att * 4 - round(att * 4)) > 1e-9:
         return "TX attenuation %g dB is not a multiple of 0.25" % att
+    if att < min_att:
+        return "TX attenuation %g dB is below the minimum of %g dB" % (att, min_att)
     return None
 
 
-def check_settings(delta, fs, bw, tx_att=None):
+def check_settings(delta, fs, bw, tx_att=None, min_tx_att=0.0):
     """Consistency of the settings, without the Pluto. Returns a list of problems."""
     out = []
     if abs(delta) < CA_HALF_BW + LO_GUARD:
@@ -149,8 +154,11 @@ def check_settings(delta, fs, bw, tx_att=None):
         out.append("signal edge at %d Hz is outside the bandwidth, +/-%d Hz" % (edge, bw // 2))
     if edge * 2 > fs:
         out.append("signal edge at %d Hz is outside fs/2 = %d Hz" % (edge, fs // 2))
-    if tx_att is not None:
-        problem = check_tx_att(tx_att)
+    problem = check_tx_att(min_tx_att)
+    if problem:
+        out.append("--min-tx-att: " + problem)
+    elif tx_att is not None:
+        problem = check_tx_att(tx_att, min_tx_att)
         if problem:
             out.append(problem)
     return out
@@ -414,12 +422,12 @@ class Lines:
 
 
 def confirm(args, lines):
-    print("About to transmit, at TX attenuation %.2f dB:\n"
+    print("About to transmit, at TX attenuation %.2f dB (minimum allowed %.2f dB):\n"
           "  RX LO = TX LO = %d Hz (L1 + %d), fs %d, bandwidth %d, RX gain %d dB\n"
           "Required: TX1 -> DC block -> attenuator -> receiver, by cable. RX1 and RX2 fed by\n"
           "cable through attenuators. TX2 and no port connected to an antenna.\n"
           "Type %s to confirm the setup is conducted with the attenuators in place: "
-          % (args.tx_att, L1 + args.delta, args.delta, args.fs, args.bw, args.rx_gain, CONFIRM),
+          % (args.tx_att, args.min_tx_att, L1 + args.delta, args.delta, args.fs, args.bw, args.rx_gain, CONFIRM),
           end="", flush=True)
     while not lines.eof:
         line = lines.get(None)
@@ -430,7 +438,7 @@ def confirm(args, lines):
 
 HELP = """Commands:
   rx DB      RX gain on both channels (manual)
-  tx DB      TX1 attenuation, 0 to 89.75 in 0.25 steps
+  tx DB      TX1 attenuation, up to 89.75 in 0.25 steps, not below --min-tx-att
   level      ADC level and clipping, from one block of samples
   status     all settings
   note TEXT  add a line to the log, e.g. the receiver C/N0
@@ -483,7 +491,7 @@ def command(p, args, line, rx_range):
         except ValueError:
             print("tx needs a number of dB", flush=True)
             return True
-        problem = check_tx_att(att)
+        problem = check_tx_att(att, args.min_tx_att)
         if problem:
             print(problem, flush=True)
             return True
@@ -535,6 +543,8 @@ def main():
     ap.add_argument("--off", action="store_true", help="force the safe state")
     ap.add_argument("--check", action="store_true", help="read-only: checks, settings, levels")
     ap.add_argument("--tx-att", type=float, help="TX1 attenuation in dB; needed with --on")
+    ap.add_argument("--min-tx-att", type=float,
+                    help="with --on: refuse TX1 attenuation below this, in dB (default 0)")
     ap.add_argument("--rx-gain", type=int, default=60, help="manual, both channels (default 60)")
     ap.add_argument("--delta", type=int, default=3000000, help="LO = L1 + delta, Hz (default 3 MHz)")
     ap.add_argument("--fs", type=int, default=10000000, help="sample rate, Hz (default 10 MSPS)")
@@ -548,6 +558,10 @@ def main():
         ap.error("--on needs an explicit --tx-att")
     if not args.on and args.tx_att is not None:
         ap.error("--tx-att is only used with --on")
+    if not args.on and args.min_tx_att is not None:
+        ap.error("--min-tx-att is only used with --on")
+    if args.min_tx_att is None:
+        args.min_tx_att = 0.0
 
     p = Pluto(args.uri)
     set_signals(on_signal)
@@ -558,7 +572,7 @@ def main():
         set_signals(signal.SIG_IGN)
         return finish(p, safe_state(p), 0)
 
-    problems = check_settings(args.delta, args.fs, args.bw, args.tx_att)
+    problems = check_settings(args.delta, args.fs, args.bw, args.tx_att, args.min_tx_att)
     try:
         problems = problems or precheck(p, args.rx_gain, args.delta)
     except Exception as e:
@@ -597,9 +611,9 @@ def main():
         if not args.log:
             root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             LOG.open(os.path.join(root, "results", "t1_%s.txt" % time.strftime("%Y%m%d-%H%M%S")))
-        LOG.say("settings: delta %d fs %d bw %d rx_gain %d tx_att %.2f uri %s; "
+        LOG.say("settings: delta %d fs %d bw %d rx_gain %d tx_att %.2f min_tx_att %.2f uri %s; "
                 "confirmed conducted setup" % (args.delta, args.fs, args.bw, args.rx_gain,
-                                               args.tx_att, args.uri))
+                                               args.tx_att, args.min_tx_att, args.uri))
 
     rc = 0
     failed = []
