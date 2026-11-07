@@ -4,7 +4,7 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 Signals from two antennas are weighted and combined in the Zynq PL, then re-transmitted at GPS L1 to a commercial off-the-shelf (COTS) GNSS receiver. Adaptive weights are computed on the Zynq PS using power inversion.
 
-> **Status:** Early development. The FIR decimator and interpolator are removed and verified on hardware by digital loopback (T0b), the axi_ad9361 data interface is documented, and the Python bit-true model is done. Next: `crpa_core` RTL and the first RF test (T1). Interfaces and register maps may change.
+> **Status:** Early development. The FIR decimator and interpolator are removed and verified on hardware by digital loopback (T0b), the axi_ad9361 data interface is documented, and the Python bit-true model is done. The first RF test (T1) passes: through the RX1 -> TX1 pass-through, a COTS receiver gets a 3D fix on a conducted GPS simulator signal, with C/N0 about 3 dB below the direct reference. Next: the LO offset and sample rate sweep (T1), then `crpa_core` RTL. Interfaces and register maps may change.
 
 ## Overview
 
@@ -29,8 +29,8 @@ Signals from two antennas are weighted and combined in the Zynq PL, then re-tran
 | T0b | Remove the PL FIR decimator/interpolator to free DSP48 slices (72 -> 28 of 80) | Done |
 | - | Verify the axi_ad9361 data interface | Done |
 | - | Bit-true Python model | Done |
-| - | `crpa_core` RTL and testbench; integration into the block design | Next |
-| T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Next: waiting for RF setup |
+| T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Fix and C/N0 done; next: vary LO offset and sample rate |
+| - | `crpa_core` RTL and testbench; integration into the block design | Planned |
 | T2 | Fixed weights ([1,0], [0,1], [1,1]); check combining gain | Planned |
 | T3 | Inter-channel amplitude/phase measurement with a common signal | Planned |
 | T4 | Conducted CW jammer; adaptive power inversion; null depth and C/N0 recovery | Planned |
@@ -43,7 +43,7 @@ Design resources without the FIRs (XC7Z010, T0b): LUT 65%, FF 54%, DSP48 35%, BR
 
 - ADALM-PLUTO **Rev C/D** (second RX/TX channel on u.FL), 2R2T mode
 - Two L1 antennas spaced about lambda/2 (approx. 9.5 cm), with bias tees / LNAs as needed
-- DC block and attenuator between Pluto TX and the GNSS receiver
+- DC block between Pluto TX and the GNSS receiver, with at least 50 dB of Pluto TX attenuation plus any external attenuation
 
 ## Repository Layout
 
@@ -82,6 +82,7 @@ Full firmware build: `cd fw && make` (see `fw/README.md`).
 - [docs/environment.md](docs/environment.md): recorded host, Vivado and commit versions
 - [docs/interface.md](docs/interface.md): axi_ad9361 data interface (CMOS, 2R2T)
 - [docs/fixed_point.md](docs/fixed_point.md): `crpa_core` fixed-point design and simulated performance
+- [docs/test-equipment.md](docs/test-equipment.md): GNSS test equipment, host tools and test safety rules
 
 ## Caution
 

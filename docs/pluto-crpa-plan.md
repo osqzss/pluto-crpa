@@ -324,7 +324,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] Environment recorded in `docs/environment.md` (latest snapshot 2026-11-05: kernel 7.0.0-42, fw `27fb31b`, hdl `387ca1761`)
 - [x] Task 2 from source and simulation: `l_clk` = 2 x fs, valid pattern, bit alignment, TX read cycle, latency, driver `data_sel` behavior (`docs/interface.md`; `results/t2_if_sim.txt`, all checks pass for both frame alignments). No ILA capture needed for Tasks 3-5
 - [x] Task 3: bit-true model, PS weight loop, scenario generator and test vectors (`model/`, `docs/fixed_point.md`, `results/t3_model.txt`). Ideal-model results only; no hardware impairments
-- [x] T1 tooling: `scripts/t1_passthrough.py` rewritten for `docs/t1_passthrough_plan.md`, 46 offline tests pass (`scripts/test_t1_passthrough.py`). On the Pluto: `--check` and the dry run pass, final state read back as safe (`results/t1_dry_run.txt`). `--on` has not been run
+- [x] T1 tooling: `scripts/t1_passthrough.py` rewritten for `docs/t1_passthrough_plan.md`, 52 offline tests pass (`scripts/test_t1_passthrough.py`, count updated 2026-11-07). On the Pluto: `--check` and the dry run pass, final state read back as safe (`results/t1_dry_run.txt`). `--on` has not been run
 - [x] Task 2 on hardware: `scripts/if_check.py` passes; `l_clk` = 2.000 x fs at 3, 10 and 30.72 MSPS, driver register values as documented (`results/t2_if_check.txt`)
 - [x] Connector mapping and I/Q order at RF on the second Pluto: `i0/q0` = RX1 and `i1/q1` = RX2, by terminating each splitter leg in turn; signal at -Delta on both channels, as Section 4.1 assumes (`results/t1_rx_unit_compare.md`)
 - [x] T1 reference: bladeRF -> 40 dB -> DC block -> u-blox without the Pluto, mean C/N0 45.1 dB-Hz over 11 PRNs, carrier left in (`results/t1_reference.md`). Acceptable degradation through the pass-through, set by the user: 3-5 dB per comparison with this table
@@ -377,7 +377,7 @@ Status: **done** (`docs/fixed_point.md`).
 - Test vector export for the RTL testbench.
 
 ### T1 pass-through tooling and test (`docs/t1_passthrough_plan.md`)
-Status: **tooling done; the RF test is for the user to run.** Setup and rules are in that file. Use the second Pluto, the CRPA unit (`results/t1_rx_unit_compare.md`). After any reboot, check the state first: TX_LO comes up powered on at 2450 MHz. For noise floor or reference measurements, unplug the bladeRF from USB, because stopping `bladegps` does not remove its carrier at L1. Procedure:
+Status: **tooling done; steps 1-5 done with RF on 2026-11-07 (`results/t1_passthrough.md`); next is step 6.** Setup and rules are in that file. Use the second Pluto, the CRPA unit (`results/t1_rx_unit_compare.md`). After any reboot, check the state first: TX_LO comes up powered on at 2450 MHz. For noise floor or reference measurements, unplug the bladeRF from USB, because stopping `bladegps` does not remove its carrier at L1. Procedure:
 
 1. Reference: bladeRF -> attenuators -> u-blox without the Pluto; note the C/N0. Done (`results/t1_reference.md`).
 2. With the full setup cabled, run `.venv/bin/python scripts/gps_rx_check.py`. PRNs should appear on both inputs at -Delta, which also shows the I/Q order. Done on the second Pluto with a longer temporary search, not with this script.
