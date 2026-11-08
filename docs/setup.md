@@ -495,6 +495,7 @@ make 2>&1 | tee ../results/fw_build.log
 
 - The first build takes several hours and needs tens of GB of disk space.
 - If the build stops (e.g. a missing package), install what is missing and run `make` again in `fw/`. Completed parts (toolchain, Buildroot packages) are reused.
+- **After an HDL change, delete `build/system_top.xsa` before `make`.** The rule for it in `fw/Makefile` has only an order-only prerequisite, so an existing copy is never refreshed and the old bitstream is packaged without any warning. With it deleted, `make` runs the hdl project build (quick if `scripts/build_hdl.sh` is up to date), copies the new `.xsa` and regenerates `system_top.bit` and the FSBL. Check with `cmp build/system_top.xsa hdl/projects/pluto/pluto.sdk/system_top.xsa`. Found in Task 5 (2026-11-08); a rebuild then takes about 3 minutes.
 - `results/fw_build.log` is git-ignored (`*.log`).
 - `fw/build/` is ignored by the fw repository; build outputs are never committed to the parent.
 
