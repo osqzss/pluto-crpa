@@ -183,6 +183,30 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
   NAV-CLOCK, which are not in the gpsd JSON.
 - Cold start: `ubxtool -p COLDBOOT -w 20 -v 2`. Do this before every run.
 
+### 6.4 Disconnecting the receiver
+- `gpspipe` and `ubxtool` start gpsd through `gpsd.socket` (socket
+  activation), so gpsd keeps running and holds the serial port after a
+  session, even with no client. On 2026-11-08 both `gpsd` and `gpsd.socket` were
+  `disabled` (not started at boot) but active after use.
+- Before unplugging, stop any logger (`gpspipe -R` writing a `.ubx` file), so
+  the log ends cleanly: `pgrep -a gpspipe`, then `kill <pid>`.
+- Unplugging with gpsd running is safe: gpsd drops the device when it
+  disappears and nothing is written to the receiver. To release the port
+  completely, stop both units, or socket activation starts gpsd again on the
+  next client:
+  ```
+  sudo systemctl stop gpsd.socket gpsd
+  systemctl is-active gpsd gpsd.socket       # both: inactive
+  sudo fuser -v /dev/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00   # no users
+  ```
+- The receiver configuration is saved in the module (Section 6.2), so nothing
+  needs saving before power-off.
+- After reconnecting: check the by-id path (`ls -l /dev/serial/by-id/`), then
+  `sudo systemctl start gpsd.socket`; the next `gpspipe` or `ubxtool` call
+  starts gpsd. Cold start before the next run (Section 6.3).
+- A GUI client on the serial port (PyGPSClient, u-center) needs gpsd stopped
+  as above; ask the user before restarting gpsd (Section 6.1).
+
 ---
 
 ## 7. PlutoSDR (device under test)
