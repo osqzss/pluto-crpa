@@ -1,0 +1,21 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.1 (lin64) Build 6140274 Wed May 21 22:58:25 MDT 2025
+| Date         : Sun Nov  8 12:10:10 2026
+| Host         : hp running 64-bit Ubuntu 24.04.4 LTS
+| Command      : report_cdc -file /home/sdr/Work/pluto-crpa/results/hdl/20261108-1209_crpa_core_ooc/cdc.rpt
+| Design       : crpa_core
+| Device       : 7z010-clg225
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+Severity  Source Clock      Destination Clock  CDC Type                 Exceptions  Endpoints  Safe  Unsafe  Unknown  No ASYNC_REG  
+--------  ----------------  -----------------  -----------------------  ----------  ---------  ----  ------  -------  ------------  
+Warning   input port clock  l_clk              No Common Primary Clock  False Path          1     1       0        0             0  
+Warning   s_axi_aclk        l_clk              No Common Primary Clock  False Path        102   102       0        0             0  
+Warning   l_clk             s_axi_aclk         No Common Primary Clock  False Path        262   262       0        0             0  
+Info      input port clock  s_axi_aclk         No Common Primary Clock  False Path          1     1       0        0             0  
+

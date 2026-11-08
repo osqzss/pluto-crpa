@@ -1,0 +1,10 @@
+PASS model/vectors/unity gap 0: 2000 samples, 3 sets, 4 blocks (int_len 500)
+PASS model/vectors/unity gap 3: 2000 samples, 3 sets, 4 blocks (int_len 500)
+PASS model/vectors/corners gap 0: 100000 samples, 160 sets, 160 blocks (int_len 625)
+PASS model/vectors/corners gap 3: 100000 samples, 160 sets, 160 blocks (int_len 625)
+PASS model/vectors/random gap 0: 20000 samples, 200 sets, 25 blocks (int_len 777)
+PASS model/vectors/random gap 3: 20000 samples, 200 sets, 25 blocks (int_len 777)
+PASS model/vectors/cw_loop gap 0: 20000 samples, 10 sets, 10 blocks (int_len 2000)
+PASS model/vectors/cw_loop gap 3: 20000 samples, 10 sets, 10 blocks (int_len 2000)
+PASS core l_clk 16.276 ns: 6000 samples, 5 weight switches seen, 20 blocks read, 0 missed
+PASS core l_clk 50.000 ns: 6000 samples, 5 weight switches seen, 20 blocks read, 0 missed

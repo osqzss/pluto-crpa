@@ -67,7 +67,7 @@ ANT2 -[BiasT/LNA/L1 SAW]- RX2 --+          (PL)    |       +-- TX2 (unused)
 ### 4.1 LO offset scheme
 - An LO at L1 would leak into the TX output as a CW at the L1 center, and the RX DC correction would remove the C/A center component.
 - Therefore set **RX LO = TX LO = 1575.42 MHz + Delta**. The signal appears at -Delta in baseband; combining and re-transmitting it with the same LO puts it back at L1. No digital NCO is needed.
-- Initial values: Delta = +3 MHz, fs = 10 MSPS (signal occupies -4 to -2 MHz).
+- Values: Delta = +3 MHz, fs = 10 MSPS, bw 9 MHz (signal occupies -4 to -2 MHz). Confirmed by the T1 sweep and decided by the user on 2026-11-08 (`results/t1_sweep.md`).
 - To evaluate: optimal Delta and fs, residual LO leakage within the receiver front-end bandwidth, IQ image (+Delta side).
 
 ### 4.2 Gain control
@@ -139,6 +139,7 @@ y[n] = conj(w1) * x1[n] + conj(w2) * x2[n]
 - No pass-through setting in this mux (decided 2026-11-05): the TX channel's `data_sel = 8` already provides RX1 -> TX1 (`docs/interface.md`, Section 4).
 - The mux only takes effect with TX `data_sel = 2`, which the PS has to set (Section 7).
 - Capture mux: raw RX data or combined data.
+- Task 4 put both muxes inside `crpa_core` (CTRL.DAC_SEL, CTRL.CAP_SEL; `docs/regmap.md`): `upack -> crpa_core/dma_dac_data_* -> crpa_core/dac_data_* -> axi_ad9361`, and `crpa_core/cap_* -> cpack` in place of the direct ADC connection. Both default to the existing path after reset. Task 5 only rewires the block design.
 
 ### 6.3 Clock domains and CDC
 - **Datapath** (weighting, combining, covariance) runs on `l_clk` (`rx_clk`).
@@ -148,20 +149,12 @@ y[n] = conj(w1) * x1[n] + conj(w2) * x2[n]
 - Reuse the CDC constraint style of the ADI library XDC files.
 - `clk_fpga_0` has the smallest slack in the default design (WNS 0.946 ns). Keep the AXI-side logic minimal and register the read-data mux output.
 
-### 6.4 Register map (draft; final version in `docs/regmap.md`)
-| Offset | Name | Description |
-|---|---|---|
-| 0x00 | VERSION | IP version |
-| 0x04 | CTRL | enable, path select, integration start, soft reset |
-| 0x08 | STATUS | integration done, overflow |
-| 0x0C | INT_LEN | integration length N, 24 bits, 1..2^24 - 1 |
-| 0x10 | W1 | {w1_q, w1_i} (Q1.15) |
-| 0x14 | W2 | {w2_q, w2_i} |
-| 0x18 | OUT_SHIFT | output gain 2^s, s = 0..15 |
-| 0x20- | R11, R22, R21_re, R21_im | integration results (64 bit each, two words) |
-| 0x40- | PEAK / OVF_CNT | saturation counters |
-
-- Weight writes are double-buffered and applied together by an "update" bit, so both weights change on the same sample.
+### 6.4 Register map
+Final map: `docs/regmap.md` (IP version 1.0, Task 4). Changes from the draft:
+- VERSION, ID, SCRATCH at 0x00-0x08; CTRL 0x0C, STATUS 0x10, INT_LEN 0x14, W1 0x18, W2 0x1C, OUT_SHIFT 0x20, UPDATE 0x24, MISSED 0x28; results 0x40-0x68.
+- CTRL: SOFT_RST, COV_EN, DAC_SEL, CAP_SEL. No "integration start" bit: blocks run back to back while COV_EN is set, as the test vectors assume.
+- Weight double buffering: W1, W2 and OUT_SHIFT are staged and committed together by a write to UPDATE; STATUS.W_BUSY until applied.
+- Per block, besides R: SAT_CNT (output saturation), PEAK (input peak per element), SEQ (block number). MISSED counts blocks dropped while DONE was set. These replace the draft PEAK / OVF_CNT counters.
 
 ### 6.5 Resources (T0 result: default design)
 
@@ -210,6 +203,8 @@ Timing: all constraints met.
 | clk_fpga_0 | 100 MHz | 0.946 ns | 1.180 ns | 0.010 ns | 0.015 ns |
 | clk_fpga_1 | 200 MHz | 3.396 ns | 3.628 ns | 0.131 ns | 0.160 ns |
 | rx_clk | 61.44 MHz | 3.679 ns | 7.297 ns | 0.017 ns | 0.024 ns |
+
+**crpa_core alone (Task 4, out of context).** `scripts/ooc_crpa.tcl`, Vivado 2025.1, xc7z010clg225-1, routed, `l_clk` 61.44 MHz and `s_axi_aclk` 100 MHz: LUT 1,269, FF 2,233, DSP48 17, BRAM 0. WNS 5.595 ns (`l_clk`), 3.431 ns (`s_axi_aclk`); all 364 CDC endpoints safe (`results/hdl/20261108-1209_crpa_core_ooc/`). Added to T0b: about LUT 72%, FF 60%, DSP 45 of 80. Confirm with the full build in Task 5.
 
 ---
 
@@ -302,6 +297,9 @@ pluto-crpa/                       # parent repository (main)
 | `./scripts/t1_passthrough.py` | T1 RX1 -> TX1 pass-through control, conducted use only. `--check` is read-only (under 1 s). Default is a dry run with the TX LO parked at 2400 MHz (about 2 s). `--on --tx-att DB` asks for a typed confirmation, then stays in the foreground with commands `rx`, `tx`, `level`, `status`, `note`, `quit`; logs to `results/t1_<date>-<time>.txt`. `--off` forces the safe state. `--min-tx-att DB` (required with `--on`, 50 minus the external TX1 attenuation) refuses a lower `--tx-att` or `tx`. Other settings: `--delta`, `--fs`, `--bw`, `--rx-gain`, `--log`, `--poll` |
 | `python3 scripts/test_t1_passthrough.py` | Tests of `t1_passthrough.py` against stand-in iio tools, no Pluto and no RF (about 3 min) |
 | `python3 scripts/ubx_cn0.py LOG.ubx [--ref REF.ubx] [--skip SEC]` | Per-PRN C/N0 (epochs where the SV is used) and MON-HW ranges from a raw u-blox log (`gpspipe -R`), optionally against a reference log; standard library only |
+| `./scripts/sim_crpa.sh [dp\|core\|all] [log]` | xsim of `crpa_core` against the model vectors (regenerated first): `crpa_dp_tb` on every case with regular and irregular `adc_valid`, and `crpa_core_tb` (AXI, CDC, muxes, flags) at two `l_clk` rates (about 1 min). Last log: `results/t4_crpa_sim.txt` |
+| `vivado -mode batch -source scripts/ooc_crpa.tcl -tclargs <dir>` | Out-of-context synthesis and implementation of `crpa_core`, with utilization, timing and CDC reports (about 1 min) |
+| `make -C fw/hdl/library/crpa_core xilinx` | Package the IP (`component.xml`, about 30 s; needs `VIVADO_SETTINGS` sourced). The project build does this through `LIB_DEPS` |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
@@ -330,19 +328,19 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] Connector mapping and I/Q order at RF on the second Pluto: `i0/q0` = RX1 and `i1/q1` = RX2, by terminating each splitter leg in turn; signal at -Delta on both channels, as Section 4.1 assumes (`results/t1_rx_unit_compare.md`)
 - [x] T1 reference: bladeRF -> 40 dB -> DC block -> u-blox without the Pluto, mean C/N0 45.1 dB-Hz over 11 PRNs, carrier left in (`results/t1_reference.md`). Acceptable degradation through the pass-through, set by the user: 3-5 dB per comparison with this table
 - [x] T1 RX1 -> TX1 pass-through with RF on the second Pluto (`results/t1_passthrough.md`): 3D fix with 11 satellites. C/N0 against the reference: -2.9 dB mean with TX1 attenuation 50 dB and no external attenuator; -3.8 dB mean with 0 dB and 50 dB external. Both within the 3-5 dB limit. At 0 dB attenuation RX1 rises 1.3 dB, so keep TX attenuation inside the Pluto
-- [x] T1 step 6, Delta and fs sweep (`results/t1_sweep.md`, 2026-11-08): 10 runs, fs 10-30.72 MSPS, bw 9 and 14 MHz, Delta +2 to +5 and -3 MHz, TX1 attenuation 50 dB. C/N0 -2.4 to -2.8 dB against the reference in every run, with no dependence on fs, bandwidth or Delta beyond the 1 dB resolution; A1 repeat within 0.1 dB. Delta +2 MHz raises the u-blox jamming indicator (about 156 vs. 102-109). Proposed: keep Delta +3 MHz, fs 10 MSPS, bw 9 MHz
+- [x] T1 step 6, Delta and fs sweep (`results/t1_sweep.md`, 2026-11-08): 10 runs, fs 10-30.72 MSPS, bw 9 and 14 MHz, Delta +2 to +5 and -3 MHz, TX1 attenuation 50 dB. C/N0 -2.4 to -2.8 dB against the reference in every run, with no dependence on fs, bandwidth or Delta beyond the 1 dB resolution; A1 repeat within 0.1 dB. Delta +2 MHz raises the u-blox jamming indicator (about 156 vs. 102-109). Decided by the user (2026-11-08): Delta +3 MHz, fs 10 MSPS, bw 9 MHz
+- [x] Task 4: `crpa_core` RTL (`ip/crpa_core/rtl/`), IP version 1.0. Bit exact against the model on all vector cases, including per-block saturation and peaks; core testbench passes at `l_clk` 61.44 and 20 MHz (`results/t4_crpa_sim.txt`). IP packages in ADI style. Out of context: 17 DSP48, timing met, CDC safe (Section 6.5). Register map `docs/regmap.md`. Design decisions confirmed by the user (2026-11-08): free-running blocks (no integration-start bit), muxes inside `crpa_core`, combined capture ch0/1 = y and ch2/3 = x1, result registers frozen while DONE is set, staged weights committed by UPDATE. Not yet in the block design or on hardware
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
-- [ ] Confirm the Delta/fs choice proposed in `results/t1_sweep.md` (Delta +3 MHz, fs 10 MSPS, bw 9 MHz). LO leakage and image levels are not measured (effect on the receiver only); a measurement with the B205mini on TX1 and a Pluto RX FFT is optional
+- [ ] LO leakage and image levels not measured (effect on the receiver only, `results/t1_sweep.md`); a measurement with the B205mini on TX1 and a Pluto RX FFT is optional
 - [ ] RX2 end to end: RX2 -> TX1 does not exist with `data_sel = 8`. RX2 is checked RX-only at T1 and through `crpa_core` at T2 (`docs/interface.md`, Section 4)
 - [ ] First Pluto (serial `1044734c960500110c000900418f4f7ca2`) RX2 fault: location not found (chip, board or RX2 connection). It likely explains the 8 dB difference seen in the dry run on 2026-11-05, which was on this unit
 - [ ] Second Pluto so far tested RX-only, in one session. Inter-channel phase not measured. About 3 dB higher ch0/1 floor at low gain not investigated (`results/t1_rx_unit_compare.md`)
 - [ ] bladeRF carrier at L1 stays after `bladegps` exits, and is also present while it runs. Effect on the C/N0 reference and the T1 result not evaluated. Whether TX is left enabled not determined
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
-- [ ] CTRL semantics for integration in Task 4: the vectors assume consecutive free-running blocks; the draft register map has an "integration start" bit
-- [ ] UIO vs. `/dev/mem`; interrupt vs. polling
+- [ ] UIO vs. `/dev/mem`; interrupt vs. polling (`crpa_core` has a level `irq` = STATUS.DONE; whether to connect it is a Task 5 decision)
 - [ ] Target receiver input level and external attenuation
 - [ ] COTS GNSS receiver to use and how to read C/N0 (NMEA/UBX)
 - [ ] Extent of RTL reuse for the future multi-element CRPA
@@ -388,7 +386,7 @@ Status: **done.** Steps 1-5 on 2026-11-07 (`results/t1_passthrough.md`), step 6 
 6. Vary Delta and fs for LO leakage and image. Done (`results/t1_sweep.md`): one run per setting, simulator restarted and receiver cold-started each run, C/N0 and MON-HW from `scripts/ubx_cn0.py`. If the script ends with `SAFE STATE NOT CONFIRMED`, or is killed, or USB drops, power-cycle the Pluto.
 
 ### Task 4: crpa_core RTL (`ip/crpa_core/`)
-Next task, independent of the T1 RF test. Requirements from `docs/interface.md`, Section 8; formats and vectors from `docs/fixed_point.md`.
+Status: **done** (2026-11-08; Section 10.1, `docs/regmap.md`, `results/t4_crpa_sim.txt`). Next is Task 5. Requirements from `docs/interface.md`, Section 8; formats and vectors from `docs/fixed_point.md`.
 
 - Datapath on `l_clk`: weight multiply, sum, round/saturate, covariance accumulators.
 - AXI-Lite on `clk_fpga_0` using `up_axi`; CDC via `up_xfer_cntrl` / `up_xfer_status`.

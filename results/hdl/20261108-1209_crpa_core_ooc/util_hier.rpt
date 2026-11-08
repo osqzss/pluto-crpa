@@ -1,0 +1,33 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.1 (lin64) Build 6140274 Wed May 21 22:58:25 MDT 2025
+| Date         : Sun Nov  8 12:10:09 2026
+| Host         : hp running 64-bit Ubuntu 24.04.4 LTS
+| Command      : report_utilization -hierarchical -file /home/sdr/Work/pluto-crpa/results/hdl/20261108-1209_crpa_core_ooc/util_hier.rpt
+| Design       : crpa_core
+| Device       : xc7z010clg225-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------+---------------+------------+------------+---------+------+------+--------+--------+------------+
+|    Instance    |     Module    | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++----------------+---------------+------------+------------+---------+------+------+--------+--------+------------+
+| crpa_core      |         (top) |       1269 |       1269 |       0 |    0 | 2233 |      0 |      0 |         17 |
+|   (crpa_core)  |         (top) |         17 |         17 |       0 |    0 |  854 |      0 |      0 |          0 |
+|   i_dp         |       crpa_dp |        850 |        850 |       0 |    0 |  999 |      0 |      0 |         17 |
+|   i_up_axi     |        up_axi |        276 |        276 |       0 |    0 |  145 |      0 |      0 |          0 |
+|   i_xfer_cntrl | up_xfer_cntrl |        115 |        115 |       0 |    0 |  212 |      0 |      0 |          0 |
++----------------+---------------+------------+------------+---------+------+------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

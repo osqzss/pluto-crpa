@@ -1,0 +1,26 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.1 (lin64) Build 6140274 Wed May 21 22:58:25 MDT 2025
+| Date         : Sun Nov  8 12:10:10 2026
+| Host         : hp running 64-bit Ubuntu 24.04.4 LTS
+| Command      : report_clock_interaction -file /home/sdr/Work/pluto-crpa/results/hdl/20261108-1209_crpa_core_ooc/clock_interaction.rpt
+| Design       : crpa_core
+| Device       : 7z010-clg225
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Interaction Report
+
+Clock Interaction Table
+-----------------------
+
+                            WNS                            TNS Failing  TNS Total    WNS Path         Clock-Pair           Inter-Clock  
+From Clock    To Clock      Clock Edges  WNS(ns)  TNS(ns)    Endpoints    Endpoints  Requirement(ns)  Classification       Constraints  
+------------  ------------  -----------  -------  -------  -----------  -----------  ---------------  -------------------  -----------  
+l_clk         l_clk         rise - rise     5.59     0.00            0         3384            16.28  Clean                Timed        
+l_clk         s_axi_aclk                                             0          262                   Ignored              False Path   
+s_axi_aclk    l_clk                                                  0          102                   Ignored              False Path   
+s_axi_aclk    s_axi_aclk    rise - rise     3.43     0.00            0         1225            10.00  Clean                Timed        
+
+

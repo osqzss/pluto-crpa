@@ -40,7 +40,8 @@ yq_sum = w1i*x1q - w1q*x1i + w2i*x2q - w2q*x2i
 - Taken from the input `x`, before the weights, so the result does not depend on the weights in use.
 - No rounding. Results sign-extend to the 64-bit register pairs.
 - **`INT_LEN` is 24 bits, 1..2^24 - 1.** At exactly 2^24 samples of full scale, R11 would reach +2^47 and overflow 48 bits.
-- Vectors use consecutive blocks of `INT_LEN` samples from sample 0.
+- Vectors use consecutive blocks of `INT_LEN` samples from sample 0. The RTL runs the same way while CTRL.COV_EN is set (`docs/regmap.md`).
+- Per block the RTL also reports SAT_CNT, the number of samples with output saturation in I or Q (the `sat` flag of `combine()`), and PEAK, max(|xi|, |xq|) per element, 0..2048 (|-2048| needs the full 12 bits unsigned). `blkstat.mem` holds both, and they are checked bit exactly.
 
 ## Weight computation (PS, floating point)
 
@@ -60,6 +61,7 @@ Scale so that the larger of `|w1|`, `|w2|` is 1, then round to Q1.15 and clip at
 | `corners` | Every input and weight extreme at shifts 0, 1, 14, 15; saturation |
 | `random` | Random inputs and weight changes at random samples; mostly unsaturated, so rounding decides |
 | `cw_loop` | Scenario with the PS loop; weight changes 137 samples after each block end |
+| `core` | For `crpa_core_tb`: 6000 samples, six weight sets each with the full output (`out_<k>.mem`), since AXI writes are not sample exact |
 
 ## Simulated performance
 
