@@ -1,0 +1,22 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.1 (lin64) Build 6140274 Wed May 21 22:58:25 MDT 2025
+| Date         : Sun Nov  8 13:02:15 2026
+| Host         : hp running 64-bit Ubuntu 24.04.4 LTS
+| Command      : report_cdc -file cdc_all.rpt
+| Design       : system_top
+| Device       : 7z010-clg225
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+Severity  Source Clock      Destination Clock  CDC Type                 Exceptions               Endpoints  Safe  Unsafe  Unknown  No ASYNC_REG  
+--------  ----------------  -----------------  -----------------------  -----------------------  ---------  ----  ------  -------  ------------  
+Critical  rx_clk            clk_fpga_0         No Common Primary Clock  Max Delay Datapath Only        454   452       0        2             0  
+Critical  clk_fpga_0        rx_clk             No Common Primary Clock  Max Delay Datapath Only       2162  2097      12       53             0  
+Info      input port clock  clk_fpga_0         No Common Primary Clock  False Path                       2     2       0        0             0  
+Info      rx_clk            clk_fpga_1         No Common Primary Clock  False Path                       1     1       0        0             0  
+Info      input port clock  rx_clk             No Common Primary Clock  False Path                       1     1       0        0             0  
+

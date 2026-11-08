@@ -11,3 +11,4 @@ xgui/
 *.runs/
 .lock
 .Xil/
+adi_common/

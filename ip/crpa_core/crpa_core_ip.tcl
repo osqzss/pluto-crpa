@@ -7,16 +7,30 @@ set crpa_dir [file normalize [file dirname [info script]]]
 source [file join $crpa_dir ../../fw/hdl/scripts/adi_env.tcl]
 source $ad_hdl_dir/library/scripts/adi_ip_xilinx.tcl
 
-adi_ip_create crpa_core
-adi_ip_files crpa_core [list \
+# The project reaches this IP through the link fw/hdl/library/crpa_core, and
+# Vivado resolves the file paths in component.xml relative to the link, not to
+# ip/crpa_core. A path out of this directory (../../fw/hdl/library/...) therefore
+# breaks in the project build. Copy the ADI common files into adi_common/
+# (git-ignored) so that every packaged path stays inside the IP directory.
+# The Makefile lists the originals as dependencies, so a change there repackages.
+set adi_common_dir [file join $crpa_dir adi_common]
+file mkdir $adi_common_dir
+set adi_common_files {}
+foreach f [list \
   "$ad_hdl_dir/library/common/up_axi.v" \
   "$ad_hdl_dir/library/common/up_xfer_cntrl.v" \
   "$ad_hdl_dir/library/common/up_xfer_status.v" \
   "$ad_hdl_dir/library/xilinx/common/up_xfer_cntrl_constr.xdc" \
-  "$ad_hdl_dir/library/xilinx/common/up_xfer_status_constr.xdc" \
+  "$ad_hdl_dir/library/xilinx/common/up_xfer_status_constr.xdc" ] {
+  file copy -force $f $adi_common_dir
+  lappend adi_common_files [file join $adi_common_dir [file tail $f]]
+}
+
+adi_ip_create crpa_core
+adi_ip_files crpa_core [concat $adi_common_files [list \
   "$crpa_dir/crpa_core_constr.xdc" \
   "$crpa_dir/rtl/crpa_dp.v" \
-  "$crpa_dir/rtl/crpa_core.v" ]
+  "$crpa_dir/rtl/crpa_core.v" ]]
 
 adi_ip_properties crpa_core
 

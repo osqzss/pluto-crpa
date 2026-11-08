@@ -140,6 +140,7 @@ y[n] = conj(w1) * x1[n] + conj(w2) * x2[n]
 - The mux only takes effect with TX `data_sel = 2`, which the PS has to set (Section 7).
 - Capture mux: raw RX data or combined data.
 - Task 4 put both muxes inside `crpa_core` (CTRL.DAC_SEL, CTRL.CAP_SEL; `docs/regmap.md`): `upack -> crpa_core/dma_dac_data_* -> crpa_core/dac_data_* -> axi_ad9361`, and `crpa_core/cap_* -> cpack` in place of the direct ADC connection. Both default to the existing path after reset. Task 5 only rewires the block design.
+- Task 5 (done, 2026-11-08), as in `fw/hdl/projects/pluto/system_bd.tcl`: `crpa_core` on `axi_ad9361/l_clk` and `rst`, `adc_valid` = `adc_valid_i0`; `cap_data_0..3` and `cap_valid` drive `cpack/fifo_wr_data_*` and `fifo_wr_en` (one `l_clk` register on this path); the `cpack` and `tx_upack` enables stay on `axi_ad9361`. AXI-Lite at **0x7C450000** (64 KB). `irq` on **ps-10**, which is GIC SPI 54 in the device tree (by the existing mapping: ps-11 = 55, ps-13 = 57). `LIB_DEPS += crpa_core` in the project `Makefile`.
 
 ### 6.3 Clock domains and CDC
 - **Datapath** (weighting, combining, covariance) runs on `l_clk` (`rx_clk`).
@@ -205,6 +206,25 @@ Timing: all constraints met.
 | rx_clk | 61.44 MHz | 3.679 ns | 7.297 ns | 0.017 ns | 0.024 ns |
 
 **crpa_core alone (Task 4, out of context).** `scripts/ooc_crpa.tcl`, Vivado 2025.1, xc7z010clg225-1, routed, `l_clk` 61.44 MHz and `s_axi_aclk` 100 MHz: LUT 1,269, FF 2,233, DSP48 17, BRAM 0. WNS 5.595 ns (`l_clk`), 3.431 ns (`s_axi_aclk`); all 364 CDC endpoints safe (`results/hdl/20261108-1209_crpa_core_ooc/`). Added to T0b: about LUT 72%, FF 60%, DSP 45 of 80. Confirm with the full build in Task 5.
+
+**Task 5 result: crpa_core in the block design.** Build: `results/hdl/20261108-1301_387ca1761-dirty/` (hdl `387ca1761` plus the uncommitted Task 5 change to `system_bd.tcl` and `Makefile`), Vivado 2025.1, xc7z010clg225-1, routed. All timing constraints met; no critical warnings. `crpa_core` in the full design: LUT 1,266, FF 2,233, DSP48 17, the same as out of context.
+
+| Resource | T0b | Task 5 | Change | Available | Task 5 util. |
+|---|---|---|---|---|---|
+| LUT | 11,470 | 12,733 | +1,263 | 17,600 | 72% |
+| FF | 18,985 | 21,219 | +2,234 | 35,200 | 60% |
+| **DSP48** | **28** | **45** | **+17** | **80** | **56%** |
+| RAMB36 | 2 | 2 | 0 | 60 | 3% |
+
+| Clock | Freq. | T0b WNS | Task 5 WNS | T0b WHS | Task 5 WHS |
+|---|---|---|---|---|---|
+| clk_fpga_0 | 100 MHz | 1.180 ns | 0.922 ns | 0.015 ns | 0.027 ns |
+| clk_fpga_1 | 200 MHz | 3.628 ns | 3.474 ns | 0.160 ns | 0.160 ns |
+| rx_clk | 61.44 MHz | 7.297 ns | 4.390 ns | 0.024 ns | 0.008 ns |
+
+- The worst setup paths of `clk_fpga_0` and `rx_clk` are both inside `axi_ad9361` (`up_axi` -> `up_timer`, and `up_xfer_cntrl` -> TDD control reset), not in `crpa_core`. The lower slack comes from placement density, not from the new logic.
+- CDC on the routed design (`cdc_crpa.rpt`, `cdc_all.rpt` in the build directory): `crpa_core` has 364 endpoints, all covered by exceptions (6 ASYNC_REG synchronizers, 355 clock-enable and 3 mux-hold controlled), none unsafe or unknown, as out of context. Design-wide, 12 unsafe and 55 unknown endpoints between `rx_clk` and `clk_fpga_0` are outside `crpa_core`; there is no T0b CDC report to compare with.
+- Packaging fix found by this build: `component.xml` held the ADI common files as `../../fw/hdl/library/...`, relative to `ip/crpa_core`. The project reaches the IP through the link `fw/hdl/library/crpa_core`, so Vivado resolved them to `fw/hdl/fw/hdl/library/...` and IP generation failed. `crpa_core_ip.tcl` now copies the five files into `ip/crpa_core/adi_common/` (git-ignored) at packaging time; the Makefile still depends on the originals.
 
 ---
 
@@ -299,7 +319,7 @@ pluto-crpa/                       # parent repository (main)
 | `python3 scripts/ubx_cn0.py LOG.ubx [--ref REF.ubx] [--skip SEC]` | Per-PRN C/N0 (epochs where the SV is used) and MON-HW ranges from a raw u-blox log (`gpspipe -R`), optionally against a reference log; standard library only |
 | `./scripts/sim_crpa.sh [dp\|core\|all] [log]` | xsim of `crpa_core` against the model vectors (regenerated first): `crpa_dp_tb` on every case with regular and irregular `adc_valid`, and `crpa_core_tb` (AXI, CDC, muxes, flags) at two `l_clk` rates (about 1 min). Last log: `results/t4_crpa_sim.txt` |
 | `vivado -mode batch -source scripts/ooc_crpa.tcl -tclargs <dir>` | Out-of-context synthesis and implementation of `crpa_core`, with utilization, timing and CDC reports (about 1 min) |
-| `make -C fw/hdl/library/crpa_core xilinx` | Package the IP (`component.xml`, about 30 s; needs `VIVADO_SETTINGS` sourced). The project build does this through `LIB_DEPS` |
+| `make -C fw/hdl/library/crpa_core xilinx` | Package the IP (`component.xml`, about 30 s; needs `VIVADO_SETTINGS` sourced). Copies `up_axi.v`, `up_xfer_*.v` and their XDC files into `ip/crpa_core/adi_common/` first, so that the packaged paths work through the link. The project build does this through `LIB_DEPS` |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
@@ -330,6 +350,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] T1 RX1 -> TX1 pass-through with RF on the second Pluto (`results/t1_passthrough.md`): 3D fix with 11 satellites. C/N0 against the reference: -2.9 dB mean with TX1 attenuation 50 dB and no external attenuator; -3.8 dB mean with 0 dB and 50 dB external. Both within the 3-5 dB limit. At 0 dB attenuation RX1 rises 1.3 dB, so keep TX attenuation inside the Pluto
 - [x] T1 step 6, Delta and fs sweep (`results/t1_sweep.md`, 2026-11-08): 10 runs, fs 10-30.72 MSPS, bw 9 and 14 MHz, Delta +2 to +5 and -3 MHz, TX1 attenuation 50 dB. C/N0 -2.4 to -2.8 dB against the reference in every run, with no dependence on fs, bandwidth or Delta beyond the 1 dB resolution; A1 repeat within 0.1 dB. Delta +2 MHz raises the u-blox jamming indicator (about 156 vs. 102-109). Decided by the user (2026-11-08): Delta +3 MHz, fs 10 MSPS, bw 9 MHz
 - [x] Task 4: `crpa_core` RTL (`ip/crpa_core/rtl/`), IP version 1.0. Bit exact against the model on all vector cases, including per-block saturation and peaks; core testbench passes at `l_clk` 61.44 and 20 MHz (`results/t4_crpa_sim.txt`). IP packages in ADI style. Out of context: 17 DSP48, timing met, CDC safe (Section 6.5). Register map `docs/regmap.md`. Design decisions confirmed by the user (2026-11-08): free-running blocks (no integration-start bit), muxes inside `crpa_core`, combined capture ch0/1 = y and ch2/3 = x1, result registers frozen while DONE is set, staged weights committed by UPDATE. Not yet in the block design or on hardware
+- [x] Task 5: `crpa_core` in the pluto block design (hdl `crpa` branch; Section 6.2). Full build routed, timing met, DSP 45 of 80, LUT 72%, FF 60%; `crpa_core` CDC clean in the full design (Section 6.5, `results/hdl/20261108-1301_387ca1761-dirty/`). Registers at 0x7C450000, `irq` on ps-10 (GIC SPI 54), confirmed by the user (2026-11-08). Firmware not yet built or flashed with it
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
@@ -340,7 +361,8 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [ ] bladeRF carrier at L1 stays after `bladegps` exits, and is also present while it runs. Effect on the C/N0 reference and the T1 result not evaluated. Whether TX is left enabled not determined
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
-- [ ] UIO vs. `/dev/mem`; interrupt vs. polling (`crpa_core` has a level `irq` = STATUS.DONE; whether to connect it is a Task 5 decision)
+- [ ] UIO vs. `/dev/mem`; interrupt vs. polling. The level `irq` (= STATUS.DONE) is connected to ps-10 (GIC SPI 54) since Task 5, so both are possible; decide in Task 6
+- [ ] Firmware with the Task 5 bitstream: build (`fw/`), flash, and check that normal operation is unchanged with both muxes at reset (`scripts/loopback_test.py`, `scripts/if_check.py`) and that the `crpa_core` registers read back (VERSION, ID, SCRATCH at 0x7C450000, e.g. with `devmem` over ssh)
 - [ ] Target receiver input level and external attenuation
 - [ ] COTS GNSS receiver to use and how to read C/N0 (NMEA/UBX)
 - [ ] Extent of RTL reuse for the future multi-element CRPA
@@ -394,6 +416,8 @@ Status: **done** (2026-11-08; Section 10.1, `docs/regmap.md`, `results/t4_crpa_s
 - IP packaging in ADI library style (`Makefile`, `crpa_core_ip.tcl`).
 
 ### Task 5: Block design integration
+Status: **done** in build (2026-11-08; Section 6.2, 6.5). Hardware check pending with the next firmware build (Section 10.2), before or at the start of Task 6.
+
 - Add crpa_core to `projects/pluto/system_bd.tcl`, with DAC and capture muxes (Section 6.2; two-way DAC mux, no pass-through setting).
 - Build, record utilization and timing.
 
