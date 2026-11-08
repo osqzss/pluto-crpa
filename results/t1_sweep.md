@@ -36,5 +36,7 @@ Files: `results/t1_sweep_<run>.txt` (Pluto control log) and `results/t1_sweep_<r
 4. **AGC depends on Delta only.** AGC is reported in steps of 78 (1950 = 25 x 78, ..., 3432 = 44 x 78). It is one step higher (less in-band power) per 1 MHz from +2 to +5 MHz, and Delta -3 MHz gives the same value as +2 MHz, so the receiver band is not symmetric about L1 for this interference. AGC stays 16-19 steps below the reference in every run, which is the pass-through noise and has a larger effect than Delta.
 5. LO leakage and image levels were not measured: the receiver shows only their effect. Only TX1 attenuation 50 dB was tested.
 
-## Decision proposed
+## Decision
+Decided by the user on 2026-11-08, as proposed below.
+
 Keep **Delta = +3 MHz, fs = 10 MSPS, bw = 9 MHz** (plan Section 4.1): no setting tested is better by a margin the receiver can resolve, 10 MSPS has the lowest `l_clk` (20 MHz), and +3 MHz avoids the jamming indicator rise seen at +2 MHz. Delta +4 or +5 MHz lowers in-band power by one AGC step each, but needs bw > 10 MHz and fs > 10 MSPS. Avoid |Delta| <= 2 MHz. The user decides.
