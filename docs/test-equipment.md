@@ -227,6 +227,55 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
   `attr_val`; a variable named `compatible` is not read by U-Boot, and the first
   Pluto still has that unused setting. Both units run as `ad9363a`.
 
+### 7.1 Flashing `pluto.frm`
+
+The user flashes; Claude Code prepares the file and checks the result. Full
+background (outputs, rollback, Rev C notes): `docs/setup.md`, Sections 9.4-9.5.
+
+Before flashing:
+
+1. Check that `fw/build/pluto.frm` carries the intended bitstream. The fw
+   Makefile copies `build/system_top.xsa` only when it is missing, so after an HDL
+   change delete it before `make` in `fw/`. Then:
+   ```bash
+   cd ~/Work/pluto-crpa/fw
+   cmp build/system_top.xsa hdl/projects/pluto/pluto.sdk/system_top.xsa
+   cat br2-external/board/adi/pluto/VERSIONS      # hdl line = intended commit
+   ```
+2. Connect only the unit to be flashed (normally the second Pluto, the CRPA
+   unit). Put the RF side in a safe state: TX_LO comes up powered on at 2450 MHz
+   after the reboot, so keep TX1 terminated or attenuated as in Section 2.
+3. Note the current version: `ssh pluto 'cat /opt/VERSIONS'`.
+
+Flash (USB mass storage; copying `pluto.frm` alone is enough on Rev C, and keeps
+the original u-boot and its DFU recovery):
+
+```bash
+cp ~/Work/pluto-crpa/fw/build/pluto.frm /media/$USER/PlutoSDR/
+sync
+lsblk                     # find the Pluto drive, e.g. sdb with partition sdb1
+sudo eject /dev/sdb       # eject the base device, not the partition; do not unplug
+```
+
+LED1 blinks rapidly while programming (about 4 minutes). **Do not unplug or
+remove power until the rapid blinking stops.** The Pluto then reboots and the
+`PlutoSDR` drive reappears.
+
+After flashing:
+
+```bash
+diff <(cat ~/Work/pluto-crpa/fw/br2-external/board/adi/pluto/VERSIONS) \
+     <(ssh pluto 'cat /opt/VERSIONS') && echo "VERSIONS match"
+ssh pluto 'fw_printenv mode'                    # expect mode=2r2t (kept across flashing)
+iio_attr -u ip:192.168.2.1 -d                   # IIO devices as before
+```
+
+- If `/opt/VERSIONS` is unchanged, the update did not take: repeat once, then
+  stop and see `docs/setup.md`, Section 9.4 (full release archive).
+- Then check the TX state (TX_LO, attenuation) before any RF work, and run the
+  hardware checks for the new build (`scripts/loopback_test.py`,
+  `scripts/if_check.py`, plan Section 9.3).
+
 ---
 
 ## 8. First-Use Checklist for Claude Code

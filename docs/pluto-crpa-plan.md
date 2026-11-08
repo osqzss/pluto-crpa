@@ -320,6 +320,7 @@ pluto-crpa/                       # parent repository (main)
 | `./scripts/sim_crpa.sh [dp\|core\|all] [log]` | xsim of `crpa_core` against the model vectors (regenerated first): `crpa_dp_tb` on every case with regular and irregular `adc_valid`, and `crpa_core_tb` (AXI, CDC, muxes, flags) at two `l_clk` rates (about 1 min). Last log: `results/t4_crpa_sim.txt` |
 | `vivado -mode batch -source scripts/ooc_crpa.tcl -tclargs <dir>` | Out-of-context synthesis and implementation of `crpa_core`, with utilization, timing and CDC reports (about 1 min) |
 | `make -C fw/hdl/library/crpa_core xilinx` | Package the IP (`component.xml`, about 30 s; needs `VIVADO_SETTINGS` sourced). Copies `up_axi.v`, `up_xfer_*.v` and their XDC files into `ip/crpa_core/adi_common/` first, so that the packaged paths work through the link. The project build does this through `LIB_DEPS` |
+| `ssh pluto 'sh -s' < scripts/frame_err_test.sh` | Runs on the Pluto: clears `crpa_core` STATUS.FRAME_ERR and watches it at 30.72 and 10 MSPS, across two rate changes; leaves TX_LO powered down (about 30 s; ssh needs the password, so the user runs it) |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
@@ -351,6 +352,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] T1 step 6, Delta and fs sweep (`results/t1_sweep.md`, 2026-11-08): 10 runs, fs 10-30.72 MSPS, bw 9 and 14 MHz, Delta +2 to +5 and -3 MHz, TX1 attenuation 50 dB. C/N0 -2.4 to -2.8 dB against the reference in every run, with no dependence on fs, bandwidth or Delta beyond the 1 dB resolution; A1 repeat within 0.1 dB. Delta +2 MHz raises the u-blox jamming indicator (about 156 vs. 102-109). Decided by the user (2026-11-08): Delta +3 MHz, fs 10 MSPS, bw 9 MHz
 - [x] Task 4: `crpa_core` RTL (`ip/crpa_core/rtl/`), IP version 1.0. Bit exact against the model on all vector cases, including per-block saturation and peaks; core testbench passes at `l_clk` 61.44 and 20 MHz (`results/t4_crpa_sim.txt`). IP packages in ADI style. Out of context: 17 DSP48, timing met, CDC safe (Section 6.5). Register map `docs/regmap.md`. Design decisions confirmed by the user (2026-11-08): free-running blocks (no integration-start bit), muxes inside `crpa_core`, combined capture ch0/1 = y and ch2/3 = x1, result registers frozen while DONE is set, staged weights committed by UPDATE. Not yet in the block design or on hardware
 - [x] Task 5: `crpa_core` in the pluto block design (hdl `crpa` branch; Section 6.2). Full build routed, timing met, DSP 45 of 80, LUT 72%, FF 60%; `crpa_core` CDC clean in the full design (Section 6.5, `results/hdl/20261108-1301_387ca1761-dirty/`). Registers at 0x7C450000, `irq` on ps-10 (GIC SPI 54), confirmed by the user (2026-11-08). Firmware not yet built or flashed with it
+- [x] Task 5 on hardware (`results/t5_hw_check.md`, 2026-11-08): firmware fw `8f9cd60` / hdl `ad150ddd5` flashed on the CRPA unit, `fw_version` v0.39-22-g8f9c. With both muxes at reset, `loopback_test.py` (0 fails) and `if_check.py` (PASS) as in T0b. Registers at 0x7C450000 read the documented reset values; SCRATCH writes back. STATUS.FRAME_ERR is set by every sample rate change and stays clear at a fixed rate (20 s at 30.72 and 10 MSPS), which the PS sequence after a rate change already covers
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
@@ -362,7 +364,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
 - [ ] UIO vs. `/dev/mem`; interrupt vs. polling. The level `irq` (= STATUS.DONE) is connected to ps-10 (GIC SPI 54) since Task 5, so both are possible; decide in Task 6
-- [ ] Firmware with the Task 5 bitstream: build (`fw/`), flash, and check that normal operation is unchanged with both muxes at reset (`scripts/loopback_test.py`, `scripts/if_check.py`) and that the `crpa_core` registers read back (VERSION, ID, SCRATCH at 0x7C450000, e.g. with `devmem` over ssh)
+- [ ] FRAME_ERR at rate changes (`results/t5_hw_check.md`): the number of affected samples, and whether ENSM changes also set it, are not known. The PS must soft-reset and clear STATUS after a rate change and treat FRAME_ERR at a fixed rate as an error (Task 6)
 - [ ] Target receiver input level and external attenuation
 - [ ] COTS GNSS receiver to use and how to read C/N0 (NMEA/UBX)
 - [ ] Extent of RTL reuse for the future multi-element CRPA
@@ -416,7 +418,7 @@ Status: **done** (2026-11-08; Section 10.1, `docs/regmap.md`, `results/t4_crpa_s
 - IP packaging in ADI library style (`Makefile`, `crpa_core_ip.tcl`).
 
 ### Task 5: Block design integration
-Status: **done** in build (2026-11-08; Section 6.2, 6.5). Hardware check pending with the next firmware build (Section 10.2), before or at the start of Task 6.
+Status: **done** (2026-11-08): build (Sections 6.2, 6.5) and hardware check with both muxes at reset (`results/t5_hw_check.md`). Next is Task 6.
 
 - Add crpa_core to `projects/pluto/system_bd.tcl`, with DAC and capture muxes (Section 6.2; two-way DAC mux, no pass-through setting).
 - Build, record utilization and timing.

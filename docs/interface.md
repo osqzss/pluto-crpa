@@ -59,7 +59,7 @@ The two alignments behave the same except for that 1 cycle of latency. Which one
 
 **Not gated.** `adc_enable_*` is only an output of the channel. Opening or closing a libiio RX buffer changes it (`cf_axi_adc_core.c`, update_scan_mode) but does not affect `adc_valid_*` or `adc_data_*`, so `crpa_core` must ignore it.
 
-**Frame not toggling (hazard).** In 2R2T the delineation logic treats a frame stuck low as a valid sample on every cycle, and a frame stuck high as no valid at all (Sim: 100/100 and 0/100 cycles). Bit 0 of reg 0x005C (`adc_status`) drops in both cases. Whether the real chip ever does this, for example in a non-FDD ENSM state or during a rate change, is not known. The Pluto stays in FDD in this project.
+**Frame not toggling (hazard).** In 2R2T the delineation logic treats a frame stuck low as a valid sample on every cycle, and a frame stuck high as no valid at all (Sim: 100/100 and 0/100 cycles). Bit 0 of reg 0x005C (`adc_status`) drops in both cases. On the real chip, a sample rate change does produce it: `crpa_core` STATUS.FRAME_ERR was set by every rate change and stayed clear at a fixed rate (`results/t5_hw_check.md`, Section 3). Whether non-FDD ENSM states do too is not known; the Pluto stays in FDD in this project.
 
 ## 4. Transmit path
 
@@ -131,7 +131,7 @@ At 10 MSPS, 25 cycles is 1.25 us. This excludes the AD9363 digital filters and a
 |---|---|---|
 | Which connector is `i0/q0` and which is `i1/q1`, on RX and TX | CW into one RX port; look at which stream carries it | T1, T2 |
 | I/Q order at RF (spectrum not mirrored). T0b loopback cannot show it because TX and RX mirrors cancel | CW at LO + f must appear at +f in a capture | T1 |
-| Frame behavior outside steady FDD (ENSM change, rate change) | ILA below, only if it turns out to matter | If needed |
+| Frame behavior outside steady FDD. Rate change: two consecutive valids occur, seen by FRAME_ERR (`results/t5_hw_check.md`); handled by the soft reset after a rate change. Not known: ENSM changes, number of affected samples | STATUS.FRAME_ERR first; ILA below only if it turns out to matter | If needed |
 
 **ILA plan.** The source is not ambiguous about the data path, so no ILA capture is needed for Tasks 3-5. If the output misbehaves in T1/T2 and `scripts/if_check.py` does not explain it, add an ILA on `l_clk` to `system_bd.tcl`:
 

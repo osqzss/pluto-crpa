@@ -50,7 +50,7 @@ The reset value 0 leaves the Pluto working as before: DMA to the DAC, and raw AD
 |---|---|---|---|
 | 0 | DONE | R/W1C | A block result is held in 0x40-0x68. While DONE is set the result registers do not change, and further blocks are dropped and counted in MISSED. Write 1 to clear. Also drives the `irq` output (level, high while set) |
 | 1 | W_BUSY | RO | An UPDATE has not yet been applied in the datapath |
-| 2 | FRAME_ERR | RO, sticky | `adc_valid` was seen high in two consecutive `l_clk` cycles (the frame hazard of `docs/interface.md`, Section 3) |
+| 2 | FRAME_ERR | RO, sticky | `adc_valid` was seen high in two consecutive `l_clk` cycles (the frame hazard of `docs/interface.md`, Section 3). Set by every sample rate change on hardware, and after boot; clear at a fixed rate (`results/t5_hw_check.md`). Clear it after a rate change (PS sequence, step 4) |
 | 3 | RES_DROP | RO, sticky | A block ended while the previous result was still crossing to the AXI side, so it was lost before reaching DONE. Expected only for very short INT_LEN |
 
 Writing 1 to bit 2 or bit 3 clears both FRAME_ERR and RES_DROP. The clear takes effect in the datapath, so the bits read 0 only after the status delay above (about 7 us at 10 MSPS). Bit 0 and bits 2-3 can be cleared in the same write.
