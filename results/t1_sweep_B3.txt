@@ -1,0 +1,15 @@
+2026-11-08T11:31:50 settings: delta 4000000 fs 16000000 bw 14000000 rx_gain 60 tx_att 80.00 min_tx_att 50.00 uri ip:192.168.2.1; confirmed conducted setup
+2026-11-08T11:31:51 ON: RX1 -> TX1 pass-through active
+2026-11-08T11:31:51 RX LO 1579419998 | TX LO 1579419998 | fs 15999999 | RX bw 14000000 | TX bw 14000000
+2026-11-08T11:31:51 RX gain manual 60.000000 dB / manual 60.000000 dB | RSSI 111.25 dB / 111.25 dB
+2026-11-08T11:31:51 TX attenuation 80.00 / 89.75 dB | TX LO powerdown 0 | loopback 2 | data_sel [8, 8, 3, 3]
+2026-11-08T11:31:55 > level
+2026-11-08T11:31:55 ADC ch0/1 -40.1 dBFS peak 74 clipped 0/131072 | ch2/3 -40.4 dBFS peak 63 clipped 0/131072
+2026-11-08T11:31:58 > tx 60
+2026-11-08T11:31:58 TX1 attenuation 60.00 dB
+2026-11-08T11:32:01 > tx 50
+2026-11-08T11:32:01 TX1 attenuation 50.00 dB
+2026-11-08T11:35:51 > level
+2026-11-08T11:35:51 ADC ch0/1 -40.2 dBFS peak 62 clipped 0/131072 | ch2/3 -40.5 dBFS peak 67 clipped 0/131072
+2026-11-08T11:35:54 > quit
+2026-11-08T11:35:55 Safe state: TX attenuation 89.75 dB, path off, TX LO powered down at 2400000000 Hz

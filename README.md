@@ -4,7 +4,7 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 Signals from two antennas are weighted and combined in the Zynq PL, then re-transmitted at GPS L1 to a commercial off-the-shelf (COTS) GNSS receiver. Adaptive weights are computed on the Zynq PS using power inversion.
 
-> **Status:** Early development. The FIR decimator and interpolator are removed and verified on hardware by digital loopback (T0b), the axi_ad9361 data interface is documented, and the Python bit-true model is done. The first RF test (T1) passes: through the RX1 -> TX1 pass-through, a COTS receiver gets a 3D fix on a conducted GPS simulator signal, with C/N0 about 3 dB below the direct reference. Next: the LO offset and sample rate sweep (T1), then `crpa_core` RTL. Interfaces and register maps may change.
+> **Status:** Early development. The FIR decimator and interpolator are removed and verified on hardware by digital loopback (T0b), the axi_ad9361 data interface is documented, and the Python bit-true model is done. The first RF test (T1) passes: through the RX1 -> TX1 pass-through, a COTS receiver gets a 3D fix on a conducted GPS simulator signal, with C/N0 about 3 dB below the direct reference. C/N0 does not change with the LO offset (+2 to +5 and -3 MHz) or the sample rate (10-30.72 MSPS). Next: `crpa_core` RTL. Interfaces and register maps may change.
 
 ## Overview
 
@@ -29,7 +29,7 @@ Signals from two antennas are weighted and combined in the Zynq PL, then re-tran
 | T0b | Remove the PL FIR decimator/interpolator to free DSP48 slices (72 -> 28 of 80) | Done |
 | - | Verify the axi_ad9361 data interface | Done |
 | - | Bit-true Python model | Done |
-| T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Fix and C/N0 done; next: vary LO offset and sample rate |
+| T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Done (fix, C/N0, LO offset and sample rate sweep) |
 | - | `crpa_core` RTL and testbench; integration into the block design | Planned |
 | T2 | Fixed weights ([1,0], [0,1], [1,1]); check combining gain | Planned |
 | T3 | Inter-channel amplitude/phase measurement with a common signal | Planned |
