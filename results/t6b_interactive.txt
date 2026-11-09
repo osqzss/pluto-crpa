@@ -1,0 +1,14 @@
+  2906.280 settings: delta 3000000 fs 10000000 bw 9000000 rx_gain 60 on 0 tx_att 0.00 min_tx_att 0.00 mode pi load 0 alpha 0 int_len 10000 shift 0 cap_sel 0 rt 40
+  2906.284 scheduling: SCHED_FIFO priority 40, memory locked
+  2906.496 DRY RUN: path set with TX muted; TX LO stays parked and powered down
+  2906.497 RX LO 1578419998 | TX LO 2399999998 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+  2906.499 RX gain manual 60 / manual 60 dB | RSSI 113.50 dB / 113.50 dB
+  2906.500 TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 0 | data_sel [2 2 2 2]
+  2906.500 crpa_core VERSION 0x00010000 CTRL 0x6 STATUS 0x1 INT_LEN 10000 MISSED 5 SEQ 0
+  2906.500 crpa_core staged W1 0x00007fff W2 0x00000000 OUT_SHIFT 0 (committed set not readable)
+  2906.500 mode pi, start w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0, INT_LEN 10000 (1.000 ms), load 0, alpha 0
+  2911.502 blocks 5002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 48/39 sat 0 | w1 +1.0000+0.0000j w2 -0.0247+0.0016j (|w1| 1.000 |w2| 0.025) shift 0
+  2916.503 blocks 10003 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 43/40 sat 0 | w1 +1.0000+0.0000j w2 -0.0074-0.0034j (|w1| 1.000 |w2| 0.008) shift 0
+  2917.164 stopped by signal 2
+  2917.164 blocks 10665 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.6 x2 -43.0 y~ -42.6 dBFS | peak 49/45 sat 0 | w1 +1.0000+0.0000j w2 +0.0013-0.0056j (|w1| 1.000 |w2| 0.006) shift 0
+  2917.169 Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz

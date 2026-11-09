@@ -42,8 +42,26 @@ With normal scheduling about 0.5% of blocks were lost (MISSED 24-30 per 5 s run)
 
 SCHED_FIFO 40 is below the irq threads (50, including `irq/33-crpa_core`); RT throttling stays at the default 950000/1000000 us. `--rt 40` is now the default (`--rt 0` for normal scheduling). The 6-8 blocks lost at startup (set-up report between the start of the blocks and the loop) remain; the first block is discarded in any case.
 
-## 4. Not yet tested
+## 4. Interactive commands (`ssh -t`, default `--rt 40` build)
+
+Run by the user in their own terminal: `ssh -t pluto /mnt/jffs2/crpa_ctl run --mode pi --monitor 5`, about 300 s, 301579 blocks. Dry run throughout. Log of the Ctrl-C run: `results/t6b_interactive.txt`.
+
+| Command | Result |
+|---|---|
+| `help`, `level`, `status` | correct output |
+| `rx 40` | x1 -48.7, x2 -52.0 dBFS: only 6-9 dB lower, since the receiver's own noise dominates at 40 dB. x2 is 3.5 dB below x1, the low-gain floor difference noted in plan Section 10.2 |
+| `rx 60` | back to -42.6 / -42.9 dBFS |
+| `tx 50` | refused in dry run |
+| `w 0 0 1 0` | y estimate = x2, -42.9 dBFS |
+| `w 1 0 1 0` | y estimate -39.7 dBFS; x1 + x2 of uncorrelated noise at -42.6 and -42.9 gives -39.74 |
+| `shift 1`, `shift 0` | +6.1 dB, then back |
+| `pi`, `load 22` | \|w2\| 0.01-0.03 again (load about 0.1 x noise power) |
+| `rx abc`, `w 2 0 0 0`, `shift 16`, `foo` | each refused with its own message, run continues. Typed on one line, the whole line goes to `rx` and only its message appears |
+| `note`, `quit` | NOTE line; safe state confirmed |
+| Ctrl-C (second run) | `stopped by signal 2`, safe state confirmed |
+
+Blocks lost in the 300 s run: 10. 5 at startup, 3 during `status` and 1 during each `rx`: these commands read or write AD9363 attributes over SPI in the same SCHED_FIFO thread as the loop. None during the 5 s monitor checks. Acceptable for operator commands; the CSV shows each gap. If it matters at T4, move the block loop to its own thread. Typed characters and summary lines interleave on the terminal (cosmetic).
+
+## 5. Not yet tested
 
 - `--on` (transmit): needs the conducted setup and the user's per-run go (T2).
-- Interactive commands (`rx`, `tx`, `w`, `pi`, `load`, `shift`, `status`, `note`) need a terminal (`ssh -t`).
-- The default `--rt 40` build: same code as run B/C, only the default changed; copy it again before T2.
