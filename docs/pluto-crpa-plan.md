@@ -261,7 +261,7 @@ Timing: all constraints met.
 | T0 | Reproduce default build, utilization and timing | **Done** (Section 6.5) |
 | T0b | Default design without FIR decimator/interpolator | Builds, timing met; Pluto works at fs >= approx. 2 MSPS. **Done** for the digital data path, 1R1T and 2R2T (`results/t0b_hw_test.md`); RF is covered by T1 |
 | T1 | Pass-through RX1 -> TX1 via PL, with LO offset. Can run on the current firmware with debugfs `loopback` = 2, which sets TX `data_sel = 8` (`docs/interface.md`, Section 4). Also check connector mapping and I/Q order | COTS receiver gets a fix; C/N0 degradation acceptable |
-| T2 | Fixed weights w = [1,0] / [0,1] / [1,1] | Each path received; combining gain as expected |
+| T2 | Fixed weights w = [1,0] / [0,1] / [1,1] | Each path received; combining gain as expected. **Done** (2026-11-09, `results/t2_A.md` to `t2_C2.md`): [1,0] and [0,1] within 0.2 dB of each other and of T1; the channels are 173 deg apart, so [1,-1] gives 1.8 dB array gain (level control T2-D) and [1,1] a 20 dB null |
 | T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune |
 | T4 | Conducted CW jammer into one channel (or both with phase offset); PI enabled | Null depth, C/N0 recovery |
 | T5 | Jammer power sweep | J/S improvement vs. no suppression |
@@ -370,6 +370,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] T2-A (2026-11-09, `results/t2_A.md`): first `crpa_ctl --on` run. Fixed w = [1,0] through crpa_core, RX1 -> TX1, TX1 attenuation 50 dB, settings as T1 A1. C/N0 -2.76 dB against the reference (T1 A1 loopback -2.75 dB), 11 PRNs, 3D fix, AGC 2028, jamming indicator 108; 433483 blocks with no saturation, no frame error and no gap after startup. crpa_core adds no measurable loss
 - [x] T2-B (2026-11-09, `results/t2_B.md`): w = [0,1], RX2 -> crpa_core -> TX1, the first RF check of RX2 through the PL. C/N0 -2.94 dB against the reference, 0.18 dB below T2-A on average (largest PRN 0.8 dB), 11 PRNs, 3D fix; no saturation, no frame error, no gap after startup. x2 is 0.4 dB below x1 in level (gain, not SNR). R21 shows the common signal (bladeRF carrier and GPS through the splitter) at 173 deg on RX2 relative to RX1, |rho| about 0.25
 - [x] T2-C1 (`results/t2_C1.md`): w = [1,-1], coherent combining. C/N0 -0.96 dB against the reference, +1.80 dB over T2-A (+1.2 to +2.0 per PRN), 11 PRNs; y +3.7 dB over x1. T2-D control (`results/t2_D.md`): y = 2 x1 at TX1 attenuation 52.25 dB, the same TX1 output power, gives the T2-A C/N0 within 0.1 dB. So the 1.8 dB is array gain, and C/N0 does not depend on the TX1 level in this range. AGC differed (1638 vs. 1872) although total y power matched; not resolved
+- [x] T2-C2 (`results/t2_C2.md`): w = [1,1], destructive. C/N0 -22.5 dB against the reference (about 19.8 dB below T2-A), 3 SVs tracked, no lasting fix; predicted about 21 dB from the measured amplitude ratio and phase. **T2 complete**: each path received ([1,0], [0,1]), 1.8 dB array gain in phase, a 20 dB null in antiphase
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
@@ -442,7 +443,7 @@ Status: **done** (2026-11-08): build (Sections 6.2, 6.5) and hardware check with
 - Build, record utilization and timing.
 
 ### Task 6: PS application and device tree
-Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). **6b in progress**: `crpa_ctl` written and tested in dry run (`results/t6b_dry_run.md`). Interactive commands done; the first `--on` run (T2-A) passed. **Task 6 done**; T2 continues: [1,0] and [0,1] done (T2-A, T2-B), [1,-1] (T2-C1) and the level control T2-D done: 1.8 dB array gain. Next: w = [1,1] (T2-C2, destructive).
+Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). **6b in progress**: `crpa_ctl` written and tested in dry run (`results/t6b_dry_run.md`). Interactive commands done; the first `--on` run (T2-A) passed. **Task 6 done**; T2 continues: [1,0] and [0,1] done (T2-A, T2-B), [1,-1] (T2-C1), the level control T2-D and [1,1] (T2-C2) done: **T2 complete**. Next: T3 (inter-channel amplitude and phase per retune) and the T4 jammer setup (Section 10.2).
 
 - 6a (done): fw/linux fork `osqzss/linux`, branch `crpa`. FIR flags removed, `crpa_core` UIO node, of_id via `CONFIG_CMDLINE_EXTEND` (Section 7). Patches exported to `sw/dts/`.
 - 6b: C application `sw/app/crpa_ctl` (Section 7). Done: build, weight math test, dry run on hardware, real-time scheduling, interactive commands, first `--on` run (T2-A, `results/t2_A.md`).

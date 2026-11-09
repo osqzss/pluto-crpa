@@ -4,7 +4,7 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 Signals from two antennas are weighted and combined in the Zynq PL, then re-transmitted at GPS L1 to a commercial off-the-shelf (COTS) GNSS receiver. Adaptive weights are computed on the Zynq PS using power inversion.
 
-> **Status:** Early development. The FIR decimator and interpolator are removed and verified on hardware by digital loopback (T0b), the axi_ad9361 data interface is documented, and the Python bit-true model is done. The first RF test (T1) passes: through the RX1 -> TX1 pass-through, a COTS receiver gets a 3D fix on a conducted GPS simulator signal, with C/N0 about 3 dB below the direct reference. C/N0 does not change with the LO offset (+2 to +5 and -3 MHz) or the sample rate (10-30.72 MSPS). The `crpa_core` RTL matches the bit-true model in simulation, and it is now in the Pluto block design and the firmware: with its muxes at reset, normal Pluto operation is unchanged on hardware, and its registers read back over AXI-Lite. Next: device tree and PS application, then fixed-weight tests (T2). Interfaces and register maps may change.
+> **Status:** Early development. The `crpa_core` combiner and covariance integrator run in the Pluto PL, and the PS application `crpa_ctl` drives them through UIO with an interrupt-driven weight loop. Fixed-weight tests at RF (T2) pass with a conducted GPS simulator signal and a COTS receiver: each element alone gives the same C/N0 as the plain pass-through (T1, about 3 dB below the direct reference); adding both elements in phase improves C/N0 by 1.8 dB (array gain, confirmed by a level-matched control run), and adding them in antiphase places a null about 20 dB deep. Power inversion runs on the PS and matches the bit-true model, but has so far only been run without a jammer. Next: inter-channel calibration data (T3) and a conducted CW jammer test (T4). Interfaces and register maps may change.
 
 ## Overview
 
@@ -32,9 +32,9 @@ Signals from two antennas are weighted and combined in the Zynq PL, then re-tran
 | T1 | PL pass-through RX1 -> TX1 with LO offset; COTS receiver gets a fix | Done (fix, C/N0, LO offset and sample rate sweep) |
 | - | `crpa_core` RTL and testbench | Done (simulation) |
 | - | `crpa_core` integration into the block design | Done (build, timing met; register and default-path check on hardware) |
-| - | Device tree (UIO) and PS application | Next |
-| T2 | Fixed weights ([1,0], [0,1], [1,1]); check combining gain | Planned |
-| T3 | Inter-channel amplitude/phase measurement with a common signal | Planned |
+| - | Device tree (UIO) and PS application | Done (fw/linux fork; `crpa_ctl`, dry run and RF) |
+| T2 | Fixed weights ([1,0], [0,1], [1,1]); check combining gain | Done (each path; 1.8 dB array gain in phase; 20 dB null in antiphase) |
+| T3 | Inter-channel amplitude/phase measurement with a common signal | Next |
 | T4 | Conducted CW jammer; adaptive power inversion; null depth and C/N0 recovery | Planned |
 | T5 | Jammer power sweep; J/S improvement | Planned |
 | T6 | Over-the-air test in a shielded environment (authorized only) | Planned |
@@ -52,15 +52,15 @@ Design resources with `crpa_core` (XC7Z010): LUT 72%, FF 60%, DSP48 56% (45 of 8
 ```
 CLAUDE.md  Instructions for Claude Code
 docs/      Development plan, setup guide, environment record, interface notes, register map
-fw/        plutosdr-fw fork (submodule, branch crpa); fw/hdl is the ADI hdl fork (branch crpa)
+fw/        plutosdr-fw fork (submodule, branch crpa); fw/hdl and fw/linux are ADI forks (branch crpa)
 ip/        crpa_core IP (Verilog): rtl/, tb/
 model/     Python bit-true reference model
-sw/        PS application and device tree fragments
+sw/        PS application crpa_ctl (sw/app) and patch exports of the fw/linux changes (sw/dts)
 scripts/   Setup, build, simulation, hardware check, report and environment scripts
 results/   Utilization/timing reports and measurement logs
 ```
 
-`fw/` and `fw/hdl/` are git submodules. The parent repository records a specific commit of each, not a branch; see [docs/setup.md](docs/setup.md).
+`fw/`, `fw/hdl/` and `fw/linux/` are git submodules. The parent repository records a specific commit of each, not a branch; see [docs/setup.md](docs/setup.md).
 
 ## Getting Started
 
@@ -74,6 +74,8 @@ cd pluto-crpa
 export VIVADO_SETTINGS=/tools/Xilinx/2025.1/Vivado/settings64.sh
 ./scripts/build_hdl.sh 2>&1 | tee results/build_hdl.log   # HDL build + reports in results/hdl/
 ```
+
+PS application: `make -C sw/app` (cross-compiled with the toolchain of the firmware build), copied to the Pluto with `scp -O`; usage in [docs/pluto-crpa-plan.md](docs/pluto-crpa-plan.md), Section 7.
 
 Full firmware build: `cd fw && make` (see `fw/README.md` and [docs/setup.md](docs/setup.md), Section 9). After an HDL change, delete `fw/build/system_top.xsa` first: the fw Makefile only copies it when it is missing, so the old bitstream would be packaged. Flashing: [docs/test-equipment.md](docs/test-equipment.md), Section 7.1.
 
