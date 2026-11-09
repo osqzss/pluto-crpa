@@ -10,3 +10,6 @@ model/vectors/
 .venv/
 sim/
 tmp/
+
+# full per-block crpa_ctl CSVs (tens of MB); a decimated copy is committed
+results/t2_?.csv

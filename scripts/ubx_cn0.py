@@ -4,9 +4,13 @@
 Reads NAV-PVT, NAV-SAT and MON-HW (u-blox 8, protocol 18). For each GPS PRN,
 C/N0 is averaged over the NAV-SAT epochs where the SV is flagged used in the
 solution. Optional --skip drops the first seconds of the log (acquisition).
+Optional --cut DB ends the log at the first epoch (after --skip) whose mean
+C/N0 over the used SVs is more than DB below the median of those epoch means:
+the signal path was switched off there (quit), and the fading epochs after it
+would bias the averages. MON-HW is cut at the same point (1 Hz assumed).
 Prints a Markdown table; with --ref, a second log is the reference column.
 
-Usage: scripts/ubx_cn0.py LOG.ubx [--ref REF.ubx] [--skip SEC]
+Usage: scripts/ubx_cn0.py LOG.ubx [--ref REF.ubx] [--skip SEC] [--cut DB]
 """
 import argparse
 import struct
@@ -68,6 +72,34 @@ def parse(path, skip):
     return pvt, sat, hw
 
 
+def cut_at_drop(pvt, sat, hw, db):
+    """Keep the log up to the last epoch whose mean used C/N0 is within db of the
+    median epoch mean; drop the epochs after it (the fade after the signal path
+    was switched off). Returns the lists and the seconds dropped at the end
+    of the log, or None if nothing was dropped."""
+    means = []
+    for _, svs in sat:
+        c = [cno for cno, used in svs.values() if used]
+        means.append(sum(c) / len(c) if c else None)
+    vals = sorted(m for m in means if m is not None)
+    if not vals:
+        return pvt, sat, hw, None
+    med = vals[len(vals) // 2]
+    last = max(i for i, m in enumerate(means) if m is not None and m >= med - db)
+    if last == len(sat) - 1:
+        return pvt, sat, hw, None
+    # Times are measured back from the end of the log: after a cold start the
+    # receiver time is wrong until the first fix, so the start is no reference.
+    week = 7 * 86400000
+    tl, tend = sat[last][0], sat[-1][0]
+    drop = ((tend - tl) % week) // 1000
+    sat = sat[:last + 1]
+    pvt = [x for x in pvt if (tl - x[0]) % week < week // 2]
+    hw = hw[:max(0, len(hw) - drop)]
+    keep = drop
+    return pvt, sat, hw, keep
+
+
 def summary(pvt, sat):
     per = {}
     for _, svs in sat:
@@ -86,12 +118,19 @@ def main():
     ap.add_argument("log")
     ap.add_argument("--ref")
     ap.add_argument("--skip", type=float, default=0.0, help="seconds dropped at the start")
+    ap.add_argument("--cut", type=float, help="end at the first epoch whose mean used C/N0 "
+                    "is more than this many dB below the median (signal path switched off)")
     args = ap.parse_args()
 
     pvt, sat, hw = parse(args.log, args.skip)
+    cut = None
+    if args.cut is not None:
+        pvt, sat, hw, cut = cut_at_drop(pvt, sat, hw, args.cut)
     res = summary(pvt, sat)
     fixes = [x for x in pvt if x[1] == 3 and x[2]]
-    print("Log: %s (skip %g s)" % (args.log, args.skip))
+    print("Log: %s (skip %g s%s)" % (args.log, args.skip,
+          "" if args.cut is None else ", cut %g dB: %s" % (
+              args.cut, "last %d s dropped" % cut if cut is not None else "no drop found")))
     print("NAV-PVT epochs %d, valid 3D fix %d; last numSV %s, hAcc %s m"
           % (len(pvt), len(fixes), pvt[-1][3] if pvt else "-",
              "%.2f" % (pvt[-1][4] / 1000.0) if pvt else "-"))
