@@ -9,10 +9,10 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 ## Repository
 
-- `fw/` - plutosdr-fw fork, branch `crpa` (based on upstream master). `fw/hdl` is the ADI hdl fork, branch `crpa`.
+- `fw/` - plutosdr-fw fork, branch `crpa` (based on upstream master). `fw/hdl` and `fw/linux` are ADI forks, branch `crpa`.
 - `ip/crpa_core/` - custom IP (Verilog). Linked into `fw/hdl/library/crpa_core` by `scripts/setup.sh`; edit only here.
 - `model/` - Python bit-true reference model
-- `sw/app/` - PS application (C), `sw/dts/` - device tree fragments
+- `sw/app/` - PS application (C), `sw/dts/` - format-patch exports of the fw/linux `crpa` commits
 - `docs/` - plan, environment record, register map
 - `results/` - utilization/timing reports and measurement logs
 
@@ -31,6 +31,6 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 - All code, scripts, comments and commit messages in ASCII English.
 - Never modify `fw/hdl/library/`; ADI-side changes only in project files on the `crpa` branch.
-- Submodule commit order: `fw/hdl` -> `fw` -> parent. No force-push without confirmation.
+- Submodule commit order: `fw/hdl` and `fw/linux` -> `fw` -> parent. No force-push without confirmation.
 - Confirm ADI IP behavior from source (or ILA) before implementing; do not guess.
 - Update Sections 10 and 11 of the plan at the end of each session.

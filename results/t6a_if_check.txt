@@ -1,0 +1,32 @@
+before: fs 30720000 | TX_LO powerdown 0
+AD9361 parallel port conf 0x010-0x012: ['0xc8', '0x0', '0x42']
+PASS  adc r1_mode = 0 (2R2T)
+PASS  dac r1_mode = 0 (2R2T)
+PASS  dac rate = 1 (one sample every 2 l_clk)
+PASS  reg 0x005c bit 0: adc_status (rx frame toggling, delay locked)
+ch0: adc CHAN_CNTRL 0x00000250, IQCOR coeffs 0x40000000, dac data_sel 0, dac iqcor_enb 0
+PASS  ch0 sign extension on
+PASS  ch0 DC filter off
+ch1: adc CHAN_CNTRL 0x00000250, IQCOR coeffs 0x00004000, dac data_sel 0, dac iqcor_enb 0
+PASS  ch1 sign extension on
+PASS  ch1 DC filter off
+ch2: adc CHAN_CNTRL 0x00000251, IQCOR coeffs 0x40000000, dac data_sel 2, dac iqcor_enb 0
+PASS  ch2 sign extension on
+PASS  ch2 DC filter off
+ch3: adc CHAN_CNTRL 0x00000251, IQCOR coeffs 0x00004000, dac data_sel 2, dac iqcor_enb 0
+PASS  ch3 sign extension on
+PASS  ch3 DC filter off
+fs 30720000: l_clk 61.441 MHz, ratio 2.000
+PASS  l_clk = 2 x fs at fs = 30720000
+PASS  adc_status set at fs = 30720000
+dac data_sel after rate change: [0, 0, 2, 2]
+fs 10000000: l_clk 20.001 MHz, ratio 2.000
+PASS  l_clk = 2 x fs at fs = 10000000
+PASS  adc_status set at fs = 10000000
+dac data_sel after rate change: [0, 0, 2, 2]
+fs 2999999: l_clk 6.000 MHz, ratio 2.000
+PASS  l_clk = 2 x fs at fs = 2999999
+PASS  adc_status set at fs = 2999999
+dac data_sel after rate change: [0, 0, 2, 2]
+after: fs 30720000 | TX_LO powerdown 0
+RESULT PASS

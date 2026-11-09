@@ -3,7 +3,7 @@
 # Usage: ./scripts/record_env.sh >> docs/environment.md
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-FW="$ROOT/fw"; HDL="$FW/hdl"
+FW="$ROOT/fw"; HDL="$FW/hdl"; LNX="$FW/linux"
 
 VIV="(VIVADO_SETTINGS not set)"
 if [ -n "${VIVADO_SETTINGS:-}" ]; then
@@ -57,6 +57,12 @@ cat << MD
 | Base (pinned by upstream master) | \`$(git -C "$FW" ls-tree upstream/master hdl | awk '{print $3}')\` |
 | Working branch | \`$(git -C "$HDL" rev-parse --abbrev-ref HEAD)\` @ \`$(git -C "$HDL" rev-parse HEAD)\` |
 | required_vivado_version | $(grep -m1 -oP 'required_vivado_version "\K[^"]+' "$HDL/scripts/adi_env.tcl") |
+
+### ADI linux (fw/linux/)
+| Item | Value |
+|---|---|
+| Base (pinned by upstream master) | \`$(git -C "$FW" ls-tree upstream/master linux | awk '{print $3}')\` |
+| Working branch | \`$(git -C "$LNX" rev-parse --abbrev-ref HEAD)\` @ \`$(git -C "$LNX" rev-parse HEAD)\` |
 
 ### Other submodules (pinned by fw)
 \`\`\`

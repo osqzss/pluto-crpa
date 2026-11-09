@@ -222,7 +222,26 @@ fatal: Failed to recurse into submodule path 'u-boot'
 
 u-boot vendors mbedtls but keeps a stale nested gitlink without a URL. It is not used by the u-boot build and occurs after all other submodules are done. Ignore it; use `git -C fw submodule status` (without `--recursive`) for checks.
 
-The submodule contents are never pushed by the parent repository: the parent records only the fw commit hash, and linux/buildroot/u-boot are read-only clones of ADI repositories.
+The submodule contents are never pushed by the parent repository: the parent records only the fw commit hash. buildroot, u-boot and br2-external are read-only clones of ADI repositories.
+
+### 4.1 linux fork (Task 6a, 2026-11-09)
+
+fw/linux is a fork with a `crpa` branch, set up the same way as hdl, after the fork `https://github.com/<user>/linux` was created on GitHub (all branches):
+
+```bash
+cd ~/Work/pluto-crpa/fw/linux                 # detached HEAD at the commit pinned by fw
+git remote rename origin upstream             # origin was ADI
+git remote add origin https://github.com/<user>/linux.git
+git checkout -b crpa                          # from the pinned commit, no upstream move
+# ... commits ...
+git push -u origin crpa
+cd ..
+# .gitmodules: linux url -> the fork, branch = crpa (hdl also branch = crpa)
+git submodule sync linux hdl
+git add .gitmodules linux && git commit && git push
+```
+
+A fresh clone with `git submodule update --init` then fetches linux from the fork. The `branch` setting only matters for `git submodule update --remote`; with `crpa` it cannot fall back to plain ADI code.
 
 Note: the `crpa` branches were first created from a release tag (v0.39 line). Because that hdl required Vivado 2023.2, fw `crpa` was reset to `upstream/master` and hdl `crpa` was recreated at the newly pinned commit and force-pushed.
 

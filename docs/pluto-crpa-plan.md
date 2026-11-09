@@ -187,7 +187,7 @@ Timing: all constraints met.
 **Decisions:**
 - Only 8 DSP48 remain; the CRPA needs about 10-20. **Remove rx_fir_decimator and tx_fir_interpolator** (DSP 72 -> 28, LUT approx. -1,200, FF approx. -3,200). They are only needed below approx. 2 MSPS; this project uses fs = 10 MSPS.
 - Consequence: the FPGA x8 decimation/interpolation path is gone. Measured floor with the AD9361 internal FIR off: 2.084 MSPS (`results/t0b_hw_test.md`). Lower rates need a valid FIR loaded; 0.521 MSPS was accepted in 1R1T, but without a confirmed valid filter.
-- **Known limitation (until Task 6):** `zynq-pluto-sdr.dtsi` still sets `adi,axi-decimation-core-available` and `adi,axi-interpolation-core-available`. The drivers therefore still offer and accept f/8 on the `cf-ad9361-lpc` and `cf-ad9361-dds-core-lpc` `sampling_frequency` attributes. With the FIRs removed, a write of f/8 has no effect on the hardware: the data stays at f while the attribute reports f/8, with no error. Do not write f/8 to these cores; set the rate through `ad9361-phy`. Both properties are removed in Task 6.
+- **Device tree flags (resolved in Task 6a):** up to Task 5, `zynq-pluto-sdr.dtsi` still set `adi,axi-decimation-core-available` and `adi,axi-interpolation-core-available`, so the drivers offered f/8 and silently ignored it. Both are removed on the fw/linux `crpa` branch (`7a17700`). Since then `cf-ad9361-lpc` has no `in_voltage_sampling_frequency_available` attribute and passes `sampling_frequency` writes to the AD9361 clock; `cf-ad9361-dds-core-lpc` has no interpolation attributes (`results/t6a_dt_check.md`). Set the rate through `ad9361-phy` as before.
 - Further reserves if needed: disable DC filter / IQ correction / DDS inside axi_ad9361 via parameters (check exact parameter names in `projects/pluto/system_bd.tcl` and `library/axi_ad9361/axi_ad9361_ip.tcl`), remove axi_tdd (FDD only).
 
 **T0b result: FIRs removed.** Build: `results/hdl/20261104-1348_387ca1761/`, hdl `387ca1761`, Vivado 2025.1, xc7z010clg225-1, routed. All timing constraints met. Digital loopback passed in 1R1T and 2R2T: `results/t0b_hw_test.md`.
@@ -231,13 +231,16 @@ Timing: all constraints met.
 ## 7. PS Software
 
 - User-space application on the standard Pluto Linux (plutosdr-fw).
-- Register access: UIO (preferred; add a device tree node) or `/dev/mem`.
+- Register access: UIO. Node `crpa-core@7c450000` in `zynq-pluto-sdr.dtsi` (fw/linux `crpa`): `generic-uio`, `reg = <0x7c450000 0x10000>`, `interrupts = <0 54 IRQ_TYPE_LEVEL_HIGH>`, `linux,uio-name = "crpa_core"`. It appears as `/dev/uioN` with `/sys/class/uio/uioN/name` = `crpa_core`; find it by name, not by number. Map 0 is the 64 KB register window (`docs/regmap.md`).
+- Bootargs: `uio_pdrv_genirq` binds `generic-uio` only with `uio_pdrv_genirq.of_id=generic-uio`. u-boot sets bootargs with a fixed string in its boot commands, so the kernel appends it (`CONFIG_CMDLINE` with `CONFIG_CMDLINE_EXTEND=y` in `zynq_pluto_defconfig`). No u-boot environment change.
+- Interrupt: blocking `read()` on `/dev/uioN` returns when `irq` (= STATUS.DONE, level) fires; the driver masks the IRQ at that point. Clear DONE first, then write 1 to `/dev/uioN` to unmask, or the level IRQ fires again at once. Polling STATUS is kept as a fallback (`--poll`).
 - AD9363 configuration via libiio (`ad9361-phy` attributes): 2R2T, LO, fs, bandwidth, manual gain, TX attenuation.
 - Set TX `data_sel = 2` at startup and after any TX buffer close or DDS attribute write; the driver default is DDS (`docs/interface.md`, Section 5). Refuse to start unless the core is in 2R2T.
 - Weight loop: wait for integration done (interrupt or polling) -> read R -> compute w -> write w.
 - Logging: R, w, output power, saturation counters to CSV (retrieved over USB).
 - Cross-compilation: **use the sysroot from the firmware actually flashed to the Pluto** (the Buildroot staging output of our own master-based build), not the release sysroot.
-- Device tree changes for UIO: fragments in `sw/dts/`, applied in the plutosdr-fw / linux forks.
+- Device tree and kernel config changes are commits on the fw/linux `crpa` branch (fork, not carried patches). `sw/dts/` holds `git format-patch` exports of those commits for review and documentation only.
+- The application stays outside the firmware for now: copied to the Pluto (`/mnt/jffs2` survives a reboot; the root file system is in RAM). Buildroot packaging later, once stable.
 
 ---
 
@@ -286,11 +289,12 @@ pluto-crpa/                       # parent repository (main)
 |   |-- fixed_point.md            # crpa_core widths, rounding, saturation, simulated performance
 |   `-- regmap.md                 # crpa_core register map
 |-- fw/                           # plutosdr-fw fork, branch crpa (based on upstream master)
-|   `-- hdl/                      # ADI hdl fork, branch crpa
+|   |-- hdl/                      # ADI hdl fork, branch crpa
+|   `-- linux/                    # ADI linux fork (osqzss/linux), branch crpa
 |-- ip/crpa_core/                 # custom IP (Verilog): rtl/, tb/, IP packaging
 |-- model/                        # Python bit-true model, test vector generation
 |-- sw/app/                       # PS application (C)
-|-- sw/dts/                       # device tree fragments
+|-- sw/dts/                       # format-patch exports of the fw/linux crpa commits
 |-- scripts/                      # setup, build, simulation, hardware check and report scripts
 |-- requirements.txt              # Python packages for .venv/ (the venv is git-ignored)
 |-- tools/                        # sysroot etc. (git-ignored)
@@ -300,7 +304,7 @@ pluto-crpa/                       # parent repository (main)
 ### 9.2 Environment
 - Host: Ubuntu 24.04.4 LTS, Vivado 2025.1 at `/tools/Xilinx/2025.1`.
 - `VIVADO_SETTINGS=/tools/Xilinx/2025.1/Vivado/settings64.sh`
-- Submodule remotes: `origin` = own fork, `upstream` = analogdevicesinc. `.gitmodules` URLs stay HTTPS; pushes go over SSH via `pushInsteadOf`.
+- Submodule remotes (fw/hdl and fw/linux): `origin` = own fork, `upstream` = analogdevicesinc. `.gitmodules` URLs stay HTTPS, with `branch = crpa` for both; pushes go over SSH via `pushInsteadOf`. buildroot, u-boot and br2-external stay unmodified ADI clones.
 
 ### 9.3 Scripts
 | Command | Purpose |
@@ -321,6 +325,7 @@ pluto-crpa/                       # parent repository (main)
 | `vivado -mode batch -source scripts/ooc_crpa.tcl -tclargs <dir>` | Out-of-context synthesis and implementation of `crpa_core`, with utilization, timing and CDC reports (about 1 min) |
 | `make -C fw/hdl/library/crpa_core xilinx` | Package the IP (`component.xml`, about 30 s; needs `VIVADO_SETTINGS` sourced). Copies `up_axi.v`, `up_xfer_*.v` and their XDC files into `ip/crpa_core/adi_common/` first, so that the packaged paths work through the link. The project build does this through `LIB_DEPS` |
 | `ssh pluto 'sh -s' < scripts/frame_err_test.sh` | Runs on the Pluto: clears `crpa_core` STATUS.FRAME_ERR and watches it at 30.72 and 10 MSPS, across two rate changes; leaves TX_LO powered down (about 30 s; ssh needs the password, so the user runs it) |
+| `ssh pluto 'sh -s' < scripts/uio_check.sh` | Runs on the Pluto, read-only: `/opt/VERSIONS`, `/proc/cmdline`, `crpa_core` UIO map and IRQ, VERSION register, ADC/DAC `sampling_frequency` attributes (seconds; the user runs it) |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
@@ -353,6 +358,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] Task 4: `crpa_core` RTL (`ip/crpa_core/rtl/`), IP version 1.0. Bit exact against the model on all vector cases, including per-block saturation and peaks; core testbench passes at `l_clk` 61.44 and 20 MHz (`results/t4_crpa_sim.txt`). IP packages in ADI style. Out of context: 17 DSP48, timing met, CDC safe (Section 6.5). Register map `docs/regmap.md`. Design decisions confirmed by the user (2026-11-08): free-running blocks (no integration-start bit), muxes inside `crpa_core`, combined capture ch0/1 = y and ch2/3 = x1, result registers frozen while DONE is set, staged weights committed by UPDATE. Not yet in the block design or on hardware
 - [x] Task 5: `crpa_core` in the pluto block design (hdl `crpa` branch; Section 6.2). Full build routed, timing met, DSP 45 of 80, LUT 72%, FF 60%; `crpa_core` CDC clean in the full design (Section 6.5, `results/hdl/20261108-1301_387ca1761-dirty/`). Registers at 0x7C450000, `irq` on ps-10 (GIC SPI 54), confirmed by the user (2026-11-08). Firmware not yet built or flashed with it
 - [x] Task 5 on hardware (`results/t5_hw_check.md`, 2026-11-08): firmware fw `8f9cd60` / hdl `ad150ddd5` flashed on the CRPA unit, `fw_version` v0.39-22-g8f9c. With both muxes at reset, `loopback_test.py` (0 fails) and `if_check.py` (PASS) as in T0b. Registers at 0x7C450000 read the documented reset values; SCRATCH writes back. STATUS.FRAME_ERR is set by every sample rate change and stays clear at a fixed rate (20 s at 30.72 and 10 MSPS), which the PS sequence after a rate change already covers
+- [x] Task 6a, fw/linux fork and device tree (2026-11-09, `results/t6a_dt_check.md`): fw/linux is the fork `osqzss/linux`, branch `crpa` on ADI `bf1d49f` (linux `a26ff66`, fw `d8191eb`). FIR flags removed, `crpa_core` UIO node added, of_id appended through `CONFIG_CMDLINE_EXTEND`. On the CRPA unit: `/dev/uio0` named `crpa_core`, map 0x7c450000/0x10000, IRQ GIC 86 level, VERSION 0x00010000; f/8 no longer offered; IIO devices unchanged; `loopback_test.py` 0 fails, `if_check.py` PASS. Firmware flashed was built before the fw commit (`device-fw v0.39-22-g8f9c-dirty`); same content as `d8191eb`
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
@@ -363,7 +369,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [ ] bladeRF carrier at L1 stays after `bladegps` exits, and is also present while it runs. Effect on the C/N0 reference and the T1 result not evaluated. Whether TX is left enabled not determined
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
-- [ ] UIO vs. `/dev/mem`; interrupt vs. polling. The level `irq` (= STATUS.DONE) is connected to ps-10 (GIC SPI 54) since Task 5, so both are possible; decide in Task 6
+- [x] UIO vs. `/dev/mem`; interrupt vs. polling: decided 2026-11-09, UIO with the interrupt, polling as a fallback (Section 7). The UIO side is in place (Task 6a); the application is Task 6b
 - [ ] FRAME_ERR at rate changes (`results/t5_hw_check.md`): the number of affected samples, and whether ENSM changes also set it, are not known. The PS must soft-reset and clear STATUS after a rate change and treat FRAME_ERR at a fixed rate as an error (Task 6)
 - [ ] Target receiver input level and external attenuation
 - [ ] COTS GNSS receiver to use and how to read C/N0 (NMEA/UBX)
@@ -424,8 +430,10 @@ Status: **done** (2026-11-08): build (Sections 6.2, 6.5) and hardware check with
 - Build, record utilization and timing.
 
 ### Task 6: PS application and device tree
-- UIO node in `sw/dts/`, C application in `sw/app/` (Section 7).
-- Remove `adi,axi-decimation-core-available` and `adi,axi-interpolation-core-available` from the device tree (Section 6.5). `fw/linux` has no fork yet (detached HEAD, `origin` = ADI upstream), so decide between a fork and a patch for this and the UIO node.
+Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). Next is 6b.
+
+- 6a (done): fw/linux fork `osqzss/linux`, branch `crpa`. FIR flags removed, `crpa_core` UIO node, of_id via `CONFIG_CMDLINE_EXTEND` (Section 7). Patches exported to `sw/dts/`.
+- 6b: C application in `sw/app/` (Section 7). Build with the toolchain and sysroot of our own firmware build (`fw/buildroot/output/host`, `.../staging`; confirm first, Section 10.2). Find the UIO device by name, map 0, wait on the interrupt (clear DONE, then unmask), `--poll` fallback; libiio for the AD9363; soft reset and STATUS clear after rate changes.
 
 ---
 
@@ -436,7 +444,8 @@ Status: **done** (2026-11-08): build (Sections 6.2, 6.5) and hardware check with
 - Shell scripts use `set -euo pipefail`; wrap sourcing of external scripts such as Vivado `settings64.sh` in `set +u` / `set -u`.
 - Never modify ADI library IP (`fw/hdl/library/`). ADI-side changes are limited to project files such as `fw/hdl/projects/pluto/` and are committed on the `crpa` branch.
 - Edit the custom IP only in `ip/crpa_core/` (`fw/hdl/library/crpa_core` is a link).
-- Commit order for submodules: `fw/hdl` -> `fw` -> parent. Push each to its fork before updating the reference above it.
+- Commit order for submodules: `fw/hdl` and `fw/linux` -> `fw` -> parent. Push each to its fork before updating the reference above it.
+- Kernel and device tree changes are commits on the fw/linux `crpa` branch; export them with `git format-patch` into `sw/dts/`. Do not change u-boot or its environment without asking the user.
 - Never force-push (`git push -f`) without the user's confirmation.
 - RTL changes must pass the bit-exact comparison with the Python model before commit.
 - Build with `scripts/build_hdl.sh`; keep reports in `results/hdl/` and compare utilization and WNS with the previous build.

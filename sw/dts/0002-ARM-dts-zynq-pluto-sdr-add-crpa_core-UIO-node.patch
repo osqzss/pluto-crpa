@@ -1,0 +1,42 @@
+From 88d1c7e19341ac630c9e5ad191d2f4215fb008e8 Mon Sep 17 00:00:00 2001
+From: Takuji Ebinuma <takuji.ebinuma@gmail.com>
+Date: Mon, 9 Nov 2026 11:50:48 +0900
+Subject: [PATCH 2/3] ARM: dts: zynq-pluto-sdr: add crpa_core UIO node
+
+Add the pluto-crpa crpa_core AXI-Lite slave as a generic-uio device.
+Base 0x7c450000 and size 0x10000 are from the Vivado address map of the
+hdl crpa branch. The level-high irq (STATUS.DONE) is on ps-10, i.e.
+IRQ_F2P[10], GIC SPI 54. linux,uio-name gives a fixed name so that user
+space can find the device under /sys/class/uio.
+---
+ arch/arm/boot/dts/xilinx/zynq-pluto-sdr.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/xilinx/zynq-pluto-sdr.dtsi b/arch/arm/boot/dts/xilinx/zynq-pluto-sdr.dtsi
+index 4277e0121bb8..edf84eca2392 100644
+--- a/arch/arm/boot/dts/xilinx/zynq-pluto-sdr.dtsi
++++ b/arch/arm/boot/dts/xilinx/zynq-pluto-sdr.dtsi
+@@ -144,6 +144,20 @@ cf_ad9364_dac_core_0: cf-ad9361-dds-core-lpc@79024000 {
+ 			adi,axi-dds-default-scale = <0>;
+ 		};
+ 
++		/*
++		 * pluto-crpa two-element combiner (crpa_core). Base and size are
++		 * from the Vivado address map of the hdl crpa branch
++		 * (projects/pluto/system_bd.tcl). irq is STATUS.DONE, level high,
++		 * on ps-10 = IRQ_F2P[10] = SPI 54. Bound by uio_pdrv_genirq through
++		 * uio_pdrv_genirq.of_id=generic-uio (CONFIG_CMDLINE).
++		 */
++		crpa_core: crpa-core@7c450000 {
++			compatible = "generic-uio";
++			reg = <0x7c450000 0x10000>;
++			interrupts = <0 54 IRQ_TYPE_LEVEL_HIGH>;
++			linux,uio-name = "crpa_core";
++		};
++
+ 		mwipcore@43c00000 {
+ 			compatible = "mathworks,mwipcore-axi4lite-v1.00";
+ 			reg = <0x43c00000 0xffff>;
+-- 
+2.43.0
+

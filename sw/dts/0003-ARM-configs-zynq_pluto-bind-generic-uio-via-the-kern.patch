@@ -1,0 +1,33 @@
+From a26ff6600e94e9fbbfd83d0921fea17666243eab Mon Sep 17 00:00:00 2001
+From: Takuji Ebinuma <takuji.ebinuma@gmail.com>
+Date: Mon, 9 Nov 2026 11:51:09 +0900
+Subject: [PATCH 3/3] ARM: configs: zynq_pluto: bind generic-uio via the kernel
+ command line
+
+uio_pdrv_genirq binds a "generic-uio" device tree node only when its
+of_id parameter is set. The Pluto u-boot sets bootargs with a fixed
+string in its boot commands, so append the parameter from the kernel
+with CMDLINE_EXTEND. The old CONFIG_CMDLINE was never used because
+u-boot always passes bootargs, and its root= would conflict when
+appended.
+---
+ arch/arm/configs/zynq_pluto_defconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/zynq_pluto_defconfig b/arch/arm/configs/zynq_pluto_defconfig
+index f850dfe341ff..31b9e7741aff 100644
+--- a/arch/arm/configs/zynq_pluto_defconfig
++++ b/arch/arm/configs/zynq_pluto_defconfig
+@@ -28,7 +28,8 @@ CONFIG_SMP=y
+ CONFIG_SCHED_MC=y
+ CONFIG_SCHED_SMT=y
+ CONFIG_HIGHMEM=y
+-CONFIG_CMDLINE="console=ttyPS0,115200n8 root=/dev/ram rw earlyprintk"
++CONFIG_CMDLINE="uio_pdrv_genirq.of_id=generic-uio"
++CONFIG_CMDLINE_EXTEND=y
+ CONFIG_CPU_IDLE=y
+ CONFIG_CPU_IDLE_GOV_MENU=y
+ CONFIG_ARM_ZYNQ_CPUIDLE=y
+-- 
+2.43.0
+

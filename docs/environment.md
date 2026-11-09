@@ -103,3 +103,52 @@
  bf1d49f17fa9e15bc40be2615ef67cdf023f660a linux (v6.12-43124-gbf1d49f17fa9)
  b234cb3ae435f30c7d85ab589193fc9b93c7586d u-boot (b234cb3ae43)
 ```
+
+## Snapshot: 2026-11-09
+
+### Host
+| Item | Value |
+|---|---|
+| OS | Ubuntu 24.04.4 LTS |
+| Kernel | 7.0.0-42-generic |
+| Vivado | vivado v2025.1 (64-bit) |
+
+### plutosdr-fw (fw/)
+| Item | Value |
+|---|---|
+| Base (upstream) | master @ `3b689562bfef2e9312a18cf3dba093c1fc00bc72` |
+| Working branch | `crpa` @ `d8191eb709a1e49654668124ef6ea6b8cb8ce8db` |
+
+### ADI hdl (fw/hdl/)
+| Item | Value |
+|---|---|
+| Base (pinned by upstream master) | `4840c81f2af172b036cb3ccb3f9f2dc45ed9c1d3` |
+| Working branch | `crpa` @ `ad150ddd5e37734b72061f4af393e7b7dfdd9a7a` |
+| required_vivado_version | 2025.1 |
+
+### ADI linux (fw/linux/)
+| Item | Value |
+|---|---|
+| Base (pinned by upstream master) | `bf1d49f17fa9e15bc40be2615ef67cdf023f660a` |
+| Working branch | `crpa` @ `a26ff6600e94e9fbbfd83d0921fea17666243eab` |
+
+### Other submodules (pinned by fw)
+```
+ 46fb2fa54870cbddd0e5a6a26548c410723b0815 br2-external (2025.05-0.3.0-54-g46fb2fa)
+ 2e2994de5213abfa63ab5cf5f9291bf62b53d094 buildroot (2025.05-3633-g2e2994de52)
+ ad150ddd5e37734b72061f4af393e7b7dfdd9a7a hdl (dev_prj_2018_r1-3138-gad150ddd5)
+ a26ff6600e94e9fbbfd83d0921fea17666243eab linux (v6.12-43127-ga26ff6600e94)
+ b234cb3ae435f30c7d85ab589193fc9b93c7586d u-boot (b234cb3ae43)
+```
+
+### Test equipment
+| Item | Value |
+|---|---|
+| gps-sdr-sim commit | `28ca29a6719475195e3aabd5930c4ed02d67190f` |
+| libbladeRF | 2.6.1-git-35174c30 |
+| bladeRF-cli | 1.10.0-git-35174c30 |
+| bladeRF FPGA | not available |
+| UHD | UHD 4.6.0.0+ds1-5.1ubuntu0.24.04.1 |
+| gpsd | gpsd: 3.25 (revision 3.25) |
+| u-blox firmware | not available |
+| u-blox protocol version | not available |
