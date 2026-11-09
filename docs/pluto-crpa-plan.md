@@ -234,10 +234,14 @@ Timing: all constraints met.
 - Register access: UIO. Node `crpa-core@7c450000` in `zynq-pluto-sdr.dtsi` (fw/linux `crpa`): `generic-uio`, `reg = <0x7c450000 0x10000>`, `interrupts = <0 54 IRQ_TYPE_LEVEL_HIGH>`, `linux,uio-name = "crpa_core"`. It appears as `/dev/uioN` with `/sys/class/uio/uioN/name` = `crpa_core`; find it by name, not by number. Map 0 is the 64 KB register window (`docs/regmap.md`).
 - Bootargs: `uio_pdrv_genirq` binds `generic-uio` only with `uio_pdrv_genirq.of_id=generic-uio`. u-boot sets bootargs with a fixed string in its boot commands, so the kernel appends it (`CONFIG_CMDLINE` with `CONFIG_CMDLINE_EXTEND=y` in `zynq_pluto_defconfig`). No u-boot environment change.
 - Interrupt: blocking `read()` on `/dev/uioN` returns when `irq` (= STATUS.DONE, level) fires; the driver masks the IRQ at that point. Clear DONE first, then write 1 to `/dev/uioN` to unmask, or the level IRQ fires again at once. Polling STATUS is kept as a fallback (`--poll`).
+- Application `sw/app/crpa_ctl` (C, Task 6b). Runs on the Pluto; crpa_core through UIO, the AD9363 through local libiio. Subcommands `status` (read-only), `off` (safe state), `run` (dry run without `--on`: path set, TX muted, TX LO parked and powered down). Decided by the user (2026-11-09): the application owns the RF side, with the T1 safety rules of `scripts/t1_passthrough.py` ported: `--on` needs a terminal (`ssh -t`) and the typed word CONDUCTED, `--min-tx-att` floor, and quit, end of input, errors and SIGINT/TERM/HUP/QUIT all end in the safe state. The cleanup runs on the Pluto, so an ssh or USB drop (SIGHUP) still reaches it; SIGKILL or a crash does not (then `crpa_ctl off` or a power cycle). It refuses to start unless `data_sel` is 0 or 3 on all channels, loopback is 0 and crpa_core is idle: after a reboot or other tools, run `crpa_ctl off` once on purpose.
+- Safe state of `crpa_ctl`: TX attenuation 89.75 dB on both, loopback 0, crpa_core CTRL 0, `data_sel` 0 on all, TX LO powered down, then parked at 2400 MHz, and a readback of all of these.
+- Weight modes: `--mode fixed --w A,B,C,D` (T2) and `--mode pi` with `--load` (LSB^2 per sample) and `--alpha`. Weight math in `sw/app/crpa_pi.c`, equal to the model's Q1.15 output (`make -C sw/app test`). Interactive commands while running: `rx`, `tx`, `w`, `pi`, `load`, `shift`, `level`, `status`, `note`, `quit`.
+- Scheduling: SCHED_FIFO 40 and locked memory by default (`--rt`). With normal scheduling a 1 Hz task on the Pluto (likely `/sbin/update.sh`) stalls the loop for 5-8 ms once a second and drops 1-7 blocks (`results/t6b_dry_run.md`).
 - AD9363 configuration via libiio (`ad9361-phy` attributes): 2R2T, LO, fs, bandwidth, manual gain, TX attenuation.
 - Set TX `data_sel = 2` at startup and after any TX buffer close or DDS attribute write; the driver default is DDS (`docs/interface.md`, Section 5). Refuse to start unless the core is in 2R2T.
 - Weight loop: wait for integration done (interrupt or polling) -> read R -> compute w -> write w.
-- Logging: R, w, output power, saturation counters to CSV (retrieved over USB).
+- Logging: one CSV row per block (`--csv-every`) to `/tmp/crpa.csv`: R, SAT_CNT, peaks, MISSED, STATUS, the weights in force, levels of x1, x2 and an estimate of y from R and w (no saturation; approximate in the first block after a weight change), mode, discard flag. Events and summaries to `/tmp/crpa.log`. Retrieve with `scp -O`.
 - Cross-compilation: **use the sysroot from the firmware actually flashed to the Pluto** (the Buildroot staging output of our own master-based build), not the release sysroot.
 - Device tree and kernel config changes are commits on the fw/linux `crpa` branch (fork, not carried patches). `sw/dts/` holds `git format-patch` exports of those commits for review and documentation only.
 - The application stays outside the firmware for now: copied to the Pluto (`/mnt/jffs2` survives a reboot; the root file system is in RAM). Buildroot packaging later, once stable.
@@ -326,6 +330,9 @@ pluto-crpa/                       # parent repository (main)
 | `make -C fw/hdl/library/crpa_core xilinx` | Package the IP (`component.xml`, about 30 s; needs `VIVADO_SETTINGS` sourced). Copies `up_axi.v`, `up_xfer_*.v` and their XDC files into `ip/crpa_core/adi_common/` first, so that the packaged paths work through the link. The project build does this through `LIB_DEPS` |
 | `ssh pluto 'sh -s' < scripts/frame_err_test.sh` | Runs on the Pluto: clears `crpa_core` STATUS.FRAME_ERR and watches it at 30.72 and 10 MSPS, across two rate changes; leaves TX_LO powered down (about 30 s; ssh needs the password, so the user runs it) |
 | `ssh pluto 'sh -s' < scripts/uio_check.sh` | Runs on the Pluto, read-only: `/opt/VERSIONS`, `/proc/cmdline`, `crpa_core` UIO map and IRQ, VERSION register, ADC/DAC `sampling_frequency` attributes (seconds; the user runs it) |
+| `make -C sw/app` / `make -C sw/app test` | Cross-compile `crpa_ctl`; host test of the weight computation against the model (4156 cases, under 5 s) |
+| `ssh pluto 'sh -s' < sw/app/dry_test.sh` | `crpa_ctl` dry runs (fixed, PI, polling), refusals, SIGTERM, `off`; no transmission (about 30 s) |
+| `ssh pluto 'sh -s' < sw/app/gap_test.sh` | Processes, interrupts over 1 s, and block gaps with normal and real-time scheduling; dry runs only (about 25 s) |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
@@ -359,6 +366,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] Task 5: `crpa_core` in the pluto block design (hdl `crpa` branch; Section 6.2). Full build routed, timing met, DSP 45 of 80, LUT 72%, FF 60%; `crpa_core` CDC clean in the full design (Section 6.5, `results/hdl/20261108-1301_387ca1761-dirty/`). Registers at 0x7C450000, `irq` on ps-10 (GIC SPI 54), confirmed by the user (2026-11-08). Firmware not yet built or flashed with it
 - [x] Task 5 on hardware (`results/t5_hw_check.md`, 2026-11-08): firmware fw `8f9cd60` / hdl `ad150ddd5` flashed on the CRPA unit, `fw_version` v0.39-22-g8f9c. With both muxes at reset, `loopback_test.py` (0 fails) and `if_check.py` (PASS) as in T0b. Registers at 0x7C450000 read the documented reset values; SCRATCH writes back. STATUS.FRAME_ERR is set by every sample rate change and stays clear at a fixed rate (20 s at 30.72 and 10 MSPS), which the PS sequence after a rate change already covers
 - [x] Task 6a, fw/linux fork and device tree (2026-11-09, `results/t6a_dt_check.md`): fw/linux is the fork `osqzss/linux`, branch `crpa` on ADI `bf1d49f` (linux `a26ff66`, fw `d8191eb`). FIR flags removed, `crpa_core` UIO node added, of_id appended through `CONFIG_CMDLINE_EXTEND`. On the CRPA unit: `/dev/uio0` named `crpa_core`, map 0x7c450000/0x10000, IRQ GIC 86 level, VERSION 0x00010000; f/8 no longer offered; IIO devices unchanged; `loopback_test.py` 0 fails, `if_check.py` PASS. Firmware flashed was built before the fw commit (`device-fw v0.39-22-g8f9c-dirty`); same content as `d8191eb`
+- [x] Task 6b, PS application in dry run (2026-11-09, `results/t6b_dry_run.md`): `sw/app/crpa_ctl` built with our firmware's toolchain; weight math equal to the model in all 4156 test cases. On the CRPA unit without transmission: about 1000 blocks/s through the irq and through polling, fixed [1,0]/[0,1] give y = x1/x2, PI keeps \|w2\| at 0.01-0.03 on noise only, refusals and SIGTERM end in the safe state. Normal scheduling lost 0.5% of blocks to a 1 Hz system task; SCHED_FIFO 40 (now the default) lost none in 15 s. `--on` and the interactive commands not yet run
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
@@ -374,7 +382,7 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [ ] Target receiver input level and external attenuation
 - [ ] COTS GNSS receiver to use and how to read C/N0 (NMEA/UBX)
 - [ ] Extent of RTL reuse for the future multi-element CRPA
-- [ ] Procedure to extract the PS sysroot from our own firmware build
+- [x] PS sysroot: the Buildroot toolchain wrapper in `fw/buildroot/output/host/bin/` uses `output/staging` itself; `make -C sw/app` (setup guide Section 9.7). Task 6b
 
 ---
 
@@ -430,10 +438,10 @@ Status: **done** (2026-11-08): build (Sections 6.2, 6.5) and hardware check with
 - Build, record utilization and timing.
 
 ### Task 6: PS application and device tree
-Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). Next is 6b.
+Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). **6b in progress**: `crpa_ctl` written and tested in dry run (`results/t6b_dry_run.md`). Open in 6b: interactive commands over `ssh -t`, then the first `--on` run as the start of T2 (conducted setup, the user's go per run).
 
 - 6a (done): fw/linux fork `osqzss/linux`, branch `crpa`. FIR flags removed, `crpa_core` UIO node, of_id via `CONFIG_CMDLINE_EXTEND` (Section 7). Patches exported to `sw/dts/`.
-- 6b: C application in `sw/app/` (Section 7). Build with the toolchain and sysroot of our own firmware build (`fw/buildroot/output/host`, `.../staging`; confirm first, Section 10.2). Find the UIO device by name, map 0, wait on the interrupt (clear DONE, then unmask), `--poll` fallback; libiio for the AD9363; soft reset and STATUS clear after rate changes.
+- 6b: C application `sw/app/crpa_ctl` (Section 7). Done: build, weight math test, dry run on hardware, real-time scheduling. Next: interactive commands, then `--on`.
 
 ---
 

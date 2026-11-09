@@ -656,12 +656,16 @@ buildroot 2026.02-3
 ### 9.7 Sysroot for the PS application
 
 - The PS application must be built against the firmware actually flashed to the Pluto, i.e. this build, not a release sysroot.
-- The cross toolchain is in `fw/buildroot/output/host/bin/` (prefix `arm-none-linux-gnueabihf-`), as seen in the build log `PATH`. The sysroot is expected in `fw/buildroot/output/staging/`. **To be confirmed** before the first PS application build.
-- Cross-compilation example (confirm the paths first):
+- Confirmed in Task 6b (2026-11-09): `fw/buildroot/output/host/bin/arm-none-linux-gnueabihf-gcc` (Arm GNU Toolchain 14.2.Rel1) is the Buildroot toolchain wrapper and passes `--sysroot` itself. `fw/buildroot/output/staging` links to `host/arm-buildroot-linux-gnueabihf/sysroot`, with `iio.h` and `libiio.so.0.26`, the same libiio as on the Pluto.
+- Build and test:
   ```bash
-  FWB=~/Work/pluto-crpa/fw/buildroot/output
-  $FWB/host/bin/arm-none-linux-gnueabihf-gcc --sysroot=$FWB/staging \
-    -o sw/app/crpa_ctl sw/app/crpa_ctl.c -liio
+  make -C sw/app          # crpa_ctl for the Pluto
+  make -C sw/app test     # host: weight computation against model/crpa_model.py
+  ```
+- Copy to the Pluto with **`scp -O`**: the Pluto has no `sftp-server`, and OpenSSH 9 uses SFTP by default (`sh: /usr/libexec/sftp-server: not found`). `/mnt/jffs2` survives a reboot; `/tmp` is in RAM.
+  ```bash
+  scp -O sw/app/crpa_ctl pluto:/mnt/jffs2/
+  scp -O pluto:/tmp/crpa.csv results/
   ```
 
 ---
