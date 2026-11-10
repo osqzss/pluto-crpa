@@ -17,9 +17,8 @@ frequency). Logs: `results/t4_P1*.txt`, `results/t4_P2_pre_*.txt`.
 **P2 and P3 done for V1** (2026-11-10, Section 2.2): ladder calibrated, L5
 reached with 60 dB, no residual line. **D is 2.9 deg in V1**, so PI would
 null the satellites with the jammer (predicted C/N0 change about -27 dB).
-Next: more length in one jammer leg (the user has a longer cable), P3 again,
-and receiver runs only in a cabling with a useful D. The present cabling
-stays as the "D near 0" case for an RX-only null run.
+**V3** (jammer leg to RX1 50 cm instead of 25 cm): **D = 100.0 deg**,
+predicted C/N0 change with PI +0.4 dB. Next: V3-N, then V3-F and V3-P.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -140,6 +139,27 @@ Jammer alone, 30 + 30 dB, amplitude 0.5, 3 passive captures per step
 Section 5 with these values: Gs -24 dB, Gn +3.5 dB, C/N0 change about
 -27 dB with PI. The separate measurements (P1, P2) and the joint one (P3)
 agree within 0.3 deg.
+
+**V3 (2026-11-10): V1 with the jammer leg to CMB1 (RX1) changed from a 25 cm
+to a 50 cm cable** (as stated by the user), GPS path untouched. P3 with both
+on at gain 55 dB, 30 captures (`results/t4_P3_V3_*.txt`):
+
+| V3 | GPS path | Jammer | |
+|---|---|---|---|
+| Phase x2 against x1 | 167.72 deg (std 0.18) | -92.29 deg (std 0.03) | **D = 100.0 deg** (std 0.19) |
+| x2/x1 on the line | -0.64 dB | -0.15 dB | 0.5 dB |
+
+- Section 5 with these values: Gs +3.5 dB, Gn +3.1 dB, C/N0 change with PI
+  about +0.4 dB against w = [1,0] with the jammer off.
+- The longer leg takes 0.7 dB from the jammer in x1 (J/N at gain 55 dB: 10.1
+  instead of 10.8 dB); x2 is unchanged. The gains of the ladder are kept.
+- The GPS phase moved 1.7 deg and its x2/x1 0.17 dB against V1 although the
+  GPS path was not touched (T3 saw 0.7 deg from re-mating connectors); the
+  line-over-floor values of both sources are 0.6 to 1.4 dB lower, which is
+  within what the position of the line between FFT bins can do. GPS alone
+  was not measured again in V3.
+- The receiver runs start in V3 (D in the 60 to 120 deg class). V1 (D 2.9
+  deg) is kept as the "D near 0" case.
 
 ---
 
