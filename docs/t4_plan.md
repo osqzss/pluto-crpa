@@ -6,9 +6,14 @@ satellites, power inversion (PI) enabled. Metrics of the plan: null depth and
 C/N0 recovery. The setup and its reasons are in the plan, Section 11 (T4);
 this file adds the levels, tools, runs, pass criteria and safety.
 
-Status: **decided by the user (2026-11-10, Section 9); P0 done** (tools,
-offline tests, both hardware checks of Section 4.5). No RF step done yet;
-next is P1 in the T4 cabling.
+Status: **decided by the user (2026-11-10, Section 9); P0 and P1 done.**
+P1 (2026-11-10, variant V1, RX-only): noise -42.47 / -42.77 dBFS, |rho|
+0.005; GPS path phi_G 166.5 deg wideband and 165.7 deg on the carrier, g_G
+-0.76 dB, |rho| 0.174, GPS and carrier 6.8 dB under the noise in x1 (2.9 dB
+lower than in the T2 cabling); no carrier after `bladegps` quit; nothing from
+the B205mini idle, before or after UHD opened it. A second bladeRF line lies
+about 181 kHz above its carrier (21 dB over the floor, 19 kHz from the jammer
+frequency). Logs: `results/t4_P1*.txt`, `results/t4_P2_pre_*.txt`. Next is P2.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.

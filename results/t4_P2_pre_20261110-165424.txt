@@ -1,0 +1,29 @@
+# t3_phase.py 20261110-165424, seq one, label 'P2_pre'
+# command: scripts/t3_phase.py --seq one --count 5 --label P2_pre --cw-offset 0,200e3 --cw-span 50e3 --note T4 cabling V1 (see P1a). After a t4_jammer.py dry run (B205mini opened by UHD, FPGA loaded, nothing tuned or streamed, device closed); bladegps stopped, bladeRF on USB --log results/t4_P2_pre_20261110-165424.txt
+# note: T4 cabling V1 (see P1a). After a t4_jammer.py dry run (B205mini opened by UHD, FPGA loaded, nothing tuned or streamed, device closed); bladegps stopped, bladeRF on USB
+# start: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 50000 Hz of -delta + cw_offset (0,200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,P2_pre,one,1.5,1578420000,10000000,60,26.3,-42.47,-42.81,-0.338,0.0079,-167.66,-2961426,1.4,1.608,-144.92,58,0,3.7
+1,P2_pre,one,1.5,1578420000,10000000,60,26.3,-42.47,-42.81,-0.338,0.0079,-167.66,-2790833,2.7,-1.521,-8.96,58,200000,1.8
+2,P2_pre,one,2.2,1578420000,10000000,60,26.3,-42.50,-42.83,-0.324,0.0048,-152.10,-3005219,3.0,-1.159,78.43,59,0,1.7
+3,P2_pre,one,2.2,1578420000,10000000,60,26.3,-42.50,-42.83,-0.324,0.0048,-152.10,-2800293,1.9,0.716,16.70,59,200000,2.9
+4,P2_pre,one,2.9,1578420000,10000000,60,26.3,-42.52,-42.82,-0.295,0.0072,-156.12,-3029175,1.8,1.073,68.19,61,0,3.3
+5,P2_pre,one,2.9,1578420000,10000000,60,26.3,-42.52,-42.82,-0.295,0.0072,-156.12,-2817383,2.6,-0.070,177.92,61,200000,2.1
+6,P2_pre,one,3.6,1578420000,10000000,60,26.3,-42.51,-42.81,-0.304,0.0064,-160.76,-3003693,3.0,-1.094,83.83,57,0,1.8
+7,P2_pre,one,3.6,1578420000,10000000,60,26.3,-42.51,-42.81,-0.304,0.0064,-160.76,-2792206,2.4,-1.003,-73.02,57,200000,2.0
+8,P2_pre,one,4.3,1578420000,10000000,60,26.3,-42.52,-42.83,-0.316,0.0074,-160.04,-3018188,1.6,1.107,132.01,63,0,2.6
+9,P2_pre,one,4.3,1578420000,10000000,60,26.3,-42.52,-42.83,-0.316,0.0074,-160.04,-2792664,1.9,-0.077,45.39,63,200000,2.3
+# wideband phase: mean -159.34 deg, std 5.19, max deviation 8.33 (5 captures)
+# wideband x2/x1: mean -0.316 dB, std 0.015, range -0.338 to -0.295
+# CW phase (offset +0 Hz): mean 104.74 deg, std 54.41, max deviation 110.33 (5 captures)
+# CW x2/x1 (offset +0 Hz): mean 0.307 dB, std 1.186, range -1.159 to 1.608
+# CW line over the floor (offset +0 Hz): ch0/1 2.2 dB, ch2/3 2.6 dB (means), at -3005219 Hz
+# CW phase (offset +200000 Hz): mean -2.26 deg, std 80.93, max deviation 179.82 (5 captures)
+# CW x2/x1 (offset +200000 Hz): mean -0.391 dB, std 0.785, range -1.521 to 0.716
+# CW line over the floor (offset +200000 Hz): ch0/1 2.3 dB, ch2/3 2.2 dB (means), at -2792664 Hz
+# |rho|: mean 0.0067, range 0.0048 to 0.0079; peak |x| 63 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_P2_pre_20261110-165424.txt
