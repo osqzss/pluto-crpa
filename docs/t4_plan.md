@@ -407,6 +407,62 @@ and fetches the CSV and log with `scp -O`.
 A receiver run with a changed load or alpha follows only if these show a
 difference of more than 3 dB in null depth.
 
+### State at the end of the session of 2026-11-10 and how the runs were done
+
+Done: P1 to P3 in V1; P3, N and F in V3. **Next: V3-P.** Results:
+`results/t4.md`. Cabling at the end of the session: V3 (jammer leg to CMB1 /
+RX1 50 cm), u-blox on USB. Check the cabling with the user and repeat P3
+(1 min) if anything was unplugged or the Pluto was power-cycled.
+
+Host side of a run, as executed (the helper shell scripts were temporary and
+are not in the repository):
+
+- `bladegps` and `t4_jammer.py` each read stdin from a FIFO kept open by a
+  `sleep infinity` writer; all PIDs go to files and are killed by PID.
+  `echo q > fifo` stops `bladegps`, `echo quit > fifo` the jammer.
+- Jammer: `python3 scripts/t4_jammer.py --on --ext-att 60 --max-gain 78
+  --gain <start> --schedule "<...>" --log results/t4_<run>_jammer.txt`.
+  V3-F schedule: `180:35,240:45,300:55,360:65,420:75,480:off,570:quit`,
+  start `off`.
+- u-blox: `python3 scripts/ubx_log.py results/t4_<run>.ubx`; 30 s after the
+  start `echo t0 > fifo` and `UBXOPTS="-P 18" ubxtool -p COLDBOOT -w 20 -v 2`
+  together. t0 (unix time) is the `T0` line of the jammer log.
+- Run the host side as a background job (it exceeds 10 min) and stop
+  `bladegps` and the logger when the jammer script has quit.
+- Windows: 15 s after a step to 5 s before the next, `ubx_cn0.py --t0 T0
+  --from A --to B --ref results/t1_ref_20261107_123927.ubx`. The reference
+  of V3 is the window 60 to 175 s of V3-F: -5.12 dB against T1.
+- N runs and P3: `t3_phase.py --passive ... --cw-offset 0,200e3 --cw-span
+  15e3` (with `--cap y` during a `--cap-sel` dry run).
+- The user's files arrive as `results/t4_<run>.log` and `.csv`: rename the
+  log to `.txt` (`*.log` is ignored) and commit
+  `awk 'NR==1 || (NR-2)%100==0'` of the CSV as `_every100.csv`.
+
+V3-P order (the jammer is on before `crpa_ctl`): the user's go; Claude Code
+starts `bladegps` and the jammer with `--gain 75 --schedule
+"180:65,240:55,300:45,360:off,420:quit"` and reports; the user starts
+`ssh -t pluto /mnt/jffs2/crpa_ctl run --on --tx-att 80 --min-tx-att 50 --mode
+pi --load 24 --out /tmp/t4_V3P`, CONDUCTED, `tx 60`, `tx 50`, and says "on";
+then the cold start and `t0`. Expected with PI: 3D fix at every level and
+C/N0 about +0.4 dB against the V3-F reference (Section 2.2), where V3-F lost
+4.0 dB at L3, 9.9 dB at L4 and the fix at L5.
+
+Open points from this session:
+
+- Null depth criterion at L3 (J/N + 10 dB missed by 1.2 dB with the hardware
+  at the model value): the user's decision. Proposal: "within 3 dB of the
+  model value".
+- V3-N ended at 178 s with a `data_sel` error (a `crpa_ctl off` during the
+  run would do this); the first V3-F start was stopped by the user after
+  about 100 s. Neither cause is confirmed with the user.
+- The last 5 dB of jammer gain (70 to 75 dB) give 4.6 dB: not located.
+- GPS path phase 165.7 deg in P1 and 167.7 deg in V3 without a change in
+  that path; GPS alone was not measured again in V3.
+- Second bladeRF line 181 kHz above its carrier, 19 kHz from the jammer:
+  origin not looked at.
+- V1 (D 2.9 deg) has no N run yet (the "D near 0" case); V2, the parameter
+  runs L and A, and a third D are still to do.
+
 ---
 
 ## 7. Records and evaluation
