@@ -13,7 +13,13 @@ P1 (2026-11-10, variant V1, RX-only): noise -42.47 / -42.77 dBFS, |rho|
 lower than in the T2 cabling); no carrier after `bladegps` quit; nothing from
 the B205mini idle, before or after UHD opened it. A second bladeRF line lies
 about 181 kHz above its carrier (21 dB over the floor, 19 kHz from the jammer
-frequency). Logs: `results/t4_P1*.txt`, `results/t4_P2_pre_*.txt`. Next is P2.
+frequency). Logs: `results/t4_P1*.txt`, `results/t4_P2_pre_*.txt`.
+**P2 and P3 done for V1** (2026-11-10, Section 2.2): ladder calibrated, L5
+reached with 60 dB, no residual line. **D is 2.9 deg in V1**, so PI would
+null the satellites with the jammer (predicted C/N0 change about -27 dB).
+Next: more length in one jammer leg (the user has a longer cable), P3 again,
+and receiver runs only in a cabling with a useful D. The present cabling
+stays as the "D near 0" case for an RX-only null run.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -98,6 +104,42 @@ element, measured in P2):
 - If L5 cannot be reached with 60 dB (B205mini output too low), replace one
   30 dB attenuator by 20 dB (50 dB in total) after asking the user, and repeat
   P2. The attenuators are before SPL2, so D does not change.
+
+### 2.2 Measured in P2 and P3 (V1, 2026-11-10)
+
+Jammer alone, 30 + 30 dB, amplitude 0.5, 3 passive captures per step
+(`results/t4_P2_*.txt`, `results/t4_P2_jammer.txt`). Noise in this run:
+-42.53 / -42.84 dBFS.
+
+| Step | B205mini gain | J/N (x1) | x1 / x2 dBFS | Peak | Line over the floor |
+|---|---|---|---|---|---|
+| L1 | 35 dB | -9.2 dB | -42.04 / -42.42 | 67 LSB | 36 dB |
+| L2 | 45 dB | 0.6 dB | -39.20 / -39.87 | 74 | 46 dB |
+| L3 | 55 dB | 10.8 dB | -31.40 / -32.34 | 109 | 56 dB |
+| - | 60 dB | 15.8 dB | -26.62 / -27.61 | 147 | 61 dB |
+| L4 | 65 dB | 20.9 dB | -21.63 / -22.65 | 220 | 66 dB |
+| - | 70 dB | 25.9 dB | -16.62 / -17.66 | 353 | 71 dB |
+| L5 | 75 dB | 30.5 dB | -12.03 / -13.08 | 566 | 75 dB |
+
+- The ladder uses these gains as measured (steps 9.6 to 10.2 dB). The last
+  5 dB of gain give 4.6 dB; where it compresses is not located. Below 35 dB
+  the line follows the gain down to 0 dB (5 dB over the floor).
+- `--max-gain 78` from here on.
+- Jammer line at -2.8056 MHz in baseband (5.6 kHz below nominal). The second
+  bladeRF line is at -2.8245 MHz: use `--cw-span 15e3` when both are on.
+- After `off` and after `quit`: no line, noise level back. The B205mini need
+  not be unplugged between runs.
+- These levels hold for this cabling; a changed jammer leg changes the level
+  in that channel and g_J.
+
+| V1 | GPS path | Jammer | |
+|---|---|---|---|
+| Phase x2 against x1 | 165.74 deg (P1), 166.02 (P3) | 168.94 deg at L3 (P2), 168.95 (P3); 169.40 at L5 | **D = 2.93 deg** (std 0.17, 30 captures with both on, `results/t4_P3_*.txt`) |
+| x2/x1 on the line | -0.76 dB (P1), -0.81 (P3) | -0.98 dB (-1.05 at L5) | 0.2 dB |
+
+Section 5 with these values: Gs -24 dB, Gn +3.5 dB, C/N0 change about
+-27 dB with PI. The separate measurements (P1, P2) and the joint one (P3)
+agree within 0.3 deg.
 
 ---
 

@@ -1,0 +1,19 @@
+# t3_phase.py 20261110-165759, seq one, label 'P2_g55'
+# command: scripts/t3_phase.py --passive --seq one --count 3 --label P2_g55 --cw-offset 200e3 --cw-span 50e3 --note T4 cabling V1 as stated by the user (see P1a), B205mini TX/RX -> 30+30 dB. P2: jammer alone, bladegps stopped (bladeRF on USB), Pluto RX-only, passive captures; state g55 --log results/t4_P2_g55_20261110-165708.txt
+# note: T4 cabling V1 as stated by the user (see P1a), B205mini TX/RX -> 30+30 dB. P2: jammer alone, bladegps stopped (bladeRF on USB), Pluto RX-only, passive captures; state g55
+# start (passive, nothing written): TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 50000 Hz of -delta + cw_offset (200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,P2_g55,one,0.7,1578420000,10000000,60,28.1,-31.26,-32.20,-0.940,0.9183,168.96,-2805634,56.4,-0.978,168.96,106,200000,55.6
+1,P2_g55,one,1.4,1578420000,10000000,60,28.9,-31.46,-32.40,-0.939,0.9143,168.93,-2805634,56.2,-0.989,168.94,107,200000,55.4
+2,P2_g55,one,2.1,1578420000,10000000,60,28.1,-31.48,-32.42,-0.938,0.9144,168.94,-2805634,56.3,-0.986,168.91,109,200000,55.3
+# wideband phase: mean 168.94 deg, std 0.02, max deviation 0.02 (3 captures)
+# wideband x2/x1: mean -0.939 dB, std 0.001, range -0.940 to -0.938
+# CW phase (offset +200000 Hz): mean 168.94 deg, std 0.02, max deviation 0.03 (3 captures)
+# CW x2/x1 (offset +200000 Hz): mean -0.984 dB, std 0.005, range -0.989 to -0.978
+# CW line over the floor (offset +200000 Hz): ch0/1 56.3 dB, ch2/3 55.5 dB (means), at -2805634 Hz
+# |rho|: mean 0.9156, range 0.9143 to 0.9183; peak |x| 109 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_P2_g55_20261110-165708.txt

@@ -1,0 +1,19 @@
+# t3_phase.py 20261110-165818, seq one, label 'P2_offA'
+# command: scripts/t3_phase.py --passive --seq one --count 3 --label P2_offA --cw-offset 200e3 --cw-span 50e3 --note T4 cabling V1 as stated by the user (see P1a), B205mini TX/RX -> 30+30 dB. P2: jammer alone, bladegps stopped (bladeRF on USB), Pluto RX-only, passive captures; state offA --log results/t4_P2_offA_20261110-165708.txt
+# note: T4 cabling V1 as stated by the user (see P1a), B205mini TX/RX -> 30+30 dB. P2: jammer alone, bladegps stopped (bladeRF on USB), Pluto RX-only, passive captures; state offA
+# start (passive, nothing written): TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 50000 Hz of -delta + cw_offset (200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,P2_offA,one,0.7,1578420000,10000000,60,28.1,-42.53,-42.85,-0.321,0.0073,-169.13,-2831268,3.2,-1.331,-98.30,56,200000,1.1
+1,P2_offA,one,1.4,1578420000,10000000,60,28.1,-42.52,-42.85,-0.332,0.0070,-163.15,-2849731,2.3,-0.580,104.47,61,200000,2.2
+2,P2_offA,one,2.1,1578420000,10000000,60,28.1,-42.53,-42.85,-0.323,0.0064,-153.12,-2795105,2.3,-0.360,151.09,59,200000,1.9
+# wideband phase: mean -161.81 deg, std 6.60, max deviation 8.68 (3 captures)
+# wideband x2/x1: mean -0.325 dB, std 0.005, range -0.332 to -0.321
+# CW phase (offset +200000 Hz): mean 160.00 deg, std 65.94, max deviation 101.70 (3 captures)
+# CW x2/x1 (offset +200000 Hz): mean -0.757 dB, std 0.416, range -1.331 to -0.360
+# CW line over the floor (offset +200000 Hz): ch0/1 2.6 dB, ch2/3 1.8 dB (means), at -2831268 Hz
+# |rho|: mean 0.0069, range 0.0064 to 0.0073; peak |x| 61 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_P2_offA_20261110-165708.txt
