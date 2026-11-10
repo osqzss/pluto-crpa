@@ -10,9 +10,19 @@ the signal path was switched off there (quit), and the fading epochs after it
 would bias the averages. MON-HW is cut at the same point (1 Hz assumed).
 Prints a Markdown table; with --ref, a second log is the reference column.
 
+Windows by host time (T4, docs/t4_plan.md): --from SEC and --to SEC keep the
+frames received in that window. They need the index LOG.ubx.idx written by
+scripts/ubx_log.py. The seconds count from --t0 (unix time, e.g. the T0 line of
+the jammer log); without --t0, from the start of the log. --ref-from and
+--ref-to do the same for the reference log, which may be the same file.
+--skip and --cut are not used together with a window.
+
 Usage: scripts/ubx_cn0.py LOG.ubx [--ref REF.ubx] [--skip SEC] [--cut DB]
+       scripts/ubx_cn0.py LOG.ubx --t0 UNIX --from 255 --to 295 \
+           --ref LOG.ubx --ref-from 60 --ref-to 175
 """
 import argparse
+import bisect
 import struct
 
 
@@ -33,17 +43,45 @@ def frames(data):
             ck_a = (ck_a + b) & 0xFF
             ck_b = (ck_b + ck_a) & 0xFF
         if ck_a == data[end] and ck_b == data[end + 1]:
-            yield cls, mid, bytes(data[i + 6:end])
+            yield cls, mid, bytes(data[i + 6:end]), i
             i = end + 2
         else:
             i += 1
 
 
-def parse(path, skip):
+def load_index(path):
+    """Read LOG.ubx.idx: lists of chunk times and chunk byte offsets."""
+    times, offsets = [], []
+    with open(path + ".idx") as f:
+        for line in f:
+            if line.startswith("#") or not line.strip():
+                continue
+            t, o = line.split()
+            times.append(float(t))
+            offsets.append(int(o))
+    if not times:
+        raise SystemExit("%s.idx has no entries" % path)
+    return times, offsets
+
+
+def parse(path, skip, window=None):
+    """window: None or (t0, t_from, t_to); t0 None means the start of the log."""
     with open(path, "rb") as f:
         data = f.read()
+    keep = None
+    if window is not None:
+        times, offsets = load_index(path)
+        t0 = times[0] if window[0] is None else window[0]
+        lo = -float("inf") if window[1] is None else t0 + window[1]
+        hi = float("inf") if window[2] is None else t0 + window[2]
+
+        def keep(pos):
+            t = times[max(0, bisect.bisect_right(offsets, pos) - 1)]
+            return lo <= t < hi
     pvt, sat, hw = [], [], []
-    for cls, mid, p in frames(data):
+    for cls, mid, p, pos in frames(data):
+        if keep is not None and not keep(pos):
+            continue
         if (cls, mid) == (0x01, 0x07) and len(p) >= 92:
             itow = struct.unpack_from("<I", p, 0)[0]
             pvt.append((itow, p[20], p[21] & 1, p[23], struct.unpack_from("<I", p, 40)[0]))
@@ -120,17 +158,43 @@ def main():
     ap.add_argument("--skip", type=float, default=0.0, help="seconds dropped at the start")
     ap.add_argument("--cut", type=float, help="end at the first epoch whose mean used C/N0 "
                     "is more than this many dB below the median (signal path switched off)")
+    ap.add_argument("--t0", type=float, help="unix time of second 0 of the windows (default: log start)")
+    ap.add_argument("--from", dest="t_from", type=float, help="window start, seconds from t0 (needs .idx)")
+    ap.add_argument("--to", dest="t_to", type=float, help="window end, seconds from t0 (needs .idx)")
+    ap.add_argument("--ref-from", type=float, help="window start in the reference log")
+    ap.add_argument("--ref-to", type=float, help="window end in the reference log")
     args = ap.parse_args()
 
-    pvt, sat, hw = parse(args.log, args.skip)
+    window = ref_window = None
+    if args.t_from is not None or args.t_to is not None:
+        if args.skip or args.cut is not None:
+            ap.error("--from/--to cannot be combined with --skip or --cut")
+        window = (args.t0, args.t_from, args.t_to)
+    if args.ref_from is not None or args.ref_to is not None:
+        ref_window = (args.t0, args.ref_from, args.ref_to)
+    pvt, sat, hw = parse(args.log, args.skip, window)
     cut = None
     if args.cut is not None:
         pvt, sat, hw, cut = cut_at_drop(pvt, sat, hw, args.cut)
     res = summary(pvt, sat)
     fixes = [x for x in pvt if x[1] == 3 and x[2]]
-    print("Log: %s (skip %g s%s)" % (args.log, args.skip,
-          "" if args.cut is None else ", cut %g dB: %s" % (
-              args.cut, "last %d s dropped" % cut if cut is not None else "no drop found")))
+    if window is not None:
+        print("Log: %s (window %s to %s s from %s)" % (
+            args.log, "start" if args.t_from is None else "%g" % args.t_from,
+            "end" if args.t_to is None else "%g" % args.t_to,
+            "the log start" if args.t0 is None else "t0 %.3f" % args.t0))
+    else:
+        print("Log: %s (skip %g s%s)" % (args.log, args.skip,
+              "" if args.cut is None else ", cut %g dB: %s" % (
+                  args.cut, "last %d s dropped" % cut if cut is not None else "no drop found")))
+    if ref_window is not None:
+        print("Reference: %s (window %s to %s s)" % (
+            args.ref, "start" if args.ref_from is None else "%g" % args.ref_from,
+            "end" if args.ref_to is None else "%g" % args.ref_to))
+    tracked = [sum(1 for cno, _ in svs.values() if cno > 0) for _, svs in sat]
+    used = [sum(1 for _, u in svs.values() if u) for _, svs in sat]
+    if sat:
+        print("NAV-SAT epochs %d: GPS SVs with C/N0 > 0 %s, used %s" % (len(sat), rng(tracked), rng(used)))
     print("NAV-PVT epochs %d, valid 3D fix %d; last numSV %s, hAcc %s m"
           % (len(pvt), len(fixes), pvt[-1][3] if pvt else "-",
              "%.2f" % (pvt[-1][4] / 1000.0) if pvt else "-"))
@@ -140,7 +204,7 @@ def main():
 
     ref = None
     if args.ref:
-        ref = summary(*parse(args.ref, 0)[:2])
+        ref = summary(*parse(args.ref, 0, ref_window)[:2])
         print("| PRN | Reference | This run | Difference | Min | Max | Epochs used |")
         print("|---|---|---|---|---|---|---|")
     else:

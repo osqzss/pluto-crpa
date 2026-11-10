@@ -1,0 +1,405 @@
+# T4 Plan: Conducted CW Jammer, Power Inversion
+
+Written 2026-11-10. Stage T4 of `docs/pluto-crpa-plan.md`, Section 8.2: a
+conducted CW jammer into both channels with a phase offset against the
+satellites, power inversion (PI) enabled. Metrics of the plan: null depth and
+C/N0 recovery. The setup and its reasons are in the plan, Section 11 (T4);
+this file adds the levels, tools, runs, pass criteria and safety.
+
+Status: **decided by the user (2026-11-10, Section 9); P0 tools written and
+tested offline.** Open in P0: the two checks that need hardware (Section 4.5).
+No RF step done yet.
+
+All levels below are estimates from T2 and T3 data until step P2 has measured
+them.
+
+---
+
+## 1. What T4 has to settle
+
+1. Null depth of PI on a real CW jammer, against the jammer level (the model
+   gives 18 / 37 / 57 dB at J/N 10 / 20 / 30 dB as upper bounds,
+   `docs/fixed_point.md`).
+2. C/N0 recovery at the u-blox: with the jammer on, PI against w = [1,0].
+3. Dependence on the phase separation D between jammer and satellites,
+   against the prediction of Section 5.
+4. Starting values of the PI parameters: diagonal load and alpha (plan
+   Section 10.2).
+
+Not in T4: the jammer power sweep to the limit (T5), more than one jammer,
+moving jammers, per-satellite phases (two-element simulator, plan Section
+10.2).
+
+---
+
+## 2. Setup
+
+```
+bladeRF (bladeGPS) -> 40 dB -> SPL1 -+-> CMB1 -> Pluto RX1
+                                     +-> CMB2 -> Pluto RX2
+B205mini TX/RX (CW) -> 30 dB + 30 dB -> SPL2 -+-> leg a -> CMB1
+                                              +-> leg b -> CMB2
+Pluto TX1 -> DC block -> u-blox M8T, TX attenuation 50 dB in the Pluto (as T2)
+```
+
+- Unit: second Pluto, the CRPA unit. Settings as T2 and T3: Delta +3 MHz,
+  fs 10 MSPS, bw 9 MHz, RX gain 60 dB manual on both, INT_LEN 10000 (1 ms),
+  OUT_SHIFT 0, TX1 attenuation 50 dB.
+- GPS: bladeRF x40, `./bladegps -e brdc3300.18n`, TX gain unchanged (default
+  -5), so that the T1 reference stays comparable (decide, Section 9).
+- Jammer: B205mini (serial `3297659`), CW from a constant baseband (tone on
+  the B205mini LO, so tone and LO leakage are one line), at
+  **L1 + 200 kHz = 1575.62 MHz**: inside the C/A main lobe, 200 kHz from the
+  bladeRF carrier, and the offset used in the model (`results/t3_model.txt`).
+  At the Pluto it appears at -2.8 MHz in baseband.
+- Cabling variants: only the two jammer legs a and b change (crossed, or an
+  adapter added in one leg). The GPS path and the RX cables stay untouched
+  from P1 to the last run.
+
+### 2.1 Level estimates
+
+| Quantity | Estimate | From |
+|---|---|---|
+| Noise at RX gain 60 dB | -42.5 dBFS (15 LSB rms), about -101 dBm in 9 MHz at the RX port (NF assumed 3.5 dB) | T3-0 |
+| GPS and carrier at the Pluto | about 3.5 dB below T2 (one combiner per leg); \|rho\| about 0.13 to 0.15 instead of 0.25 to 0.29 | T3 |
+| Reference C/N0, w = [1,0], jammer off | about 3 dB below T2-A, i.e. about -6 dB against the T1 reference (mean about 39 dB-Hz) | T2-A |
+| Jammer path loss | 60 dB + 3.5 dB (SPL2) + 3.5 dB (CMB) = 67 dB | parts |
+| J/S at J/N = 0 dB | about 28 dB for a 42 dB-Hz signal at the element (69.5 dB-Hz bandwidth) | - |
+
+Jammer ladder (J/N = jammer power over noise power in the 9 MHz band, per
+element, measured in P2):
+
+| Step | J/N | J/S (est.) | Level of x | CW peak | At the RX port (est.) | B205mini output needed (est.) |
+|---|---|---|---|---|---|---|
+| L0 | off | - | -42.5 dBFS | - | - | - |
+| L1 | -10 dB | 18 dB | -42.1 | 5 LSB | -111 dBm | -44 dBm |
+| L2 | 0 dB | 28 dB | -39.5 | 15 | -101 dBm | -34 dBm |
+| L3 | 10 dB | 38 dB | -32.1 | 49 | -91 dBm | -24 dBm |
+| L4 | 20 dB | 48 dB | -22.5 | 154 | -81 dBm | -14 dBm |
+| L5 | 30 dB | 58 dB | -12.5 | 486 | -71 dBm | -4 dBm |
+
+- L5 leaves 12 dB to ADC full scale (2047). No step above L5 in T4; higher
+  J/N needs a lower RX gain and belongs to T5.
+- Expected without the CRPA (w = [1,0]): a CW of J/S 28 dB raises the
+  effective noise of a C/A receiver by roughly 10 dB (J / (N0 x 1.023 MHz),
+  spectral separation factor taken as 1; the real value depends on the PRN
+  code lines), so C/N0 should start to fall at L1 to L2 and tracking should be
+  lost at about L3 to L4.
+- PI needs the jammer well above the bladeRF carrier and satellites (common
+  part about 8 dB below the noise here). L3 is 18 dB above it, L2 only 8 dB:
+  at L2 and below the weights are a compromise and PI partly nulls the
+  satellites. So the PI results that count are L3, L4 and L5; L2 is recorded
+  to show the transition.
+- If L5 cannot be reached with 60 dB (B205mini output too low), replace one
+  30 dB attenuator by 20 dB (50 dB in total) after asking the user, and repeat
+  P2. The attenuators are before SPL2, so D does not change.
+
+---
+
+## 3. Safety
+
+The rules of `docs/test-equipment.md`, Section 2 apply. T4 has three
+transmitters.
+
+- **Conducted only.** Every TX port is cabled through attenuators before
+  anything is started: bladeRF through 40 dB, B205mini through 60 dB (never
+  less than 50 dB), Pluto TX1 through the DC block with at least 50 dB TX
+  attenuation. No open ports: the fourth splitter is not used, and the
+  B205mini RX2 port and Pluto TX2 stay unconnected and unused (TX2 at
+  89.75 dB).
+- **Worst case of the jammer:** B205mini at full gain (about +20 dBm at most)
+  through 60 dB + 7 dB gives -47 dBm at the Pluto RX ports: the ADC clips, and
+  nothing is damaged. Pluto TX1 with a full-scale DAC at 50 dB attenuation is
+  about -43 dBm into the u-blox, whatever the jammer does.
+- **One go per run** from the user, covering the bladeRF, the B205mini and the
+  Pluto for that run. Claude Code starts no transmitter without it.
+- **Pluto:** unchanged from T2. The user starts `crpa_ctl run --on` over
+  `ssh -t` and types CONDUCTED; `--tx-att 80 --min-tx-att 50`, then `tx 60`,
+  `tx 50`.
+- **Jammer:** `scripts/t4_jammer.py` (Section 4.1) is a dry run without
+  `--on`. With `--on` it needs `--ext-att DB` (the operator's statement of the
+  attenuators, refused below 50) and `--max-gain DB` (refuses any step above
+  it; set from P2 to the gain of L5 plus 3 dB). It starts at its lowest step.
+- **Stopping the jammer:** on quit, end of schedule, end of input, any UHD
+  error and SIGINT/TERM/HUP, the script sets the gain to 0 dB, sends end of
+  burst, closes the device and writes `JAMMER OFF` to its log. Claude Code
+  keeps its PID in a file and kills by PID, never by pattern. After SIGKILL or
+  a crash the state is unknown: unplug the B205mini from USB.
+- **Residual output after stop:** P2 checks RX-only that no line is left at
+  the Pluto after the script exits (the bladeRF left a carrier in the same
+  situation). If one is left, the B205mini is unplugged between runs and for
+  every jammer-off reference.
+- **Order:** jammer on only while the Pluto runs or during an RX-only
+  capture; jammer off before `quit`. With the jammer on and w = [1,0] the
+  Pluto re-transmits the jammer: at L5 about 30 dB above the normal output,
+  an estimated -54 dBm into the u-blox. That is intended in the fixed runs
+  and stays conducted.
+- **Stop and report** if: SAT_CNT is not 0 or PEAK exceeds 1800 in any block;
+  FRAME_ERR is set; a safe state is not confirmed; the measured jammer level
+  is more than 6 dB from the P2 table.
+
+---
+
+## 4. Tools
+
+New or changed; each is tested as far as possible without RF before P1.
+
+### 4.1 `scripts/t4_jammer.py` (new)
+
+CW source on the B205mini through the UHD Python API (`python3-uhd`, system
+Python; present on the host, UHD 4.6.0).
+
+- Options: `--freq` (default 1575.62e6), `--rate` (default 1e6), `--ampl`
+  (default 0.5), `--gain DB` or `--schedule "T:GAIN,T:GAIN,..."` (seconds from
+  start; gain `off` mutes), `--on`, `--ext-att`, `--max-gain`, `--log`.
+- Level steps use the analog TX gain, calibrated per step in P2, not the
+  digital amplitude: the full DAC range is kept at every step.
+- Stdin commands while running: `gain DB`, `off`, `note`, `quit`. Stdin may
+  be a FIFO, as for `bladegps`.
+- Log: every step with host time (UTC, 1 ms), settings, and the tune result
+  read back. Log name `results/t4_<run>_jammer.txt`.
+- Schedules count from t0, which is the stdin command `t0` (sent by Claude
+  Code together with the u-blox cold start) or the script start with
+  `--start-now`. Steps are a gain, `off` or `quit`.
+- "off" is: end of burst sent, no streaming, gain at the device minimum.
+- Offline tests: `python3 scripts/test_t4_jammer.py` (17 tests against a
+  stand-in for the `uhd` module: schedule parsing, refusals, dry run, call
+  order, commands, end of input, signals, send error, gain not taken).
+- Nothing about the device is assumed: the script reads the TX gain range,
+  the antenna names and the frequency range from the B205mini and stops if
+  the request does not fit. What the TX front end emits after "off" and
+  after exit is measured in P2.
+
+### 4.2 `scripts/t3_phase.py` (extension)
+
+- `--cw-offset HZ` (default 0): centre of the line search is
+  -Delta + offset; `--cw-span HZ` (default 200e3). With `--cw-offset 200e3
+  --cw-span 50e3` the script reads the jammer line, with `--cw-offset 0
+  --cw-span 50e3` the bladeRF carrier, also when both are on.
+- `--cap y`: labels for the capture mux in CAP_SEL (ch0/1 = y, ch2/3 = x1).
+  The CW ratio is then the jammer line in x1 over the jammer line in y.
+- `--passive`: writes nothing to the Pluto, for captures while a `crpa_ctl`
+  dry run is active (the normal start writes fs, LO and gain, and a rate
+  write sets FRAME_ERR). It stops unless the TX side is already safe and LO,
+  fs and gain already match.
+- Several offsets, `--cw-offset 0,200e3`, give one row per line from the same
+  capture. New last columns: `cw_offset_hz`, `cw_snr2_db` (line over the
+  floor in ch2/3).
+- The selftest has a two-line case and a 40 dB null case. Log names stay
+  `results/t3_...` unless `--log` is given; T4 uses
+  `--log results/t4_<label>_<date>-<time>.txt`.
+
+### 4.3 `scripts/ubx_cn0.py` (extension)
+
+- New `scripts/ubx_log.py OUT.ubx`: runs `gpspipe -R --nobuffer` and writes,
+  next to the raw log, an index `OUT.ubx.idx` with the host time of every
+  chunk. The receiver time cannot be used: it is wrong after a cold start
+  until the first fix.
+- `--from SEC --to SEC` (and `--ref-from`, `--ref-to` for the reference log,
+  which may be the same file): keep the frames received in that window, in
+  seconds from `--t0 UNIX`, the T0 line of the jammer log. One log gives one
+  C/N0 table per jammer step. Also new: a line with the number of GPS SVs
+  tracked and used.
+- The steps are cross-checked against the jumps of the MON-HW jamming
+  indicator and AGC in the same log and of the x1 level in the `crpa_ctl`
+  CSV. Every window starts 15 s after a step and ends 5 s before the next.
+- Checked by replaying `results/t2_A.ubx` through the logger: raw file
+  identical, windows add up to the whole log, T2-A value unchanged
+  (-2.76 dB).
+
+### 4.4 `sw/app/crpa_ctl` (no change planned)
+
+### 4.5 P0 checks that need hardware (open)
+
+Neither transmits. On 2026-11-10 the Pluto, the B205mini and the u-blox were
+not connected to the host when the tools were written.
+
+1. B205mini connected (cabled as Section 2 or terminated):
+   `scripts/t4_jammer.py` without `--on`. Expected: gain range, antenna
+   `TX/RX` and frequency range printed, `dry run: nothing tuned`.
+2. Pluto after a reboot or `crpa_ctl off`, noise only. The user runs
+   `ssh pluto /mnt/jffs2/crpa_ctl run --mode pi --cap-sel --duration 60 --out /tmp/t4_p0`
+   (dry run); during it Claude Code runs
+   `.venv/bin/python scripts/t3_phase.py --passive --cap y --count 5 --label p0 --log results/t4_p0_cap.txt`.
+   Pass: 5 captures, the `crpa_ctl` log shows no path error, no FRAME_ERR
+   and no more missed blocks than without the captures. If the path check of
+   `crpa_ctl` or the driver objects, the null measurement N (Section 6) is
+   changed to captures of x1, x2 before and after the dry run, with the null
+   computed from the logged weights.
+
+---
+
+## 5. Predictions to compare with
+
+Notation: phase = arg(R21) = x2 against x1, as in T3. phi_G, g_G for the GPS
+path (bladeRF carrier line), phi_J, g_J for the jammer (amplitude ratio
+x2/x1). D = phi_J - phi_G.
+
+With y = x1 + conj(w2) x2 and an ideal null on the jammer,
+conj(w2) = -exp(-j phi_J) / g_J:
+
+```
+signal gain  Gs = |1 - (g_G / g_J) exp(-j D)|^2
+noise gain   Gn = 1 + 1 / g_J^2          (equal noise on both elements)
+C/N0 change against w = [1,0], jammer off:  10 log10(Gs / Gn)
+```
+
+For g_G = g_J = 1: 20 log10(2 |sin(D/2)|) - 3 dB, i.e. +3.0 dB at 180 deg,
++1.8 at 120, 0.0 at 90, -3.0 at 60, -5.3 at 45, -8.7 at 30 deg. The analysis
+uses the measured g and phi of each cabling, not the equal-amplitude form.
+
+Null depth: the model values are upper bounds. In hardware the limit is
+expected from what differs between the two channels over the 1 ms block
+(phase noise is common; quantization, DC and IQ image are not). No number is
+predicted; T4 measures it.
+
+---
+
+## 6. Steps and runs
+
+Who acts: U = user, C = Claude Code. "RX-only" means no Pluto transmission
+(`t3_phase.py` puts the TX side in the safe state and reads it back).
+
+### Preparation
+
+| Step | Content | RF on | Who |
+|---|---|---|---|
+| P0 | Tools of Section 4 written and tested offline; `t4_jammer.py` dry run against the B205mini (no `--on`); `iio_readdev` during a `crpa_ctl` dry run with `--cap-sel`, noise only | none | C; U runs the ssh part |
+| P1 | Cabling of Section 2, jammer legs straight (variant V1). B205mini connected, idle. GPS alone: `t3_phase.py --seq one --count 30`, then bladeRF unplugged: noise only, 10 captures | bladeRF | U cables, C measures after the go |
+| P2 | Jammer alone (bladegps stopped), RX-only: gain from the lowest step upwards in 5 dB steps until L5, 3 captures each, `--cw-offset 200e3`. Table gain -> J/N, phi_J, g_J, peak, line frequency. Then stop the script and capture again: residual line or not | B205mini | C after the go |
+| P3 | Both on, RX-only, at L3: both lines read in the same captures, 30 captures: D for V1. Compare with phi_J - phi_G from P1 and P2 | both | C after the go |
+
+P1 expects a phase different from the 173 deg of T2 (new parts in both legs)
+and |rho| near 0.13. P2 gives the calibration that all later runs use; J/N is
+taken from the wideband level, (P_on - P_noise) / P_noise per element. If the
+ladder is not within 2 dB of 10 dB steps, the gain values are adjusted, not
+the analysis.
+
+### Cabling variants
+
+| Variant | Jammer legs | Aim |
+|---|---|---|
+| V1 | as first cabled | whatever D results |
+| V2 | crossed (a to CMB2, b to CMB1) | a second D |
+| V3 | as V1 or V2, with one SMA adapter or a short cable added in one leg (about 2.3 cm of coax is 65 deg at L1, T3-G) | a third D |
+
+Aim: one D of 120 to 180 deg, one of 60 to 120 deg, one of 25 to 50 deg (the
+sign does not matter). D cannot be chosen in advance: after V1 and V2 are
+measured (P3 repeated for V2, RX-only), pick the change for V3 that fills the
+missing class. If two variants fall in one class, keep both and say so.
+The full set of runs is done for V1 first; V2 and V3 follow only after the V1
+results are reviewed.
+
+### Runs per variant
+
+Each run: one go. Sequence as T2: U starts `crpa_ctl` and reaches `tx 50`;
+C starts `bladegps`, the jammer script and `scripts/ubx_log.py`, cold-starts the
+u-blox 30 s later and sends `t0` to the jammer script at the same moment
+(t = 0), and reports when the schedule has ended; U quits
+and fetches the CSV and log with `scp -O`.
+
+| Run | Pluto | Jammer schedule (from the cold start, t = 0) | Gives |
+|---|---|---|---|
+| Vn-N | dry run, no `--on`: `crpa_ctl run --mode pi --load 24 --cap-sel --duration 150 --out /tmp/t4_VnN` | L3, L4, L5, 40 s each; C captures y and x1 with `t3_phase.py --cap y --cw-offset 200e3`, 10 captures per level | Null depth per level, RX-only; weights and R from the CSV |
+| Vn-F | `--on`, `--mode fixed --w 1,0,0,0` | off to 180 s; then L1, L2, L3, L4, L5, 60 s each; off from 480 s to 570 s | Reference C/N0 of this cabling (60 to 175 s); C/N0 and tracking against J/S without the CRPA; re-acquisition after the jammer |
+| Vn-P | `--on`, `--mode pi --load 24` | L5 on **before** `crpa_ctl` starts and to 180 s; then L4, L3, L2, 60 s each; off from 360 s to 420 s | Acquisition and TTFF from a cold start under the jammer with PI; C/N0 per level; with the jammer off, PI turns to the bladeRF carrier and the satellites (expected loss, recorded as the known limit) |
+
+- `--load 24` is 0.1 x the noise power per sample (237 LSB^2 at -42.5 dBFS),
+  the starting value of plan Section 5.4; alpha 0.
+- Vn-N comes first in each variant: it needs no Pluto transmission and shows
+  whether PI works before a receiver run is spent.
+- Vn-F is independent of D (only RX1 matters). It is repeated per variant
+  anyway, as the reference in the same cabling and on the same day.
+- Run time about 10 min each. Three variants: 9 runs.
+
+### Parameter runs (V1 only, after V1-P)
+
+| Run | Pluto | Jammer | Gives |
+|---|---|---|---|
+| V1-L | dry run with `--cap-sel`, PI; U types `load 0`, `load 24`, `load 240`, `load 2400` about every 30 s | L3 constant, then repeated at L5 | Null depth against the load; choice of the default |
+| V1-A | dry run with `--cap-sel`, PI, `--alpha 0.9` and `--int-len 1000` in two starts | L4 constant | Null depth against alpha and block length (model: no difference on a stationary CW) |
+
+A receiver run with a changed load or alpha follows only if these show a
+difference of more than 3 dB in null depth.
+
+---
+
+## 7. Records and evaluation
+
+- Raw: `results/t4_<run>.ubx`, `results/t4_<run>.csv` (full CSV kept locally,
+  every 100th block committed, as T2), `results/t4_<run>.txt` (crpa_ctl log),
+  `results/t4_<run>_jammer.txt`, `results/t4_<label>_<date>-<time>.txt`
+  (captures). Every log carries the settings of plan Section 12, the
+  attenuators as stated by the user, the variant and the B205mini gain.
+- Summary: `results/t4.md`, with
+  - the P2 calibration table and the residual-line check;
+  - per variant: phi_G, phi_J, g_G, g_J, D;
+  - null depth per variant and level: line in x1 over line in y from Vn-N, and
+    the weights against the ideal -exp(-j phi_J) / g_J. If the line in y is
+    not above the floor, the value is a lower bound and is marked so;
+  - C/N0 per window: mean over the PRNs used, against the Vn-F reference
+    window and against the T1 reference, number of SVs, fix type, AGC and
+    jamming indicator; TTFF of Vn-P;
+  - measured C/N0 change with PI against the prediction of Section 5;
+  - crpa_core: SAT_CNT, PEAK, MISSED, FRAME_ERR, |w2|, y level per window.
+
+Pass criteria:
+
+| Item | Criterion |
+|---|---|
+| Recorded | Null depth and C/N0 per level for at least V1, D measured per variant |
+| C/N0 recovery | In V1-P at L3, L4 and L5: 3D fix held, and mean C/N0 within 2 dB of the Section 5 prediction for the measured D (receiver resolution 1 dB), where V1-F at the same level has lost the fix or at least 10 dB |
+| Null depth | At least J/N + 10 dB at L3 to L5 (residual jammer 10 dB under the noise). Deeper values are reported, not required |
+| Integrity | SAT_CNT 0, no FRAME_ERR, no gap after startup, safe state confirmed in every run |
+| D dependence | V2 and V3 within 2 dB of the prediction; a larger difference is a finding to explain, not a failure of T4 |
+
+A null depth below J/N + 10 dB, or a C/N0 more than 2 dB under the
+prediction, is a finding: stop after that variant and report before going on
+(candidates: load too high, DC or image terms, leakage between the legs,
+which is checked by terminating one jammer leg).
+
+Then update plan Sections 8.2, 10 and 11, the open items "T4 setup" and
+"Diagonal loading and smoothing", and `docs/test-equipment.md` (B205mini TX
+use, gain table, behavior after stop).
+
+---
+
+## 8. Order of work
+
+1. Decisions of Section 9: done.
+2. P0: tools and offline tests: done. The two hardware checks of Section 4.5
+   are open.
+3. P1 to P3 in V1, RX-only.
+4. V1-N, V1-F, V1-P; evaluate; report.
+5. V1-L, V1-A.
+6. V2 and V3: P3, then N, F, P each.
+7. `results/t4.md`, plan update.
+
+Steps 2 and 3 fit one session; step 4 onwards needs the u-blox and the user
+at the terminal for each run.
+
+---
+
+## 9. Decisions (user)
+
+Decided by the user on 2026-11-10:
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Who runs the jammer | Claude Code, under the user's go before each run, as for `bladegps`; locks: `--on`, `--ext-att`, `--max-gain` |
+| 2 | bladeGPS TX gain | Unchanged; about 3.5 dB lower C/N0 accepted, reference taken in the T4 cabling |
+| 3 | Jammer levels changed inside a run (one cold start per run, one C/N0 window per level) | Yes: 9 runs instead of about 30. Cost: the windows are 40 to 55 s, and the receiver is not cold-started per level |
+| 4 | Jammer attenuators | 30 + 30 dB first; 30 + 20 dB only if L5 is out of reach (ask first) |
+| 5 | Jammer frequency | L1 + 200 kHz |
+
+---
+
+## 10. Not in this plan
+
+- J/N above 30 dB, lower RX gain, the J/S limit with PI: T5.
+- Narrowband (modulated) jammers: after T4, same setup, another waveform in
+  `t4_jammer.py`.
+- Output level control (AGC) for the fixed-weight case under jamming; in PI
+  the output stays near the noise level.
+- LO leakage and image of the Pluto TX (plan Section 10.2), and the 180 deg
+  ambiguity of the T3-G split.
