@@ -1,0 +1,21 @@
+  1011.471 settings: delta 3000000 fs 10000000 bw 9000000 rx_gain 60 on 0 tx_att 0.00 min_tx_att 0.00 mode fixed load 0 alpha 0 int_len 10000 shift 0 cap_sel 0 rt 40
+  1011.476 scheduling: SCHED_FIFO priority 40, memory locked
+  1011.740 DRY RUN: path set with TX muted; TX LO stays parked and powered down
+  1011.741 RX LO 1578419998 | TX LO 2399999998 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+  1011.743 RX gain manual 60 / manual 60 dB | RSSI 112.00 dB / 112.00 dB
+  1011.744 TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 0 | data_sel [2 2 2 2]
+  1011.744 crpa_core VERSION 0x00010000 CTRL 0x6 STATUS 0x1 INT_LEN 10000 MISSED 5 SEQ 0
+  1011.744 crpa_core staged W1 0x00007fff W2 0x00000000 OUT_SHIFT 0 (committed set not readable)
+  1011.744 mode fixed, start w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0, INT_LEN 10000 (1.000 ms), load 0, alpha 0
+  1013.746 blocks 2002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.5 y~ -41.0 dBFS | peak 52/48 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1015.747 blocks 4003 missed 5 seq_gaps 1 sat_blocks 0 | x1 -40.9 x2 -41.4 y~ -40.9 dBFS | peak 55/49 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1017.748 blocks 6004 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.5 y~ -41.0 dBFS | peak 53/45 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1019.749 blocks 8005 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.1 x2 -41.5 y~ -41.1 dBFS | peak 53/51 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1021.750 blocks 10006 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.5 y~ -41.0 dBFS | peak 51/46 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1023.751 blocks 12007 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.5 y~ -41.0 dBFS | peak 56/46 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1025.752 blocks 14008 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.5 y~ -41.0 dBFS | peak 51/49 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1027.753 blocks 16009 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.6 y~ -41.0 dBFS | peak 54/56 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1029.754 blocks 18010 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.4 y~ -41.0 dBFS | peak 52/55 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1031.745 duration reached
+  1031.745 blocks 20002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -41.0 x2 -41.6 y~ -41.0 dBFS | peak 62/50 sat 0 | w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0
+  1031.749 Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz

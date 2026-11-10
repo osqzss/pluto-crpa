@@ -262,7 +262,7 @@ Timing: all constraints met.
 | T0b | Default design without FIR decimator/interpolator | Builds, timing met; Pluto works at fs >= approx. 2 MSPS. **Done** for the digital data path, 1R1T and 2R2T (`results/t0b_hw_test.md`); RF is covered by T1 |
 | T1 | Pass-through RX1 -> TX1 via PL, with LO offset. Can run on the current firmware with debugfs `loopback` = 2, which sets TX `data_sel = 8` (`docs/interface.md`, Section 4). Also check connector mapping and I/Q order | COTS receiver gets a fix; C/N0 degradation acceptable |
 | T2 | Fixed weights w = [1,0] / [0,1] / [1,1] | Each path received; combining gain as expected. **Done** (2026-11-09, `results/t2_A.md` to `t2_C2.md`): [1,0] and [0,1] within 0.2 dB of each other and of T1; the channels are 173 deg apart, so [1,-1] gives 1.8 dB array gain (level control T2-D) and [1,1] a 20 dB null |
-| T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune |
+| T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune. **Done** (2026-11-10, `results/t3.md`): 173 deg and -0.3 dB in the T2 cabling, unchanged by retunes, rate changes and power cycles (within about 1 deg over the day). With the legs swapped: 44 deg, so the fixture legs differ by 65 deg (or -115 deg) and the Pluto itself by 109 deg (or -71 deg) |
 | T4 | Conducted CW jammer into one channel (or both with phase offset); PI enabled | Null depth, C/N0 recovery |
 | T5 | Jammer power sweep | J/S improvement vs. no suppression |
 | T6 | Over-the-air test in a shielded environment (authorized only) | - |
@@ -291,7 +291,8 @@ pluto-crpa/                       # parent repository (main)
 |   |-- environment.md            # host, Vivado, fw/hdl commits (record_env.sh)
 |   |-- interface.md              # axi_ad9361 data interface (CMOS, 2R2T)
 |   |-- fixed_point.md            # crpa_core widths, rounding, saturation, simulated performance
-|   `-- regmap.md                 # crpa_core register map
+|   |-- regmap.md                 # crpa_core register map
+|   `-- t3_plan.md                # T3 runs, method and safety
 |-- fw/                           # plutosdr-fw fork, branch crpa (based on upstream master)
 |   |-- hdl/                      # ADI hdl fork, branch crpa
 |   `-- linux/                    # ADI linux fork (osqzss/linux), branch crpa
@@ -333,6 +334,7 @@ pluto-crpa/                       # parent repository (main)
 | `make -C sw/app` / `make -C sw/app test` | Cross-compile `crpa_ctl`; host test of the weight computation against the model (4156 cases, under 5 s) |
 | `ssh pluto 'sh -s' < sw/app/dry_test.sh` | `crpa_ctl` dry runs (fixed, PI, polling), refusals, SIGTERM, `off`; no transmission (about 30 s) |
 | `ssh pluto 'sh -s' < sw/app/gap_test.sh` | Processes, interrupts over 1 s, and block gaps with normal and real-time scheduling; dry runs only (about 25 s) |
+| `.venv/bin/python scripts/t3_phase.py --seq SEQ --label X` | T3: inter-channel level ratio, \|rho\| and phase of R21 = x2 conj(x1) from raw captures over libiio, wideband and in the bins of the carrier near -Delta. RX-only: powers the TX LO down, sets maximum TX attenuation, reads both back at the end. Sequences `one`, `retune`, `rewrite`, `fs`, `delta`, `gain`; `--seq selftest` checks the analysis without a Pluto. Needs the capture mux at reset (after a reboot or `crpa_ctl off`). Logs to `results/t3_<label>_<date>-<time>.txt` |
 | `./scripts/if_check.py [uri]` | Check `docs/interface.md` on a running Pluto over libiio: registers, and `l_clk` at three rates; TX_LO down during the rate changes (about 30 s) |
 
 Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once with `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt` (needs the `python3-venv` package). numpy is pinned to 2.2.2, the version that produced `results/t3_model.txt`. `t1_passthrough.py` and its tests use only the standard library.
@@ -371,16 +373,19 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [x] T2-B (2026-11-09, `results/t2_B.md`): w = [0,1], RX2 -> crpa_core -> TX1, the first RF check of RX2 through the PL. C/N0 -2.94 dB against the reference, 0.18 dB below T2-A on average (largest PRN 0.8 dB), 11 PRNs, 3D fix; no saturation, no frame error, no gap after startup. x2 is 0.4 dB below x1 in level (gain, not SNR). R21 shows the common signal (bladeRF carrier and GPS through the splitter) at 173 deg on RX2 relative to RX1, |rho| about 0.25
 - [x] T2-C1 (`results/t2_C1.md`): w = [1,-1], coherent combining. C/N0 -0.96 dB against the reference, +1.80 dB over T2-A (+1.2 to +2.0 per PRN), 11 PRNs; y +3.7 dB over x1. T2-D control (`results/t2_D.md`): y = 2 x1 at TX1 attenuation 52.25 dB, the same TX1 output power, gives the T2-A C/N0 within 0.1 dB. So the 1.8 dB is array gain, and C/N0 does not depend on the TX1 level in this range. AGC differed (1638 vs. 1872) although total y power matched; not resolved
 - [x] T2-C2 (`results/t2_C2.md`): w = [1,1], destructive. C/N0 -22.5 dB against the reference (about 19.8 dB below T2-A), 3 SVs tracked, no lasting fix; predicted about 21 dB from the measured amplitude ratio and phase. **T2 complete**: each path received ([1,0], [0,1]), 1.8 dB array gain in phase, a 20 dB null in antiphase
+- [x] T3 (2026-11-10, `results/t3.md`, `docs/t3_plan.md`): inter-channel phase and amplitude from raw captures with `scripts/t3_phase.py`, RX-only, bladeRF through the splitter. T2 cabling: phase of x2 against x1 172.4 to 173.6 deg over the day, x2 0.3 dB lower; spread within a run 0.15 deg. No change on 30 retunes (2400 MHz and back: +0.35 deg when captured 0.5 s after), 30 LO rewrites or 10 rate changes. PL R21 from a `crpa_ctl` dry run agrees with the host within 0.15 deg and 0.015 dB. Three power cycles: 173.25 deg +/- 0.03 and -0.30 dB, flat for 30 min from boot (29 to 33 C). Delta +2 to -3 MHz: about 1 deg. RX gain 40 to 70 dB: carrier phase 174.4 to 172.6 deg. RX gain writes raise the RX1 level at 60 dB by up to 0.3 dB (phase +0.4 deg) until a power cycle. Legs swapped: 43.9 deg, so the phase is the sum of a fixture part of 64.7 deg (or -115.3 deg) and a Pluto part of 108.6 deg (or -71.4 deg); the antiphase seen in T2 belongs to that cabling, not to the unit. Cables put back: 172.5 deg, 0.7 deg from before the swap, amplitude unchanged (connector repeatability)
 - [x] RX-only GPS check and unit comparison (`results/t1_rx_unit_compare.md`, 2026-11-07). The first Pluto has 12-14 dB excess noise and bursts on RX2. The second Pluto (serial `1044734c96050011f2ff2100408f4f2ac3`, same firmware) has matched channels, and all 11 simulated PRNs at -Delta on both, within 0.5 dB in SNR. The user confirmed the second Pluto as the CRPA unit (2026-11-07)
 
 ### 10.2 Open items
 - [ ] LO leakage and image levels not measured (effect on the receiver only, `results/t1_sweep.md`); a measurement with the B205mini on TX1 and a Pluto RX FFT is optional
 - [ ] RX2 end to end: RX2 -> TX1 does not exist with `data_sel = 8`. RX2 is checked RX-only at T1 and through `crpa_core` at T2 (`docs/interface.md`, Section 4)
 - [ ] First Pluto (serial `1044734c960500110c000900418f4f7ca2`) RX2 fault: location not found (chip, board or RX2 connection). It likely explains the 8 dB difference seen in the dry run on 2026-11-05, which was on this unit
-- [ ] Second Pluto so far tested RX-only, in one session. Inter-channel phase not measured. About 3 dB higher ch0/1 floor at low gain not investigated (`results/t1_rx_unit_compare.md`)
+- [ ] Second Pluto: about 3 dB higher ch0/1 noise floor at low gain, seen again at T3 (wideband ratio -3.2 dB at 40-45 dB, `results/t3.md`); not investigated
+- [ ] T3 leftovers (`results/t3.md`): 180 deg ambiguity of the Pluto / fixture split (needs a third measurement with a known change in one leg; only for calibration); RX1 level at 60 dB rises up to 0.3 dB with RX gain writes, mechanism not identified (set the gain once after boot for comparable runs); 0.7 deg rise within T3-H and 172.4 deg in the first boot not explained; correlated part without a source, |rho| 0.002 to 0.007
+- [ ] bladeRF carrier after `bladegps` exits: on 2026-11-10 no carrier line was left after stopping with `q` (`results/t3.md`), unlike 2026-11-07. Not followed up
 - [ ] bladeRF carrier at L1 stays after `bladegps` exits, and is also present while it runs. Effect on the C/N0 reference and the T1 result not evaluated. Whether TX is left enabled not determined
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
-- [ ] T4 setup: in the T1/T2 cabling the bladeRF carrier and the satellites reach RX1 and RX2 with the same relative phase (173 deg, `results/t2_B.md`), so power inversion would null the satellites with the jammer. The jammer must reach the two channels with a different relative phase (separate path, phase shifter or cable length) than the satellite signal
+- [ ] T4 setup: in the T1/T2 cabling the bladeRF carrier and the satellites reach RX1 and RX2 with the same relative phase (173 deg, `results/t2_B.md`), so power inversion would null the satellites with the jammer. The jammer must reach the two channels with a different relative phase (separate path, phase shifter or cable length) than the satellite signal. T3-G: swapping the two splitter legs changes the common phase from 173 to 44 deg, so the legs differ by about 65 deg (or -115 deg) electrically; a jammer injected after the splitter into one leg, or through a second splitter with the legs crossed, gets a different phase than the satellites
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
 - [x] UIO vs. `/dev/mem`; interrupt vs. polling: decided 2026-11-09, UIO with the interrupt, polling as a fallback (Section 7). The UIO side is in place (Task 6a); the application is Task 6b
 - [ ] FRAME_ERR at rate changes (`results/t5_hw_check.md`): the number of affected samples, and whether ENSM changes also set it, are not known. The PS must soft-reset and clear STATUS after a rate change and treat FRAME_ERR at a fixed rate as an error (Task 6)
@@ -445,8 +450,8 @@ Status: **done** (2026-11-08): build (Sections 6.2, 6.5) and hardware check with
 ### Task 6: PS application and device tree
 Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). **6b in progress**: `crpa_ctl` written and tested in dry run (`results/t6b_dry_run.md`). Interactive commands done; the first `--on` run (T2-A) passed. **Task 6 done**; T2 continues: [1,0] and [0,1] done (T2-A, T2-B), [1,-1] (T2-C1), the level control T2-D and [1,1] (T2-C2) done: **T2 complete**. Next: T3 (inter-channel amplitude and phase per retune) and the T4 jammer setup (Section 10.2).
 
-- 6a (done): fw/linux fork `osqzss/linux`, branch `crpa`. FIR flags removed, `crpa_core` UIO node, of_id via `CONFIG_CMDLINE_EXTEND` (Section 7). Patches exported to `sw/dts/`.
-- 6b: C application `sw/app/crpa_ctl` (Section 7). Done: build, weight math test, dry run on hardware, real-time scheduling, interactive commands, first `--on` run (T2-A, `results/t2_A.md`).
+### T3: inter-channel amplitude and phase
+Status: **done** (2026-11-10). Plan: `docs/t3_plan.md`, results: `results/t3.md`, tool: `scripts/t3_phase.py` (RX-only, libiio). Next: the T4 jammer setup (Section 10.2).
 
 ---
 

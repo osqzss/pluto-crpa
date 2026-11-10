@@ -1,0 +1,25 @@
+# t3_phase.py 20261110-121123, seq fs, label 'C'
+# command: scripts/t3_phase.py --seq fs --count 10 --label C --note T3-C: bladeRF x40 bladegps -e brdc3300.18n -> 40 dB -> splitter -> RX1, RX2 (T2 cabling), CRPA unit
+# note: T3-C: bladeRF x40 bladegps -e brdc3300.18n -> 40 dB -> splitter -> RX1, RX2 (T2 cabling), CRPA unit
+# start: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the line near -delta
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak
+0,C,fs0,3.5,1578420000,10000000,60,28.9,-41.10,-41.42,-0.316,0.2763,172.59,-3004913,40.5,-0.324,172.42,68
+1,C,fs1,6.0,1578420000,10000000,60,29.8,-41.10,-41.42,-0.320,0.2757,172.24,-3004913,40.4,-0.321,172.48,67
+2,C,fs2,8.5,1578420000,10000000,60,28.1,-41.11,-41.42,-0.305,0.2739,172.17,-3004913,40.4,-0.268,172.10,63
+3,C,fs3,11.1,1578420000,10000000,60,28.9,-41.11,-41.41,-0.308,0.2755,172.57,-3004913,40.4,-0.240,172.65,63
+4,C,fs4,13.6,1578420000,10000000,60,28.1,-41.12,-41.43,-0.306,0.2739,172.49,-3004913,40.3,-0.270,172.47,74
+5,C,fs5,16.1,1578420000,10000000,60,28.1,-41.12,-41.43,-0.309,0.2736,172.61,-3004913,40.4,-0.317,172.68,62
+6,C,fs6,18.6,1578420000,10000000,60,29.8,-41.13,-41.44,-0.315,0.2721,172.56,-3004913,40.3,-0.313,172.40,64
+7,C,fs7,21.2,1578420000,10000000,60,28.1,-41.12,-41.43,-0.308,0.2721,172.32,-3004913,40.4,-0.326,172.37,63
+8,C,fs8,23.7,1578420000,10000000,60,28.1,-41.13,-41.44,-0.319,0.2733,172.54,-3004913,40.3,-0.257,172.65,64
+9,C,fs9,26.3,1578420000,10000000,60,28.1,-41.11,-41.42,-0.312,0.2740,172.30,-3004913,40.3,-0.278,172.26,61
+# wideband phase: mean 172.44 deg, std 0.16, max deviation 0.27 (10 captures)
+# CW phase: mean 172.45 deg, std 0.17, max deviation 0.35 (10 captures)
+# wideband x2/x1: mean -0.312 dB, std 0.005, range -0.320 to -0.305
+# CW x2/x1: mean -0.291 dB, std 0.030, range -0.326 to -0.240
+# |rho|: mean 0.2740, range 0.2721 to 0.2763; peak |x| 74 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_C_20261110-121123.txt

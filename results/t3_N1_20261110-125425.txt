@@ -1,0 +1,20 @@
+# t3_phase.py 20261110-125425, seq one, label 'N1'
+# command: scripts/t3_phase.py --seq one --count 5 --label N1 --note no bladegps (stopped, bladeRF plugged in); gain history test of the noise ratio: gain 60 as left
+# note: no bladegps (stopped, bladeRF plugged in); gain history test of the noise ratio: gain 60 as left
+# start: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the line near -delta
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak
+0,N1,one,1.6,1578420000,10000000,60,32.5,-42.25,-42.83,-0.576,0.0015,-74.88,-3048248,2.8,-1.723,76.99,56
+1,N1,one,2.3,1578420000,10000000,60,32.5,-42.26,-42.85,-0.593,0.0019,-47.29,-2800903,1.5,1.242,142.21,58
+2,N1,one,3.0,1578420000,10000000,60,32.5,-42.28,-42.84,-0.564,0.0025,-139.57,-2839050,2.6,0.192,107.43,63
+3,N1,one,3.7,1578420000,10000000,60,31.6,-42.26,-42.84,-0.576,0.0010,-137.37,-2843781,2.4,-0.499,-115.57,61
+4,N1,one,4.3,1578420000,10000000,60,31.6,-42.27,-42.85,-0.579,0.0020,-119.85,-3138885,3.4,-2.564,-51.35,57
+# wideband phase: mean -105.17 deg, std 36.59, max deviation 57.88 (5 captures)
+# CW phase: mean 128.05 deg, std 95.98, max deviation 179.41 (5 captures)
+# wideband x2/x1: mean -0.577 dB, std 0.009, range -0.593 to -0.564
+# CW x2/x1: mean -0.670 dB, std 1.351, range -2.564 to 1.242
+# |rho|: mean 0.0018, range 0.0010 to 0.0025; peak |x| 63 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_N1_20261110-125425.txt

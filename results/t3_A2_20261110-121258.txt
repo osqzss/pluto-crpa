@@ -1,0 +1,20 @@
+# t3_phase.py 20261110-121258, seq one, label 'A2'
+# command: scripts/t3_phase.py --seq one --count 5 --label A2 --note after bladegps stopped; bladeRF still plugged in (carrier check)
+# note: after bladegps stopped; bladeRF still plugged in (carrier check)
+# start: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the line near -delta
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak
+0,A2,one,1.7,1578420000,10000000,60,28.9,-42.25,-42.81,-0.564,0.0046,-20.01,-3031464,3.4,-1.547,-44.36,56
+1,A2,one,2.4,1578420000,10000000,60,28.9,-42.27,-42.82,-0.551,0.0020,-1.79,-3147888,3.5,-2.457,36.85,66
+2,A2,one,3.0,1578420000,10000000,60,28.9,-42.28,-42.82,-0.546,0.0038,12.74,-3096771,3.0,-0.662,89.84,60
+3,A2,one,3.7,1578420000,10000000,60,28.9,-42.30,-42.82,-0.519,0.0042,-37.05,-2844543,0.0,3.215,106.26,61
+4,A2,one,4.4,1578420000,10000000,60,28.9,-42.28,-42.81,-0.528,0.0023,-34.64,-2854767,3.0,-0.951,-133.87,58
+# wideband phase: mean -16.27 deg, std 19.15, max deviation 29.01 (5 captures)
+# CW phase: mean 64.45 deg, std 88.80, max deviation 161.69 (5 captures)
+# wideband x2/x1: mean -0.542 dB, std 0.016, range -0.564 to -0.519
+# CW x2/x1: mean -0.480 dB, std 1.947, range -2.457 to 3.215
+# |rho|: mean 0.0034, range 0.0020 to 0.0046; peak |x| 66 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_A2_20261110-121258.txt

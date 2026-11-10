@@ -1,0 +1,25 @@
+# t3_phase.py 20261110-121839, seq one, label 'E_host_after'
+# command: scripts/t3_phase.py --seq one --count 10 --label E_host_after --note T3-E: host reference just after the crpa_ctl dry run and crpa_ctl off; bladegps running; T2 cabling
+# note: T3-E: host reference just after the crpa_ctl dry run and crpa_ctl off; bladegps running; T2 cabling
+# start: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the line near -delta
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak
+0,E_host_after,one,1.6,1578420000,10000000,60,29.8,-40.96,-41.51,-0.548,0.2550,172.89,-3004761,39.6,-0.409,172.68,64
+1,E_host_after,one,2.3,1578420000,10000000,60,28.9,-40.97,-41.51,-0.534,0.2561,173.08,-3004761,39.5,-0.413,172.81,67
+2,E_host_after,one,3.0,1578420000,10000000,60,28.9,-40.97,-41.51,-0.538,0.2567,173.22,-3004761,39.6,-0.397,173.03,67
+3,E_host_after,one,3.7,1578420000,10000000,60,28.9,-40.98,-41.51,-0.530,0.2562,172.83,-3004761,39.7,-0.402,172.77,66
+4,E_host_after,one,4.3,1578420000,10000000,60,28.9,-40.99,-41.53,-0.538,0.2527,173.34,-3004761,39.6,-0.391,172.86,70
+5,E_host_after,one,5.0,1578420000,10000000,60,29.8,-40.98,-41.53,-0.556,0.2536,173.14,-3004761,39.5,-0.381,172.93,69
+6,E_host_after,one,5.7,1578420000,10000000,60,29.8,-40.99,-41.51,-0.526,0.2535,173.16,-3004761,39.6,-0.396,172.71,63
+7,E_host_after,one,6.3,1578420000,10000000,60,29.8,-40.98,-41.50,-0.521,0.2543,172.95,-3004761,39.5,-0.355,172.68,63
+8,E_host_after,one,7.0,1578420000,10000000,60,28.9,-40.99,-41.53,-0.538,0.2528,173.32,-3004761,39.5,-0.399,172.78,69
+9,E_host_after,one,7.7,1578420000,10000000,60,28.9,-40.98,-41.51,-0.526,0.2551,173.01,-3004761,39.6,-0.393,172.86,65
+# wideband phase: mean 173.09 deg, std 0.16, max deviation 0.27 (10 captures)
+# CW phase: mean 172.81 deg, std 0.11, max deviation 0.21 (10 captures)
+# wideband x2/x1: mean -0.535 dB, std 0.010, range -0.556 to -0.521
+# CW x2/x1: mean -0.394 dB, std 0.015, range -0.413 to -0.355
+# |rho|: mean 0.2546, range 0.2527 to 0.2567; peak |x| 70 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_E_host_after_20261110-121839.txt
