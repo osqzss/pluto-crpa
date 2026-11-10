@@ -4,7 +4,7 @@ Two-element CRPA (Controlled Reception Pattern Antenna) anti-jamming prototype o
 
 Signals from two antennas are weighted and combined in the Zynq PL, then re-transmitted at GPS L1 to a commercial off-the-shelf (COTS) GNSS receiver. Adaptive weights are computed on the Zynq PS using power inversion.
 
-> **Status:** Early development. The `crpa_core` combiner and covariance integrator run in the Pluto PL, and the PS application `crpa_ctl` drives them through UIO with an interrupt-driven weight loop. Fixed-weight tests at RF (T2) pass with a conducted GPS simulator signal and a COTS receiver: each element alone gives the same C/N0 as the plain pass-through (T1, about 3 dB below the direct reference); adding both elements in phase improves C/N0 by 1.8 dB (array gain, confirmed by a level-matched control run), and adding them in antiphase places a null about 20 dB deep. Power inversion runs on the PS and matches the bit-true model, but has so far only been run without a jammer. Next: inter-channel calibration data (T3) and a conducted CW jammer test (T4). Interfaces and register maps may change.
+> **Status:** Early development. The `crpa_core` combiner and covariance integrator run in the Pluto PL, and the PS application `crpa_ctl` drives them through UIO with an interrupt-driven weight loop. Fixed-weight tests at RF (T2) pass with a conducted GPS simulator signal and a COTS receiver: each element alone gives the same C/N0 as the plain pass-through (T1, about 3 dB below the direct reference); adding both elements in phase improves C/N0 by 1.8 dB (array gain, confirmed by a level-matched control run), and adding them in antiphase places a null about 20 dB deep. The inter-channel amplitude and phase (T3) are measured with a common signal: in the test cabling RX2 is 173 deg from RX1 and 0.3 dB lower, unchanged within about 1 deg by retunes, sample rate changes and power cycles; swapping the two splitter legs shows that this phase is the sum of a part inside the Pluto and a part in the test fixture. Power inversion runs on the PS and matches the bit-true model, but has so far only been run without a jammer. Next: a conducted CW jammer test (T4). Interfaces and register maps may change.
 
 ## Overview
 
@@ -34,8 +34,8 @@ Signals from two antennas are weighted and combined in the Zynq PL, then re-tran
 | - | `crpa_core` integration into the block design | Done (build, timing met; register and default-path check on hardware) |
 | - | Device tree (UIO) and PS application | Done (fw/linux fork; `crpa_ctl`, dry run and RF) |
 | T2 | Fixed weights ([1,0], [0,1], [1,1]); check combining gain | Done (each path; 1.8 dB array gain in phase; 20 dB null in antiphase) |
-| T3 | Inter-channel amplitude/phase measurement with a common signal | Next |
-| T4 | Conducted CW jammer; adaptive power inversion; null depth and C/N0 recovery | Planned |
+| T3 | Inter-channel amplitude/phase measurement with a common signal | Done (stable within about 1 deg over retunes, rate changes and power cycles; results in `results/t3.md`) |
+| T4 | Conducted CW jammer; adaptive power inversion; null depth and C/N0 recovery | Next |
 | T5 | Jammer power sweep; J/S improvement | Planned |
 | T6 | Over-the-air test in a shielded environment (authorized only) | Planned |
 
