@@ -1,0 +1,41 @@
+    24.183 settings: delta 3000000 fs 10000000 bw 9000000 rx_gain 60 on 0 tx_att 0.00 min_tx_att 0.00 mode pi load 0 alpha 0 int_len 10000 shift 0 cap_sel 1 rt 40
+    24.188 scheduling: SCHED_FIFO priority 40, memory locked
+    25.242 DRY RUN: path set with TX muted; TX LO stays parked and powered down
+    25.243 RX LO 1578419998 | TX LO 2399999998 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+    25.245 RX gain manual 60 / manual 60 dB | RSSI 113.50 dB / 113.50 dB
+    25.246 TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 0 | data_sel [2 2 2 2]
+    25.246 crpa_core VERSION 0x00010000 CTRL 0xe STATUS 0x1 INT_LEN 10000 MISSED 4 SEQ 0
+    25.246 crpa_core staged W1 0x00007fff W2 0x00000000 OUT_SHIFT 0 (committed set not readable)
+    25.246 mode pi, start w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0, INT_LEN 10000 (1.000 ms), load 0, alpha 0
+    27.248 blocks 2002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.6 x2 -42.7 y~ -42.6 dBFS | peak 47/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0023+0.0048j (|w1| 1.000 |w2| 0.005) shift 0
+    29.249 blocks 4003 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 49/43 sat 0 | w1 +1.0000+0.0000j w2 -0.0071+0.0007j (|w1| 1.000 |w2| 0.007) shift 0
+    31.250 blocks 6004 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 43/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0191+0.0002j (|w1| 1.000 |w2| 0.019) shift 0
+    33.251 blocks 7975 missed 34 seq_gaps 30 sat_blocks 0 | x1 -42.6 x2 -42.5 y~ -42.6 dBFS | peak 48/45 sat 0 | w1 +1.0000+0.0000j w2 -0.0015+0.0160j (|w1| 1.000 |w2| 0.016) shift 0
+    35.251 blocks 9930 missed 80 seq_gaps 76 sat_blocks 0 | x1 -42.6 x2 -42.7 y~ -42.6 dBFS | peak 43/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0164-0.0113j (|w1| 1.000 |w2| 0.020) shift 0
+    37.252 blocks 11915 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 44/49 sat 0 | w1 +1.0000+0.0000j w2 -0.0125+0.0182j (|w1| 1.000 |w2| 0.022) shift 0
+    39.253 blocks 13916 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.4 x2 -42.7 y~ -42.4 dBFS | peak 46/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0101+0.0018j (|w1| 1.000 |w2| 0.010) shift 0
+    41.254 blocks 15917 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.4 x2 -42.8 y~ -42.4 dBFS | peak 47/45 sat 0 | w1 +1.0000+0.0000j w2 -0.0020-0.0087j (|w1| 1.000 |w2| 0.009) shift 0
+    43.255 blocks 17918 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 51/40 sat 0 | w1 +1.0000+0.0000j w2 -0.0145-0.0011j (|w1| 1.000 |w2| 0.015) shift 0
+    45.256 blocks 19919 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 46/45 sat 0 | w1 +1.0000+0.0000j w2 -0.0108-0.0058j (|w1| 1.000 |w2| 0.012) shift 0
+    47.257 blocks 21920 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 43/45 sat 0 | w1 +1.0000+0.0000j w2 -0.0206-0.0113j (|w1| 1.000 |w2| 0.023) shift 0
+    49.258 blocks 23921 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 43/46 sat 0 | w1 +1.0000+0.0000j w2 +0.0031-0.0117j (|w1| 1.000 |w2| 0.012) shift 0
+    51.259 blocks 25922 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.4 x2 -42.8 y~ -42.4 dBFS | peak 46/45 sat 0 | w1 +1.0000+0.0000j w2 -0.0078+0.0042j (|w1| 1.000 |w2| 0.009) shift 0
+    53.260 blocks 27923 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.7 y~ -42.5 dBFS | peak 47/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0188-0.0107j (|w1| 1.000 |w2| 0.022) shift 0
+    55.260 blocks 29923 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 47/40 sat 0 | w1 +1.0000+0.0000j w2 -0.0021-0.0083j (|w1| 1.000 |w2| 0.009) shift 0
+    57.261 blocks 31924 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 47/43 sat 0 | w1 +1.0000+0.0000j w2 -0.0129-0.0079j (|w1| 1.000 |w2| 0.015) shift 0
+    59.262 blocks 33925 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 48/42 sat 0 | w1 +1.0000+0.0000j w2 +0.0080-0.0045j (|w1| 1.000 |w2| 0.009) shift 0
+    61.263 blocks 35926 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 41/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0032+0.0024j (|w1| 1.000 |w2| 0.004) shift 0
+    63.264 blocks 37927 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 42/43 sat 0 | w1 +1.0000+0.0000j w2 -0.0106+0.0101j (|w1| 1.000 |w2| 0.015) shift 0
+    65.265 blocks 39928 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 43/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0091-0.0153j (|w1| 1.000 |w2| 0.018) shift 0
+    67.266 blocks 41929 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 47/45 sat 0 | w1 +1.0000+0.0000j w2 +0.0019+0.0096j (|w1| 1.000 |w2| 0.010) shift 0
+    69.267 blocks 43930 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 49/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0172-0.0073j (|w1| 1.000 |w2| 0.019) shift 0
+    71.268 blocks 45931 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 42/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0073-0.0220j (|w1| 1.000 |w2| 0.023) shift 0
+    73.269 blocks 47932 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.4 x2 -42.9 y~ -42.4 dBFS | peak 51/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0001-0.0030j (|w1| 1.000 |w2| 0.003) shift 0
+    75.270 blocks 49933 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 43/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0059-0.0072j (|w1| 1.000 |w2| 0.009) shift 0
+    77.271 blocks 51934 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 43/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0058+0.0015j (|w1| 1.000 |w2| 0.006) shift 0
+    79.271 blocks 53935 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 45/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0112+0.0029j (|w1| 1.000 |w2| 0.012) shift 0
+    81.272 blocks 55936 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 49/40 sat 0 | w1 +1.0000+0.0000j w2 -0.0223-0.0078j (|w1| 1.000 |w2| 0.024) shift 0
+    83.273 blocks 57937 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.4 x2 -42.9 y~ -42.4 dBFS | peak 42/43 sat 0 | w1 +1.0000+0.0000j w2 -0.0229-0.0044j (|w1| 1.000 |w2| 0.023) shift 0
+    85.246 duration reached
+    85.246 blocks 59911 missed 96 seq_gaps 92 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 45/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0211+0.0046j (|w1| 1.000 |w2| 0.022) shift 0
+    85.251 Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz

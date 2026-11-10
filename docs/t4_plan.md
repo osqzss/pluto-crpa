@@ -6,9 +6,9 @@ satellites, power inversion (PI) enabled. Metrics of the plan: null depth and
 C/N0 recovery. The setup and its reasons are in the plan, Section 11 (T4);
 this file adds the levels, tools, runs, pass criteria and safety.
 
-Status: **decided by the user (2026-11-10, Section 9); P0 tools written and
-tested offline.** Open in P0: the two checks that need hardware (Section 4.5).
-No RF step done yet.
+Status: **decided by the user (2026-11-10, Section 9); P0 done** (tools,
+offline tests, both hardware checks of Section 4.5). No RF step done yet;
+next is P1 in the T4 cabling.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -209,14 +209,16 @@ Python; present on the host, UHD 4.6.0).
 
 ### 4.4 `sw/app/crpa_ctl` (no change planned)
 
-### 4.5 P0 checks that need hardware (open)
+### 4.5 P0 checks that need hardware (done)
 
-Neither transmits. On 2026-11-10 the Pluto, the B205mini and the u-blox were
-not connected to the host when the tools were written.
+Neither transmits.
 
 1. B205mini connected (cabled as Section 2 or terminated):
    `scripts/t4_jammer.py` without `--on`. Expected: gain range, antenna
    `TX/RX` and frequency range printed, `dry run: nothing tuned`.
+   **Done 2026-11-10** (`results/t4_p0_jammer_dry.txt`): B205mini found over
+   USB 3, TX gain 0 to 89.75 dB in 0.25 dB steps, antenna `TX/RX`, 42 MHz to
+   6008 MHz; nothing tuned or streamed.
 2. Pluto after a reboot or `crpa_ctl off`, noise only. The user runs
    `ssh pluto /mnt/jffs2/crpa_ctl run --mode pi --cap-sel --duration 60 --out /tmp/t4_p0`
    (dry run); during it Claude Code runs
@@ -226,6 +228,17 @@ not connected to the host when the tools were written.
    `crpa_ctl` or the driver objects, the null measurement N (Section 6) is
    changed to captures of x1, x2 before and after the dry run, with the null
    computed from the logged weights.
+   **Done 2026-11-10** (`results/t4_p0_cap.txt`, `results/t4_p0.txt`; the
+   run was started without `--load`, so load 0): 5 captures of y and x1
+   during the dry run, nothing written by the host. `crpa_ctl`: no path
+   error, STATUS 1 in every block (no FRAME_ERR), no saturation, PI weights
+   live (|w2| mean 0.013), safe state confirmed. **Cost: each capture drops
+   15 to 27 single blocks** (91 of about 3600 blocks in the 3.6 s of the five
+   captures; 5 at startup, none in the other 74 s). A dropped block holds
+   the weights for one more millisecond, which does not matter for a
+   stationary CW, so run N stays as planned. Consequences: report the
+   missed blocks of every N run; do not capture during the receiver runs F
+   and P; for a moving jammer (later) the captures would disturb the loop.
 
 ---
 
@@ -367,8 +380,8 @@ use, gain table, behavior after stop).
 ## 8. Order of work
 
 1. Decisions of Section 9: done.
-2. P0: tools and offline tests: done. The two hardware checks of Section 4.5
-   are open.
+2. P0: tools, offline tests and the two hardware checks of Section 4.5: done
+   (2026-11-10).
 3. P1 to P3 in V1, RX-only.
 4. V1-N, V1-F, V1-P; evaluate; report.
 5. V1-L, V1-A.

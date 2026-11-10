@@ -1,0 +1,21 @@
+# t3_phase.py 20261110-153819, seq one, label 'p0'
+# command: scripts/t3_phase.py --passive --cap y --count 5 --label p0 --note P0 check: capture during crpa_ctl dry run, PI, cap-sel, noise only --log results/t4_p0_cap.txt
+# note: P0 check: capture during crpa_ctl dry run, PI, cap-sel, noise only
+# start (passive, nothing written): TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 200000 Hz of -delta + cw_offset (0)
+# capture mux CAP_SEL: columns x1 = y (ch0/1), columns x2 = x1 (ch2/3); cw_ratio = line in x1 over line in y
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,p0,one,0.8,1578420000,10000000,60,20.2,-42.52,-42.52,-0.000,1.0000,0.00,-2883911,3.3,0.004,0.03,56,0,3.3
+1,p0,one,1.6,1578420000,10000000,60,20.2,-42.52,-42.52,-0.000,1.0000,-0.00,-2879791,3.3,-0.003,-0.11,57,0,3.3
+2,p0,one,2.3,1578420000,10000000,60,20.2,-42.52,-42.52,-0.000,1.0000,-0.00,-3096008,4.1,-0.006,0.07,59,0,4.1
+3,p0,one,3.1,1578420000,10000000,60,19.3,-42.50,-42.51,-0.000,1.0000,0.00,-3136292,3.7,0.015,0.05,57,0,3.7
+4,p0,one,3.8,1578420000,10000000,60,19.3,-42.50,-42.50,-0.000,1.0000,0.00,-2830963,3.8,-0.008,0.02,58,0,3.8
+# wideband phase: mean 0.00 deg, std 0.00, max deviation 0.00 (5 captures)
+# wideband x2/x1: mean -0.000 dB, std 0.000, range -0.000 to -0.000
+# CW phase: mean 0.01 deg, std 0.07, max deviation 0.13 (5 captures)
+# CW x2/x1: mean 0.000 dB, std 0.008, range -0.008 to 0.015
+# |rho|: mean 1.0000, range 1.0000 to 1.0000; peak |x| 59 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_p0_cap.txt

@@ -1,0 +1,7 @@
+2026-11-10T06:35:11.339Z 1794292511.340 t4_jammer.py: --gain 30 --schedule 10:40,20:off,30:quit --log results/t4_p0_jammer_dry.txt
+2026-11-10T06:35:11.339Z 1794292511.340 mode dry run, device 'serial=3297659'
+2026-11-10T06:35:21.322Z 1794292521.323 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B205mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-10T06:35:21.322Z 1794292521.323 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-10T06:35:21.323Z 1794292521.323 schedule: 10:40.0, 20:off, 30:quit; start state 30.0; t0 on the t0 command
+2026-11-10T06:35:21.323Z 1794292521.324 dry run: nothing tuned, nothing streamed
+2026-11-10T06:35:21.344Z 1794292521.344 device closed
