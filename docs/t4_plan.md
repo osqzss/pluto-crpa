@@ -18,7 +18,10 @@ frequency). Logs: `results/t4_P1*.txt`, `results/t4_P2_pre_*.txt`.
 reached with 60 dB, no residual line. **D is 2.9 deg in V1**, so PI would
 null the satellites with the jammer (predicted C/N0 change about -27 dB).
 **V3** (jammer leg to RX1 50 cm instead of 25 cm): **D = 100.0 deg**,
-predicted C/N0 change with PI +0.4 dB. Next: V3-N, then V3-F and V3-P.
+predicted C/N0 change with PI +0.4 dB. **V3-N done** (`results/t4.md`):
+null depth 18.9 / 38.1 / 57.1 dB at L3 / L4 / L5, equal to the model values;
+the J/N + 10 dB criterion is missed by 1.2 dB at L3, where the model gives
+18 dB (decision on the criterion open). Next: V3-F and V3-P.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.

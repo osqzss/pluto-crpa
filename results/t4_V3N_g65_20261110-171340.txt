@@ -1,0 +1,40 @@
+# t3_phase.py 20261110-171400, seq one, label 'V3N_g65'
+# command: scripts/t3_phase.py --passive --cap y --seq one --count 10 --interval 0.3 --label V3N_g65 --cw-offset 0,200e3 --cw-span 15e3 --note T4 cabling V3 as stated by the user (V1 with the jammer leg to CMB1/RX1 50 cm instead of 25 cm); B205mini TX/RX -> 30+30 dB, t4_jammer.py gain 65 dB at 1575.62 MHz; bladegps TX gain 17 dB through 40 dB; crpa_ctl dry run --mode pi --load 24 --cap-sel: ch0/1 = y, ch2/3 = x1; passive captures --log results/t4_V3N_g65_20261110-171340.txt
+# note: T4 cabling V3 as stated by the user (V1 with the jammer leg to CMB1/RX1 50 cm instead of 25 cm); B205mini TX/RX -> 30+30 dB, t4_jammer.py gain 65 dB at 1575.62 MHz; bladegps TX gain 17 dB through 40 dB; crpa_ctl dry run --mode pi --load 24 --cap-sel: ch0/1 = y, ch2/3 = x1; passive captures
+# start (passive, nothing written): TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 15000 Hz of -delta + cw_offset (0,200e3)
+# capture mux CAP_SEL: columns x1 = y (ch0/1), columns x2 = x1 (ch2/3); cw_ratio = line in x1 over line in y
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,V3N_g65,one,0.9,1578420000,10000000,60,31.6,-38.83,-22.49,16.339,0.1607,0.01,-3004608,37.2,-3.320,-38.18,208,0,36.7
+1,V3N_g65,one,0.9,1578420000,10000000,60,31.6,-38.83,-22.49,16.339,0.1607,0.01,-2805786,24.5,37.961,7.16,208,200000,65.1
+2,V3N_g65,one,1.9,1578420000,10000000,60,32.5,-38.85,-22.46,16.389,0.1599,-0.00,-3004608,37.1,-3.308,-38.31,205,0,36.7
+3,V3N_g65,one,1.9,1578420000,10000000,60,32.5,-38.85,-22.46,16.389,0.1599,-0.00,-2805786,24.6,38.189,7.56,205,200000,65.4
+4,V3N_g65,one,3.0,1578420000,10000000,60,31.6,-38.84,-22.46,16.386,0.1599,-0.08,-3004608,37.2,-3.314,-38.32,205,0,36.9
+5,V3N_g65,one,3.0,1578420000,10000000,60,31.6,-38.84,-22.46,16.386,0.1599,-0.08,-2805786,24.8,38.134,6.76,205,200000,65.3
+6,V3N_g65,one,4.1,1578420000,10000000,60,31.6,-38.85,-22.48,16.372,0.1603,0.00,-3004608,37.1,-3.265,-38.35,216,0,36.8
+7,V3N_g65,one,4.1,1578420000,10000000,60,31.6,-38.85,-22.48,16.372,0.1603,0.00,-2805786,24.7,38.168,6.61,216,200000,65.3
+8,V3N_g65,one,5.1,1578420000,10000000,60,31.6,-38.85,-22.46,16.397,0.1598,0.01,-3004608,37.3,-3.264,-38.42,207,0,36.8
+9,V3N_g65,one,5.1,1578420000,10000000,60,31.6,-38.85,-22.46,16.397,0.1598,0.01,-2805786,24.6,38.262,7.89,207,200000,65.3
+10,V3N_g65,one,6.2,1578420000,10000000,60,31.6,-38.85,-22.47,16.381,0.1599,0.05,-3004608,37.3,-3.350,-38.34,212,0,36.7
+11,V3N_g65,one,6.2,1578420000,10000000,60,31.6,-38.85,-22.47,16.381,0.1599,0.05,-2805786,24.8,38.074,7.47,212,200000,65.4
+12,V3N_g65,one,7.3,1578420000,10000000,60,31.6,-38.85,-22.47,16.380,0.1600,-0.01,-3004608,37.4,-3.308,-38.41,214,0,36.9
+13,V3N_g65,one,7.3,1578420000,10000000,60,31.6,-38.85,-22.47,16.380,0.1600,-0.01,-2805786,24.6,38.021,7.96,214,200000,65.5
+14,V3N_g65,one,8.3,1578420000,10000000,60,30.7,-38.85,-22.45,16.400,0.1596,-0.01,-3004608,37.2,-3.294,-38.09,211,0,36.8
+15,V3N_g65,one,8.3,1578420000,10000000,60,30.7,-38.85,-22.45,16.400,0.1596,-0.01,-2805786,24.6,38.265,7.39,211,200000,65.2
+16,V3N_g65,one,9.4,1578420000,10000000,60,31.6,-38.84,-22.49,16.350,0.1607,-0.00,-3004608,37.2,-3.285,-38.60,212,0,36.8
+17,V3N_g65,one,9.4,1578420000,10000000,60,31.6,-38.84,-22.49,16.350,0.1607,-0.00,-2805786,24.5,38.085,8.44,212,200000,65.1
+18,V3N_g65,one,10.5,1578420000,10000000,60,32.5,-38.85,-22.46,16.382,0.1600,-0.04,-3004608,37.4,-3.313,-38.30,210,0,36.8
+19,V3N_g65,one,10.5,1578420000,10000000,60,32.5,-38.85,-22.46,16.382,0.1600,-0.04,-2805786,24.7,38.045,7.18,210,200000,65.4
+# wideband phase: mean -0.01 deg, std 0.03, max deviation 0.08 (10 captures)
+# wideband x2/x1: mean 16.378 dB, std 0.019, range 16.339 to 16.400
+# CW phase (offset +0 Hz): mean -38.33 deg, std 0.13, max deviation 0.27 (10 captures)
+# CW x2/x1 (offset +0 Hz): mean -3.302 dB, std 0.025, range -3.350 to -3.264
+# CW line over the floor (offset +0 Hz): ch0/1 37.2 dB, ch2/3 36.8 dB (means), at -3004608 Hz
+# CW phase (offset +200000 Hz): mean 7.44 deg, std 0.53, max deviation 1.00 (10 captures)
+# CW x2/x1 (offset +200000 Hz): mean 38.120 dB, std 0.096, range 37.961 to 38.265
+# CW line over the floor (offset +200000 Hz): ch0/1 24.6 dB, ch2/3 65.3 dB (means), at -2805786 Hz
+# |rho|: mean 0.1601, range 0.1596 to 0.1607; peak |x| 216 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_V3N_g65_20261110-171340.txt
