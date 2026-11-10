@@ -21,7 +21,9 @@ null the satellites with the jammer (predicted C/N0 change about -27 dB).
 predicted C/N0 change with PI +0.4 dB. **V3-N done** (`results/t4.md`):
 null depth 18.9 / 38.1 / 57.1 dB at L3 / L4 / L5, equal to the model values;
 the J/N + 10 dB criterion is missed by 1.2 dB at L3, where the model gives
-18 dB (decision on the criterion open). Next: V3-F and V3-P.
+18 dB (decision on the criterion open). **V3-F done**: reference -5.1 dB
+against T1; C/N0 -0.4 / -0.9 / -4.0 / -9.9 dB at L1 to L4 and the fix lost at
+L5. Next: V3-P.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
