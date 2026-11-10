@@ -58,7 +58,7 @@ ANT2 -[BiasT/LNA/L1 SAW]- RX2 --+          (PL)    |       +-- TX2 (unused)
 | Antenna power | Pluto provides no bias voltage; use external bias tees for active antennas |
 | RF front end | External LNA and L1 SAW filter as needed (avoid saturation from strong out-of-band signals) |
 | TX to receiver | **Always insert a DC block** (the receiver supplies antenna bias). Set the receiver input level with TX attenuation: at least 50 dB in total with any external attenuator (`docs/test-equipment.md`, Section 2) |
-| Calibration | 2-way in-phase splitter, variable attenuator, CW source, combiner for jammer injection |
+| Calibration | 2-way in-phase splitter, variable attenuator, CW source, combiner for jammer injection. At hand (user, 2026-11-10): four 2-way splitter/combiners and several 20 dB and 30 dB attenuators |
 
 ---
 
@@ -385,7 +385,8 @@ Scripts that need numpy run in the repo venv, `.venv/bin/python`. Create it once
 - [ ] bladeRF carrier after `bladegps` exits: on 2026-11-10 no carrier line was left after stopping with `q` (`results/t3.md`), unlike 2026-11-07. Not followed up
 - [ ] bladeRF carrier at L1 stays after `bladegps` exits, and is also present while it runs. Effect on the C/N0 reference and the T1 result not evaluated. Whether TX is left enabled not determined
 - [ ] Output normalization: `OUT_SHIFT` in the PL and TX attenuation from the PS are the current design; decide at T2 whether a PL gain multiplier is needed
-- [ ] T4 setup: in the T1/T2 cabling the bladeRF carrier and the satellites reach RX1 and RX2 with the same relative phase (173 deg, `results/t2_B.md`), so power inversion would null the satellites with the jammer. The jammer must reach the two channels with a different relative phase (separate path, phase shifter or cable length) than the satellite signal. T3-G: swapping the two splitter legs changes the common phase from 173 to 44 deg, so the legs differ by about 65 deg (or -115 deg) electrically; a jammer injected after the splitter into one leg, or through a second splitter with the legs crossed, gets a different phase than the satellites
+- [ ] T4 setup: in the T1/T2 cabling the bladeRF carrier and the satellites reach RX1 and RX2 with the same relative phase, so power inversion would null the satellites with the jammer. Recommendation recorded in Section 11 (T4): separate CW source (B205mini) through a second splitter and one combiner per leg, phase separation set by cable length and measured per source with `scripts/t3_phase.py`; no two-element simulator for T4. Detailed plan (`docs/t4_plan.md`) not written yet
+- [ ] Two-element GPS and jammer simulator (per-satellite and per-jammer phase on two coherent TX channels): not needed for T4; consider for T5 and later. Needs a 2-TX coherent generator (not the bladeRF x40; whether the first Pluto's TX side is usable is not checked) and a modified gps-sdr-sim
 - [ ] Diagonal loading and smoothing: starting values from simulation (load 0.1 x noise power, alpha 0), to be confirmed at T4
 - [x] UIO vs. `/dev/mem`; interrupt vs. polling: decided 2026-11-09, UIO with the interrupt, polling as a fallback (Section 7). The UIO side is in place (Task 6a); the application is Task 6b
 - [ ] FRAME_ERR at rate changes (`results/t5_hw_check.md`): the number of affected samples, and whether ENSM changes also set it, are not known. The PS must soft-reset and clear STATUS after a rate change and treat FRAME_ERR at a fixed rate as an error (Task 6)
@@ -452,6 +453,30 @@ Status: **6a done** (2026-11-09, `results/t6a_dt_check.md`). **6b in progress**:
 
 ### T3: inter-channel amplitude and phase
 Status: **done** (2026-11-10). Plan: `docs/t3_plan.md`, results: `results/t3.md`, tool: `scripts/t3_phase.py` (RX-only, libiio). Next: the T4 jammer setup (Section 10.2).
+
+### T4: conducted CW jammer, setup recommendation
+Status: **recommendation, not yet planned in detail** (2026-11-10). No T4 run yet. The detailed T4 plan (levels, runs, pass criteria, safety for the second transmitter) is the next step and goes to `docs/t4_plan.md`.
+
+No two-element GPS simulator is needed for T4. Power inversion only needs the jammer to reach the two channels with a different inter-channel phase than the satellites, and that can be cabled with the parts at hand (user, 2026-11-10: four 2-way splitter/combiners, which work in both directions, and several 20 dB and 30 dB attenuators besides the ones in use).
+
+```
+bladeRF (bladeGPS) -> 40 dB -> SPL1 -+-> CMB1 -> Pluto RX1
+                                     +-> CMB2 -> Pluto RX2
+B205mini (CW) -> attenuators -> SPL2 -+-> CMB1
+                                      +-> CMB2   (other cable length, or legs crossed)
+Pluto TX1 -> DC block -> u-blox M8T, TX attenuation 50 dB in the Pluto (as T2)
+```
+
+- **GPS path:** as T2 and T3, with one combiner added in each leg. All satellites and the bladeRF carrier keep one common inter-channel phase, as if from one direction.
+- **Jammer path:** a separate source, the B205mini (UHD), as a CW inside the C/A main lobe but not on the bladeRF carrier at L1. A separate source keeps the full DAC range for the jammer; a jammer 40 to 60 dB above GPS in the same 12-bit DAC would leave GPS near 1 LSB.
+- **Phase separation:** D = (jammer phase of x2 against x1) - (GPS phase of x2 against x1). Set it by the cable lengths of the two jammer legs, or by crossing them. T3-G: about 2.3 cm of coax is 65 deg at L1. Do not assume D: measure each source alone, RX-only, with `scripts/t3_phase.py` (GPS on and jammer off, then the reverse), and record it for every cabling.
+- **Expected effect of D** (equal amplitudes, ideal null on the jammer): the satellite SNR against a single element is 20 log10(2 |sin(D/2)|) - 3 dB: +3 dB at 180 deg, 0 dB at 90 deg, -3 dB at 60 deg, -8.7 dB at 30 deg, and the satellites are nulled with the jammer at 0 deg. With one common satellite phase, C/N0 recovery depends on D alone, so run two or three separations (for example near 180, 90 and 30 to 45 deg) and report C/N0 against D.
+- **Level budget:** each combiner takes about 3.5 dB from the GPS path, so C/N0 will be lower than in T2 by about that much. Take a new reference in the T4 cabling with the jammer off and fixed weights [1,0]; do not compare with the T2 numbers directly. (Alternative, to be decided: raise the bladeGPS TX gain.) At RX gain 60 dB the noise is at -42.5 dBFS, so the jammer can be about 30 dB above the noise in 9 MHz before the ADC margin gets small, i.e. J/S of roughly 55 dB for a 45 dB-Hz signal; more needs a lower RX gain. Estimates only; confirm RX-only before any Pluto transmission.
+- **Jammer level procedure:** the B205mini output level is not calibrated here. Start with at least 60 dB of attenuators (30 + 30) and the lowest TX gain, read the jammer level at the Pluto with `t3_phase.py` (RX-only), and step up from below the noise.
+- **Reference runs must use fixed weights, not PI:** with the jammer off, power inversion sees the bladeRF carrier and the satellites as the strongest common signal and would null them (`results/t2_B.md`). Jammer-off reference: w = [1,0]. Jammer-on comparison: w = [1,0] against `--mode pi`. The jammer must be clearly stronger than the bladeRF carrier for the null to go to the jammer.
+- **Isolation:** every device is a 2-way splitter, so no port is left open. Leakage of the jammer into the other leg goes through two isolations (CMB and SPL1, typically about 20 dB each; not measured) and is small against the direct path. Check with one jammer leg terminated if the measured D looks wrong.
+- **Safety:** the B205mini is a second transmitter. Conducted only, never radiated (Section 8.2); the rules of `docs/test-equipment.md`, Section 2 apply, with the user's go before each run. The T4 plan must add how the jammer is stopped on exit and on errors.
+- **Limits of this setup:** all satellites behave alike, there is one jammer, and nothing moves. A two-element simulator (two coherent TX channels with a phase per satellite and per jammer) would give a realistic sky, a jammer direction sweep, a moving jammer and two jammers. It needs a 2-TX coherent generator, which the bladeRF x40 is not, and a modified gps-sdr-sim. Kept as a separate item for T5 and later (Section 10.2).
 
 ---
 
