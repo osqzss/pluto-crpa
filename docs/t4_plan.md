@@ -27,8 +27,10 @@ against T1; C/N0 -0.4 / -0.9 / -4.0 / -9.9 dB at L1 to L4 and the fix lost at
 L5. **V3-P done** (2026-11-11, after a P3 repeat: D 100.2 deg): 3D fix with
 11 SVs at every level, cold start under L5 with TTFF 28.8 s, C/N0 +0.7 /
 +0.6 / +0.3 dB at L5 / L4 / L3 against the V3-F reference (prediction
-+0.4 dB), -0.9 dB with the jammer off. Next: the parameter runs in V3 (V3-L, V3-A),
-then V1-N and further D values (Section 6).
++0.4 dB), -0.9 dB with the jammer off. **V3-L done** (2026-11-11): null depth 19.6 /
+18.9 / 14.8 / 5.3 dB at L3 and 57.9 / 57.2 / 52.4 / 37.9 dB at L5 for load
+0 / 24 / 240 / 2400; load 24 kept. Next: V3-A, then V1-N and further D values
+(Section 6).
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -417,8 +419,11 @@ difference of more than 3 dB in null depth.
 
 ### State at the end of the session of 2026-11-11 and how the runs were done
 
-Done: P1 to P3 in V1; P3 (twice), N, F and P in V3. **Next: the
-parameter runs V3-L and V3-A, then V1-N and further D values.**
+Done: P1 to P3 in V1; P3 (twice), N, F and P in V3. V3-L done
+(as executed: one dry run, the jammer alternating L3 / L5 every 20 s, the
+loads typed about every 60 s, continuous captures; a capture takes about
+0.87 s, so 230 captures last 200 s). **Next: V3-A, then V1-N and further D
+values.**
 Results: `results/t4.md`. Cabling at the end of the session: V3 (jammer leg
 to CMB1 / RX1 50 cm), u-blox on USB. Check the cabling with the user and
 repeat P3 (1 min) if anything was unplugged or the Pluto was power-cycled

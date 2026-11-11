@@ -1,0 +1,12 @@
+2026-11-11T06:02:12.226Z 1794376932.227 t4_jammer.py: --on --ext-att 60 --max-gain 78 --gain 55 --schedule 30:75,90:quit --log results/t4_V3L2_jammer.txt
+2026-11-11T06:02:12.226Z 1794376932.227 mode ON (transmit), device 'serial=3297659'
+2026-11-11T06:02:14.055Z 1794376934.056 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B205mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-11T06:02:14.055Z 1794376934.056 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-11T06:02:14.056Z 1794376934.056 schedule: 30:75.0, 90:quit; start state 55.0; t0 on the t0 command
+2026-11-11T06:02:14.396Z 1794376934.397 tuned: target 1575620000.0 Hz, actual RF 1575619999.7 Hz, DSP 0.320 Hz, reads 1575620000.0 Hz; rate 1000000.0; antenna TX/RX
+2026-11-11T06:02:14.396Z 1794376934.397 ext-att 60 dB (as stated), max-gain 78 dB, ampl 0.5
+2026-11-11T06:02:14.425Z 1794376934.425 STATE gain 55 dB (start)
+2026-11-11T06:02:21.128Z 1794376941.128 T0 (command)
+2026-11-11T06:02:51.139Z 1794376971.140 STATE gain 75 dB (schedule 30 s)
+2026-11-11T06:03:15.400Z 1794376995.401 stopping: quit command
+2026-11-11T06:03:15.428Z 1794376995.429 JAMMER OFF: burst ended, gain at minimum, device closed
