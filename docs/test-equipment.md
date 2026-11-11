@@ -126,6 +126,19 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
   `--args "serial=<serial>" --file <file> --type short --rate <fs>
   --freq 1575.42e6 --gain <dB> --repeat`. Check `--help` first.
 - Connect to a USB 3 port; USB 2 limits the sample rate.
+- CW jammer for T4 (2026-11-10 and 11, `results/t4.md`):
+  `scripts/t4_jammer.py`, port `TX/RX`, 1575.62 MHz (L1 + 200 kHz), rate
+  1 MSPS, amplitude 0.5, always through 30 + 30 dB (the script refuses less
+  than 50 dB stated and any gain above `--max-gain`). TX gain range 0 to
+  89.75 dB. Through 60 dB, a splitter and a combiner, gains 35 / 45 / 55 /
+  65 / 75 dB give J/N -9 / 1 / 10 to 11 / 20 to 21 / 30 dB in 9 MHz at the
+  Pluto with RX gain 60 dB (`docs/t4_plan.md`, Section 2.2); the last 5 dB
+  of gain give 4.6 dB. The line is 5.6 kHz below nominal at the Pluto.
+- After `off` and after the script exits no line is left at the Pluto, on
+  both days and after every run: the B205mini need not be unplugged between
+  runs. After SIGKILL or a crash the state is unknown: unplug it.
+- The first open after power-up takes about 12 s (FPGA load), later ones
+  2 s: wait for the `STATE` line of the jammer log before sending commands.
 
 ---
 

@@ -6,7 +6,9 @@ satellites, power inversion (PI) enabled. Metrics of the plan: null depth and
 C/N0 recovery. The setup and its reasons are in the plan, Section 11 (T4);
 this file adds the levels, tools, runs, pass criteria and safety.
 
-Status: **decided by the user (2026-11-10, Section 9); P0 and P1 done.**
+Status: **measurements done (2026-11-11), all pass criteria met**; summary
+in `results/t4.md`. History: decided by the user (2026-11-10, Section 9); P0
+and P1 done.
 P1 (2026-11-10, variant V1, RX-only): noise -42.47 / -42.77 dBFS, |rho|
 0.005; GPS path phi_G 166.5 deg wideband and 165.7 deg on the carrier, g_G
 -0.76 dB, |rho| 0.174, GPS and carrier 6.8 dB under the noise in x1 (2.9 dB
@@ -31,8 +33,16 @@ L5. **V3-P done** (2026-11-11, after a P3 repeat: D 100.2 deg): 3D fix with
 18.9 / 14.8 / 5.3 dB at L3 and 57.9 / 57.2 / 52.4 / 37.9 dB at L5 for load
 0 / 24 / 240 / 2400; load 24 kept. **V3-A done**: 38.1 dB at L4 with
 alpha 0, alpha 0.9 and INT_LEN 1000 alike; alpha 0 and INT_LEN 10000 kept;
-at INT_LEN 1000 the PS misses blocks. Next: V1-N and further D values
-(Section 6); both need a change of the jammer leg by the user.
+at INT_LEN 1000 the PS misses blocks. **V1-N done** (25 cm leg back, D
+3.2 deg): jammer null 20.1 / 40.0 / 59.0 dB at L3 / L4 / L5, and the bladeRF
+carrier 25 dB lower in y than in x1 (prediction 24.6 dB): with D near 0 PI
+nulls the GPS path with the jammer. **V4** (3 cm SMA adapter in the 25 cm
+leg to RX1): D 73.0 deg, P3 only. **V5** (50 cm to RX1, adapter in the leg
+to RX2): **D 29.5 deg**; V5-N 19.8 / 39.3 / 58.2 dB, carrier -6.5 dB in y;
+V5-F reference -5.28 dB against T1, fix lost at L5; **V5-P**: 3D fix at
+every level, C/N0 -8.1 / -8.2 / -8.2 dB at L3 / L4 / L5 against the
+reference (prediction -9.2 dB). T4 is complete as measured; open points in
+Section 6.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -425,11 +435,15 @@ Done: P1 to P3 in V1; P3 (twice), N, F and P in V3. V3-L done
 (as executed: one dry run, the jammer alternating L3 / L5 every 20 s, the
 loads typed about every 60 s, continuous captures; a capture takes about
 0.87 s, so 230 captures last 200 s). V3-A done (three dry runs at L4 chained in one ssh command,
-capture sets timed from the user's "started"). **Next: V1-N (jammer leg to
-CMB1 back to the 25 cm cable) and further D values; then the T4 summary and
-the updates of Section 7.**
-Results: `results/t4.md`. Cabling at the end of the session: V3 (jammer leg
-to CMB1 / RX1 50 cm), u-blox on USB. Check the cabling with the user and
+capture sets timed from the user's "started"). V1-N done (25 cm cable
+back, P3 repeated: D 3.2 deg; one dry run, jammer L3, L4, L5 in one
+schedule, continuous captures). Then V4 (P3 only, D 73 deg) and V5 (D 29.5 deg: P3, N, F,
+P). **T4 measurements are complete; next is T5 (jammer power sweep), to be
+planned.** Cabling at the end of the session: V5 (50 cm cable in the jammer
+leg to CMB1 / RX1, 3 cm SMA adapter in the leg to CMB2 / RX2). The variants
+as cabled differ from the table above: V2 (crossed legs) was not used; V3 is
+the longer leg, V4 and V5 use the adapter.
+Results: `results/t4.md`. u-blox on USB. Check the cabling with the user and
 repeat P3 (1 min) if anything was unplugged or the Pluto was power-cycled
 (done on 2026-11-11 before V3-P: after a power cycle the first capture set
 runs without `--passive`, noise only, to write LO, fs and gain).
@@ -479,8 +493,14 @@ Open points from this session:
   that path; GPS alone was not measured again in V3.
 - Second bladeRF line 181 kHz above its carrier, 19 kHz from the jammer:
   origin not looked at.
-- V1 (D 2.9 deg) has no N run yet (the "D near 0" case); V2, the parameter
-  runs L and A (in V3, decided 2026-11-11), and a third D are still to do.
+- D classes covered: 3 deg (V1, N only), 29.5 deg (V5), 100 deg (V3); 73 deg
+  (V4) measured in P3 only. No D of 120 to 180 deg; not planned.
+- V5-P: G04 was not used under the jammer although weaker SVs were; TTFF
+  39.3 s. Single run; not looked into.
+- The GPS path phase follows the jammer legs (165.9 deg in V1, 167.3 in V4,
+  167.6 in V3, 169.1 in V5): coupling between the source paths through the
+  combiners is the likely reason. Each variant uses its own measured values,
+  so the predictions are not affected.
 - V3-P: the u-blox log has a gap of 67 s after the cold start (5 s in V3-F):
   gpsd was slow to deliver data after the receiver reset. TTFF is taken from
   NAV-STATUS. If the first minute matters in a later run, log the serial

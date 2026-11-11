@@ -1,0 +1,98 @@
+  4492.184 settings: delta 3000000 fs 10000000 bw 9000000 rx_gain 60 on 0 tx_att 0.00 min_tx_att 0.00 mode pi load 24 alpha 0 int_len 10000 shift 0 cap_sel 1 rt 40
+  4492.188 scheduling: SCHED_FIFO priority 40, memory locked
+  4492.399 DRY RUN: path set with TX muted; TX LO stays parked and powered down
+  4492.401 RX LO 1578419998 | TX LO 2399999998 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+  4492.402 RX gain manual 60 / manual 60 dB | RSSI 103.00 dB / 103.50 dB
+  4492.403 TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 0 | data_sel [2 2 2 2]
+  4492.403 crpa_core VERSION 0x00010000 CTRL 0xe STATUS 0x1 INT_LEN 10000 MISSED 5 SEQ 0
+  4492.403 crpa_core staged W1 0x00007fff W2 0x00000000 OUT_SHIFT 0 (committed set not readable)
+  4492.403 mode pi, start w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0, INT_LEN 10000 (1.000 ms), load 24, alpha 0
+  4494.405 blocks 2002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -31.9 x2 -32.4 y~ -39.6 dBFS | peak 94/86 sat 0 | w1 +1.0000+0.0000j w2 +0.9050+0.2975j (|w1| 1.000 |w2| 0.953) shift 0
+  4496.406 blocks 4003 missed 5 seq_gaps 1 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.6 dBFS | peak 86/84 sat 0 | w1 +1.0000+0.0000j w2 +0.9053+0.2959j (|w1| 1.000 |w2| 0.952) shift 0
+  4498.407 blocks 6004 missed 5 seq_gaps 1 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.6 dBFS | peak 90/83 sat 0 | w1 +1.0000+0.0000j w2 +0.8975+0.3016j (|w1| 1.000 |w2| 0.947) shift 0
+  4500.408 blocks 8005 missed 5 seq_gaps 1 sat_blocks 0 | x1 -31.9 x2 -32.4 y~ -39.5 dBFS | peak 90/88 sat 0 | w1 +1.0000+0.0000j w2 +0.9064+0.2956j (|w1| 1.000 |w2| 0.953) shift 0
+  4502.409 blocks 9985 missed 26 seq_gaps 22 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.6 dBFS | peak 91/83 sat 0 | w1 +1.0000+0.0000j w2 +0.9023+0.2971j (|w1| 1.000 |w2| 0.950) shift 0
+  4504.410 blocks 11933 missed 79 seq_gaps 74 sat_blocks 0 | x1 -32.1 x2 -32.5 y~ -39.6 dBFS | peak 86/85 sat 0 | w1 +1.0000+0.0000j w2 +0.9010+0.2981j (|w1| 1.000 |w2| 0.949) shift 0
+  4506.411 blocks 13899 missed 113 seq_gaps 109 sat_blocks 0 | x1 -32.0 x2 -32.4 y~ -39.4 dBFS | peak 91/90 sat 0 | w1 +1.0000+0.0000j w2 +0.9017+0.2962j (|w1| 1.000 |w2| 0.949) shift 0
+  4508.412 blocks 15862 missed 151 seq_gaps 147 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.5 dBFS | peak 89/88 sat 0 | w1 +1.0000+0.0000j w2 +0.9008+0.2966j (|w1| 1.000 |w2| 0.948) shift 0
+  4510.412 blocks 17817 missed 196 seq_gaps 192 sat_blocks 0 | x1 -32.0 x2 -32.5 y~ -39.5 dBFS | peak 92/84 sat 0 | w1 +1.0000+0.0000j w2 +0.9014+0.3031j (|w1| 1.000 |w2| 0.951) shift 0
+  4512.414 blocks 19770 missed 246 seq_gaps 240 sat_blocks 0 | x1 -32.0 x2 -32.5 y~ -39.5 dBFS | peak 97/85 sat 0 | w1 +1.0000+0.0000j w2 +0.9014+0.3000j (|w1| 1.000 |w2| 0.950) shift 0
+  4514.414 blocks 21726 missed 290 seq_gaps 284 sat_blocks 0 | x1 -32.2 x2 -32.7 y~ -39.4 dBFS | peak 102/89 sat 0 | w1 +1.0000+0.0000j w2 +0.8923+0.2943j (|w1| 1.000 |w2| 0.940) shift 0
+  4516.415 blocks 23693 missed 323 seq_gaps 317 sat_blocks 0 | x1 -31.9 x2 -32.4 y~ -39.5 dBFS | peak 93/93 sat 0 | w1 +1.0000+0.0000j w2 +0.9003+0.3003j (|w1| 1.000 |w2| 0.949) shift 0
+  4518.417 blocks 25645 missed 374 seq_gaps 366 sat_blocks 0 | x1 -32.1 x2 -32.5 y~ -39.5 dBFS | peak 89/92 sat 0 | w1 +1.0000+0.0000j w2 +0.9013+0.2972j (|w1| 1.000 |w2| 0.949) shift 0
+  4520.417 blocks 27603 missed 416 seq_gaps 409 sat_blocks 0 | x1 -32.2 x2 -32.6 y~ -39.6 dBFS | peak 95/84 sat 0 | w1 +1.0000+0.0000j w2 +0.8988+0.2953j (|w1| 1.000 |w2| 0.946) shift 0
+  4522.418 blocks 29564 missed 456 seq_gaps 448 sat_blocks 0 | x1 -31.9 x2 -32.4 y~ -39.4 dBFS | peak 94/85 sat 0 | w1 +1.0000+0.0000j w2 +0.9026+0.2936j (|w1| 1.000 |w2| 0.949) shift 0
+  4524.418 blocks 31528 missed 492 seq_gaps 484 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.5 dBFS | peak 95/84 sat 0 | w1 +1.0000+0.0000j w2 +0.9044+0.2962j (|w1| 1.000 |w2| 0.952) shift 0
+  4526.419 blocks 33490 missed 531 seq_gaps 523 sat_blocks 0 | x1 -32.2 x2 -32.6 y~ -39.5 dBFS | peak 91/83 sat 0 | w1 +1.0000+0.0000j w2 +0.8956+0.2903j (|w1| 1.000 |w2| 0.941) shift 0
+  4528.420 blocks 35462 missed 560 seq_gaps 552 sat_blocks 0 | x1 -31.9 x2 -32.5 y~ -39.5 dBFS | peak 90/86 sat 0 | w1 +1.0000+0.0000j w2 +0.9083+0.3017j (|w1| 1.000 |w2| 0.957) shift 0
+  4530.421 blocks 37426 missed 597 seq_gaps 588 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.5 dBFS | peak 92/85 sat 0 | w1 +1.0000+0.0000j w2 +0.9023+0.2962j (|w1| 1.000 |w2| 0.950) shift 0
+  4532.422 blocks 39375 missed 648 seq_gaps 639 sat_blocks 0 | x1 -32.0 x2 -32.5 y~ -39.5 dBFS | peak 96/87 sat 0 | w1 +1.0000+0.0000j w2 +0.9054+0.2946j (|w1| 1.000 |w2| 0.952) shift 0
+  4534.422 blocks 41342 missed 682 seq_gaps 673 sat_blocks 0 | x1 -31.9 x2 -32.5 y~ -39.4 dBFS | peak 90/89 sat 0 | w1 +1.0000+0.0000j w2 +0.9070+0.2939j (|w1| 1.000 |w2| 0.953) shift 0
+  4536.423 blocks 43304 missed 721 seq_gaps 710 sat_blocks 0 | x1 -32.1 x2 -32.6 y~ -39.4 dBFS | peak 90/92 sat 0 | w1 +1.0000+0.0000j w2 +0.8969+0.2954j (|w1| 1.000 |w2| 0.944) shift 0
+  4538.426 blocks 45259 missed 768 seq_gaps 756 sat_blocks 0 | x1 -32.0 x2 -32.5 y~ -39.5 dBFS | peak 93/86 sat 0 | w1 +1.0000+0.0000j w2 +0.9040+0.2997j (|w1| 1.000 |w2| 0.952) shift 0
+  4540.425 blocks 47210 missed 817 seq_gaps 806 sat_blocks 0 | x1 -32.0 x2 -32.5 y~ -39.4 dBFS | peak 96/89 sat 0 | w1 +1.0000+0.0000j w2 +0.9039+0.2942j (|w1| 1.000 |w2| 0.951) shift 0
+  4542.427 blocks 49155 missed 874 seq_gaps 860 sat_blocks 0 | x1 -22.5 x2 -23.0 y~ -39.7 dBFS | peak 192/181 sat 0 | w1 +0.9504+0.0000j w2 +0.9467+0.3223j (|w1| 0.950 |w2| 1.000) shift 0
+  4544.427 blocks 51103 missed 926 seq_gaps 913 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.7 dBFS | peak 193/179 sat 0 | w1 +0.9502+0.0000j w2 +0.9466+0.3225j (|w1| 0.950 |w2| 1.000) shift 0
+  4546.428 blocks 53062 missed 968 seq_gaps 955 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.8 dBFS | peak 193/180 sat 0 | w1 +0.9487+0.0000j w2 +0.9464+0.3229j (|w1| 0.949 |w2| 1.000) shift 0
+  4548.428 blocks 55005 missed 1025 seq_gaps 1012 sat_blocks 0 | x1 -22.5 x2 -23.0 y~ -39.8 dBFS | peak 193/185 sat 0 | w1 +0.9502+0.0000j w2 +0.9464+0.3232j (|w1| 0.950 |w2| 1.000) shift 0
+  4550.429 blocks 56951 missed 1080 seq_gaps 1067 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.8 dBFS | peak 193/191 sat 0 | w1 +0.9524+0.0000j w2 +0.9458+0.3247j (|w1| 0.952 |w2| 1.000) shift 0
+  4552.430 blocks 58912 missed 1120 seq_gaps 1107 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.7 dBFS | peak 198/181 sat 0 | w1 +0.9504+0.0000j w2 +0.9464+0.3231j (|w1| 0.950 |w2| 1.000) shift 0
+  4554.431 blocks 60861 missed 1172 seq_gaps 1157 sat_blocks 0 | x1 -22.5 x2 -23.0 y~ -39.7 dBFS | peak 187/176 sat 0 | w1 +0.9510+0.0000j w2 +0.9465+0.3226j (|w1| 0.951 |w2| 1.000) shift 0
+  4556.431 blocks 62821 missed 1212 seq_gaps 1199 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.7 dBFS | peak 193/183 sat 0 | w1 +0.9502+0.0000j w2 +0.9461+0.3239j (|w1| 0.950 |w2| 1.000) shift 0
+  4558.431 blocks 64786 missed 1247 seq_gaps 1231 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.8 dBFS | peak 195/182 sat 0 | w1 +0.9508+0.0000j w2 +0.9464+0.3230j (|w1| 0.951 |w2| 1.000) shift 0
+  4560.432 blocks 66742 missed 1292 seq_gaps 1273 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.8 dBFS | peak 201/187 sat 0 | w1 +0.9514+0.0000j w2 +0.9457+0.3250j (|w1| 0.951 |w2| 1.000) shift 0
+  4562.434 blocks 68695 missed 1341 seq_gaps 1320 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.7 dBFS | peak 192/188 sat 0 | w1 +0.9492+0.0000j w2 +0.9462+0.3237j (|w1| 0.949 |w2| 1.000) shift 0
+  4564.434 blocks 70648 missed 1388 seq_gaps 1369 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.8 dBFS | peak 195/179 sat 0 | w1 +0.9485+0.0000j w2 +0.9466+0.3225j (|w1| 0.949 |w2| 1.000) shift 0
+  4566.435 blocks 72616 missed 1421 seq_gaps 1402 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.7 dBFS | peak 196/189 sat 0 | w1 +0.9491+0.0000j w2 +0.9460+0.3241j (|w1| 0.949 |w2| 1.000) shift 0
+  4568.436 blocks 74567 missed 1471 seq_gaps 1451 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.8 dBFS | peak 197/183 sat 0 | w1 +0.9509+0.0000j w2 +0.9460+0.3243j (|w1| 0.951 |w2| 1.000) shift 0
+  4570.436 blocks 76509 missed 1529 seq_gaps 1510 sat_blocks 0 | x1 -22.5 x2 -23.0 y~ -39.8 dBFS | peak 192/182 sat 0 | w1 +0.9501+0.0000j w2 +0.9463+0.3233j (|w1| 0.950 |w2| 1.000) shift 0
+  4572.437 blocks 78483 missed 1556 seq_gaps 1537 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.8 dBFS | peak 193/204 sat 0 | w1 +0.9515+0.0000j w2 +0.9466+0.3223j (|w1| 0.952 |w2| 1.000) shift 0
+  4574.438 blocks 80428 missed 1612 seq_gaps 1592 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.7 dBFS | peak 201/183 sat 0 | w1 +0.9516+0.0000j w2 +0.9465+0.3228j (|w1| 0.952 |w2| 1.000) shift 0
+  4576.438 blocks 82376 missed 1664 seq_gaps 1645 sat_blocks 0 | x1 -22.5 x2 -23.0 y~ -39.8 dBFS | peak 196/178 sat 0 | w1 +0.9520+0.0000j w2 +0.9462+0.3237j (|w1| 0.952 |w2| 1.000) shift 0
+  4578.438 blocks 84334 missed 1706 seq_gaps 1687 sat_blocks 0 | x1 -22.4 x2 -22.9 y~ -39.8 dBFS | peak 199/181 sat 0 | w1 +0.9536+0.0000j w2 +0.9464+0.3229j (|w1| 0.954 |w2| 1.000) shift 0
+  4580.440 blocks 86281 missed 1761 seq_gaps 1738 sat_blocks 0 | x1 -22.4 x2 -23.0 y~ -39.7 dBFS | peak 191/186 sat 0 | w1 +0.9524+0.0000j w2 +0.9466+0.3224j (|w1| 0.952 |w2| 1.000) shift 0
+  4582.440 blocks 88244 missed 1798 seq_gaps 1776 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.8 dBFS | peak 513/474 sat 0 | w1 +0.9389+0.0000j w2 +0.9451+0.3268j (|w1| 0.939 |w2| 1.000) shift 0
+  4584.441 blocks 90206 missed 1837 seq_gaps 1815 sat_blocks 0 | x1 -13.0 x2 -13.5 y~ -39.9 dBFS | peak 499/466 sat 0 | w1 +0.9389+0.0000j w2 +0.9453+0.3261j (|w1| 0.939 |w2| 1.000) shift 0
+  4586.441 blocks 92159 missed 1884 seq_gaps 1862 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.8 dBFS | peak 507/474 sat 0 | w1 +0.9390+0.0000j w2 +0.9452+0.3264j (|w1| 0.939 |w2| 1.000) shift 0
+  4588.441 blocks 94111 missed 1933 seq_gaps 1910 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.9 dBFS | peak 503/473 sat 0 | w1 +0.9388+0.0000j w2 +0.9450+0.3271j (|w1| 0.939 |w2| 1.000) shift 0
+  4590.441 blocks 96068 missed 1976 seq_gaps 1954 sat_blocks 0 | x1 -13.0 x2 -13.5 y~ -39.8 dBFS | peak 505/471 sat 0 | w1 +0.9388+0.0000j w2 +0.9452+0.3266j (|w1| 0.939 |w2| 1.000) shift 0
+  4592.442 blocks 98035 missed 2009 seq_gaps 1987 sat_blocks 0 | x1 -12.8 x2 -13.4 y~ -39.8 dBFS | peak 513/473 sat 0 | w1 +0.9388+0.0000j w2 +0.9449+0.3272j (|w1| 0.939 |w2| 1.000) shift 0
+  4594.443 blocks 99981 missed 2064 seq_gaps 2042 sat_blocks 0 | x1 -12.9 x2 -13.5 y~ -39.8 dBFS | peak 502/467 sat 0 | w1 +0.9389+0.0000j w2 +0.9451+0.3267j (|w1| 0.939 |w2| 1.000) shift 0
+  4596.443 blocks 101922 missed 2124 seq_gaps 2102 sat_blocks 0 | x1 -12.9 x2 -13.5 y~ -39.8 dBFS | peak 497/472 sat 0 | w1 +0.9389+0.0000j w2 +0.9452+0.3264j (|w1| 0.939 |w2| 1.000) shift 0
+  4598.444 blocks 103885 missed 2161 seq_gaps 2139 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.8 dBFS | peak 514/469 sat 0 | w1 +0.9388+0.0000j w2 +0.9452+0.3264j (|w1| 0.939 |w2| 1.000) shift 0
+  4600.445 blocks 105835 missed 2212 seq_gaps 2190 sat_blocks 0 | x1 -12.9 x2 -13.5 y~ -39.9 dBFS | peak 504/465 sat 0 | w1 +0.9393+0.0000j w2 +0.9452+0.3265j (|w1| 0.939 |w2| 1.000) shift 0
+  4602.445 blocks 107792 missed 2256 seq_gaps 2234 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.8 dBFS | peak 498/468 sat 0 | w1 +0.9387+0.0000j w2 +0.9452+0.3264j (|w1| 0.939 |w2| 1.000) shift 0
+  4604.446 blocks 109748 missed 2301 seq_gaps 2279 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.9 dBFS | peak 500/470 sat 0 | w1 +0.9392+0.0000j w2 +0.9449+0.3275j (|w1| 0.939 |w2| 1.000) shift 0
+  4606.447 blocks 111708 missed 2341 seq_gaps 2319 sat_blocks 0 | x1 -12.9 x2 -13.5 y~ -39.9 dBFS | peak 509/472 sat 0 | w1 +0.9386+0.0000j w2 +0.9452+0.3264j (|w1| 0.939 |w2| 1.000) shift 0
+  4608.447 blocks 113659 missed 2391 seq_gaps 2369 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.9 dBFS | peak 502/470 sat 0 | w1 +0.9383+0.0000j w2 +0.9451+0.3268j (|w1| 0.938 |w2| 1.000) shift 0
+  4610.448 blocks 115619 missed 2432 seq_gaps 2410 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.8 dBFS | peak 504/473 sat 0 | w1 +0.9385+0.0000j w2 +0.9453+0.3261j (|w1| 0.939 |w2| 1.000) shift 0
+  4612.449 blocks 117575 missed 2476 seq_gaps 2454 sat_blocks 0 | x1 -13.0 x2 -13.5 y~ -39.8 dBFS | peak 501/467 sat 0 | w1 +0.9396+0.0000j w2 +0.9451+0.3267j (|w1| 0.940 |w2| 1.000) shift 0
+  4614.449 blocks 119544 missed 2507 seq_gaps 2485 sat_blocks 0 | x1 -12.8 x2 -13.4 y~ -39.9 dBFS | peak 503/478 sat 0 | w1 +0.9396+0.0000j w2 +0.9453+0.3264j (|w1| 0.940 |w2| 1.000) shift 0
+  4616.450 blocks 121497 missed 2555 seq_gaps 2530 sat_blocks 0 | x1 -12.9 x2 -13.4 y~ -39.8 dBFS | peak 498/469 sat 0 | w1 +0.9389+0.0000j w2 +0.9451+0.3269j (|w1| 0.939 |w2| 1.000) shift 0
+  4618.450 blocks 123459 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 43/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0077-0.0048j (|w1| 1.000 |w2| 0.009) shift 0
+  4620.451 blocks 125460 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 45/39 sat 0 | w1 +1.0000+0.0000j w2 -0.0035-0.0049j (|w1| 1.000 |w2| 0.006) shift 0
+  4622.452 blocks 127461 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 52/47 sat 0 | w1 +1.0000+0.0000j w2 +0.0063+0.0069j (|w1| 1.000 |w2| 0.009) shift 0
+  4624.453 blocks 129462 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 50/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0092-0.0070j (|w1| 1.000 |w2| 0.011) shift 0
+  4626.454 blocks 131463 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 54/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0034-0.0070j (|w1| 1.000 |w2| 0.008) shift 0
+  4628.455 blocks 133464 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 47/42 sat 0 | w1 +1.0000+0.0000j w2 +0.0017+0.0012j (|w1| 1.000 |w2| 0.002) shift 0
+  4630.456 blocks 135465 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 46/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0099-0.0017j (|w1| 1.000 |w2| 0.010) shift 0
+  4632.457 blocks 137466 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 43/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0070-0.0092j (|w1| 1.000 |w2| 0.012) shift 0
+  4634.458 blocks 139467 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 45/40 sat 0 | w1 +1.0000+0.0000j w2 +0.0057-0.0196j (|w1| 1.000 |w2| 0.020) shift 0
+  4636.459 blocks 141468 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 50/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0014+0.0082j (|w1| 1.000 |w2| 0.008) shift 0
+  4638.460 blocks 143469 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 49/46 sat 0 | w1 +1.0000+0.0000j w2 -0.0040-0.0065j (|w1| 1.000 |w2| 0.008) shift 0
+  4640.460 blocks 145469 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 47/39 sat 0 | w1 +1.0000+0.0000j w2 -0.0028+0.0058j (|w1| 1.000 |w2| 0.006) shift 0
+  4642.461 blocks 147470 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -43.0 y~ -42.6 dBFS | peak 44/38 sat 0 | w1 +1.0000+0.0000j w2 -0.0002+0.0106j (|w1| 1.000 |w2| 0.011) shift 0
+  4644.462 blocks 149471 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -42.9 y~ -42.5 dBFS | peak 45/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0011+0.0099j (|w1| 1.000 |w2| 0.010) shift 0
+  4646.463 blocks 151472 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 44/50 sat 0 | w1 +1.0000+0.0000j w2 -0.0174+0.0132j (|w1| 1.000 |w2| 0.022) shift 0
+  4648.464 blocks 153473 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 40/42 sat 0 | w1 +1.0000+0.0000j w2 +0.0148-0.0016j (|w1| 1.000 |w2| 0.015) shift 0
+  4650.465 blocks 155474 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 48/47 sat 0 | w1 +1.0000+0.0000j w2 +0.0015+0.0048j (|w1| 1.000 |w2| 0.005) shift 0
+  4652.466 blocks 157475 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 46/48 sat 0 | w1 +1.0000+0.0000j w2 -0.0172-0.0150j (|w1| 1.000 |w2| 0.023) shift 0
+  4654.467 blocks 159476 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -43.0 y~ -42.6 dBFS | peak 43/42 sat 0 | w1 +1.0000+0.0000j w2 +0.0083+0.0016j (|w1| 1.000 |w2| 0.008) shift 0
+  4656.468 blocks 161477 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 53/40 sat 0 | w1 +1.0000+0.0000j w2 -0.0017+0.0204j (|w1| 1.000 |w2| 0.021) shift 0
+  4658.469 blocks 163478 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 45/45 sat 0 | w1 +1.0000+0.0000j w2 +0.0147+0.0051j (|w1| 1.000 |w2| 0.016) shift 0
+  4660.470 blocks 165479 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 44/42 sat 0 | w1 +1.0000+0.0000j w2 +0.0044-0.0118j (|w1| 1.000 |w2| 0.013) shift 0
+  4662.471 blocks 167480 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.5 x2 -43.0 y~ -42.5 dBFS | peak 47/39 sat 0 | w1 +1.0000+0.0000j w2 +0.0052+0.0009j (|w1| 1.000 |w2| 0.005) shift 0
+  4664.472 blocks 169481 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -43.0 y~ -42.6 dBFS | peak 42/41 sat 0 | w1 +1.0000+0.0000j w2 +0.0153-0.0054j (|w1| 1.000 |w2| 0.016) shift 0
+  4666.325 > quit
+  4666.325 blocks 171335 missed 2594 seq_gaps 2569 sat_blocks 0 | x1 -42.6 x2 -42.9 y~ -42.6 dBFS | peak 45/42 sat 0 | w1 +1.0000+0.0000j w2 -0.0009+0.0079j (|w1| 1.000 |w2| 0.008) shift 0
+  4666.330 Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz

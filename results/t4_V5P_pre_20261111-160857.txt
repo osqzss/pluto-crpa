@@ -1,0 +1,25 @@
+# t3_phase.py 20261111-160857, seq one, label 'V5P_pre'
+# command: scripts/t3_phase.py --passive --seq one --count 3 --interval 0.5 --label V5P_pre --cw-offset 0,200e3 --cw-span 15e3 --note T4 V5-P, before crpa_ctl: bladegps on, jammer at L5 (gain 75 dB), level check, Pluto RX-only --log results/t4_V5P_pre_20261111-160857.txt
+# note: T4 V5-P, before crpa_ctl: bladegps on, jammer at L5 (gain 75 dB), level check, Pluto RX-only
+# start (passive, nothing written): TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 15000 Hz of -delta + cw_offset (0,200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,V5P_pre,one,0.7,1578420000,10000000,60,33.3,-12.89,-13.45,-0.554,0.9989,-160.91,-3004608,36.5,-0.784,169.84,515,0,36.4
+1,V5P_pre,one,0.7,1578420000,10000000,60,33.3,-12.89,-13.45,-0.554,0.9989,-160.91,-2805786,73.8,-0.554,-160.91,515,200000,73.5
+2,V5P_pre,one,1.9,1578420000,10000000,60,33.3,-12.86,-13.41,-0.556,0.9989,-160.92,-3004608,36.7,-0.813,169.25,520,0,36.2
+3,V5P_pre,one,1.9,1578420000,10000000,60,33.3,-12.86,-13.41,-0.556,0.9989,-160.92,-2805786,73.7,-0.556,-160.92,520,200000,73.9
+4,V5P_pre,one,3.1,1578420000,10000000,60,33.3,-12.96,-13.51,-0.556,0.9988,-160.92,-3004608,36.4,-0.839,169.54,514,0,36.0
+5,V5P_pre,one,3.1,1578420000,10000000,60,33.3,-12.96,-13.51,-0.556,0.9988,-160.92,-2805786,73.9,-0.556,-160.91,514,200000,73.8
+# wideband phase: mean -160.92 deg, std 0.00, max deviation 0.01 (3 captures)
+# wideband x2/x1: mean -0.555 dB, std 0.001, range -0.556 to -0.554
+# CW phase (offset +0 Hz): mean 169.55 deg, std 0.24, max deviation 0.30 (3 captures)
+# CW x2/x1 (offset +0 Hz): mean -0.812 dB, std 0.022, range -0.839 to -0.784
+# CW line over the floor (offset +0 Hz): ch0/1 36.6 dB, ch2/3 36.2 dB (means), at -3004608 Hz
+# CW phase (offset +200000 Hz): mean -160.91 deg, std 0.00, max deviation 0.01 (3 captures)
+# CW x2/x1 (offset +200000 Hz): mean -0.555 dB, std 0.001, range -0.556 to -0.554
+# CW line over the floor (offset +200000 Hz): ch0/1 73.8 dB, ch2/3 73.7 dB (means), at -2805786 Hz
+# |rho|: mean 0.9989, range 0.9988 to 0.9989; peak |x| 520 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_V5P_pre_20261111-160857.txt
