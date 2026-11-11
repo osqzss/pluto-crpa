@@ -20,10 +20,15 @@ null the satellites with the jammer (predicted C/N0 change about -27 dB).
 **V3** (jammer leg to RX1 50 cm instead of 25 cm): **D = 100.0 deg**,
 predicted C/N0 change with PI +0.4 dB. **V3-N done** (`results/t4.md`):
 null depth 18.9 / 38.1 / 57.1 dB at L3 / L4 / L5, equal to the model values;
-the J/N + 10 dB criterion is missed by 1.2 dB at L3, where the model gives
-18 dB (decision on the criterion open). **V3-F done**: reference -5.1 dB
+the first criterion (J/N + 10 dB) was missed by 1.2 dB at L3, where the model
+gives 18 dB; the criterion is now "within 3 dB of the model value" (user,
+2026-11-11) and V3-N passes it at all three levels. **V3-F done**: reference -5.1 dB
 against T1; C/N0 -0.4 / -0.9 / -4.0 / -9.9 dB at L1 to L4 and the fix lost at
-L5. Next: V3-P.
+L5. **V3-P done** (2026-11-11, after a P3 repeat: D 100.2 deg): 3D fix with
+11 SVs at every level, cold start under L5 with TTFF 28.8 s, C/N0 +0.7 /
++0.6 / +0.3 dB at L5 / L4 / L3 against the V3-F reference (prediction
++0.4 dB), -0.9 dB with the jammer off. Next: the parameter runs in V3 (V3-L, V3-A),
+then V1-N and further D values (Section 6).
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -397,7 +402,10 @@ and fetches the CSV and log with `scp -O`.
   anyway, as the reference in the same cabling and on the same day.
 - Run time about 10 min each. Three variants: 9 runs.
 
-### Parameter runs (V1 only, after V1-P)
+### Parameter runs (in V3, decided 2026-11-11; first planned for V1)
+
+Done in V3 while it is cabled: in V1 D is 2.9 deg. The runs are named V3-L
+and V3-A.
 
 | Run | Pluto | Jammer | Gives |
 |---|---|---|---|
@@ -407,12 +415,15 @@ and fetches the CSV and log with `scp -O`.
 A receiver run with a changed load or alpha follows only if these show a
 difference of more than 3 dB in null depth.
 
-### State at the end of the session of 2026-11-10 and how the runs were done
+### State at the end of the session of 2026-11-11 and how the runs were done
 
-Done: P1 to P3 in V1; P3, N and F in V3. **Next: V3-P.** Results:
-`results/t4.md`. Cabling at the end of the session: V3 (jammer leg to CMB1 /
-RX1 50 cm), u-blox on USB. Check the cabling with the user and repeat P3
-(1 min) if anything was unplugged or the Pluto was power-cycled.
+Done: P1 to P3 in V1; P3 (twice), N, F and P in V3. **Next: the
+parameter runs V3-L and V3-A, then V1-N and further D values.**
+Results: `results/t4.md`. Cabling at the end of the session: V3 (jammer leg
+to CMB1 / RX1 50 cm), u-blox on USB. Check the cabling with the user and
+repeat P3 (1 min) if anything was unplugged or the Pluto was power-cycled
+(done on 2026-11-11 before V3-P: after a power cycle the first capture set
+runs without `--passive`, noise only, to write LO, fs and gain).
 
 Host side of a run, as executed (the helper shell scripts were temporary and
 are not in the repository):
@@ -438,7 +449,7 @@ are not in the repository):
   log to `.txt` (`*.log` is ignored) and commit
   `awk 'NR==1 || (NR-2)%100==0'` of the CSV as `_every100.csv`.
 
-V3-P order (the jammer is on before `crpa_ctl`): the user's go; Claude Code
+V3-P order, as executed on 2026-11-11 (the jammer is on before `crpa_ctl`): the user's go; Claude Code
 starts `bladegps` and the jammer with `--gain 75 --schedule
 "180:65,240:55,300:45,360:off,420:quit"` and reports; the user starts
 `ssh -t pluto /mnt/jffs2/crpa_ctl run --on --tx-att 80 --min-tx-att 50 --mode
@@ -449,9 +460,8 @@ C/N0 about +0.4 dB against the V3-F reference (Section 2.2), where V3-F lost
 
 Open points from this session:
 
-- Null depth criterion at L3 (J/N + 10 dB missed by 1.2 dB with the hardware
-  at the model value): the user's decision. Proposal: "within 3 dB of the
-  model value".
+- Null depth criterion: decided 2026-11-11, "within 3 dB of the model
+  value" (Section 7).
 - V3-N ended at 178 s with a `data_sel` error (a `crpa_ctl off` during the
   run would do this); the first V3-F start was stopped by the user after
   about 100 s. Neither cause is confirmed with the user.
@@ -461,7 +471,13 @@ Open points from this session:
 - Second bladeRF line 181 kHz above its carrier, 19 kHz from the jammer:
   origin not looked at.
 - V1 (D 2.9 deg) has no N run yet (the "D near 0" case); V2, the parameter
-  runs L and A, and a third D are still to do.
+  runs L and A (in V3, decided 2026-11-11), and a third D are still to do.
+- V3-P: the u-blox log has a gap of 67 s after the cold start (5 s in V3-F):
+  gpsd was slow to deliver data after the receiver reset. TTFF is taken from
+  NAV-STATUS. If the first minute matters in a later run, log the serial
+  port directly instead of through gpsd.
+- V3-P has no fixed-weight reference of the same day; the V3-F window of
+  2026-11-10 is used.
 
 ---
 
@@ -490,11 +506,11 @@ Pass criteria:
 |---|---|
 | Recorded | Null depth and C/N0 per level for at least V1, D measured per variant |
 | C/N0 recovery | In V1-P at L3, L4 and L5: 3D fix held, and mean C/N0 within 2 dB of the Section 5 prediction for the measured D (receiver resolution 1 dB), where V1-F at the same level has lost the fix or at least 10 dB |
-| Null depth | At least J/N + 10 dB at L3 to L5 (residual jammer 10 dB under the noise). Deeper values are reported, not required |
+| Null depth | Within 3 dB of the model value (`docs/fixed_point.md`: 18 / 37 / 57 dB at L3 / L4 / L5). Decided 2026-11-11; it replaces "at least J/N + 10 dB", which is tighter than the model itself at L3. Deeper values are reported, not required |
 | Integrity | SAT_CNT 0, no FRAME_ERR, no gap after startup, safe state confirmed in every run |
 | D dependence | V2 and V3 within 2 dB of the prediction; a larger difference is a finding to explain, not a failure of T4 |
 
-A null depth below J/N + 10 dB, or a C/N0 more than 2 dB under the
+A null depth more than 3 dB under the model value, or a C/N0 more than 2 dB under the
 prediction, is a finding: stop after that variant and report before going on
 (candidates: load too high, DC or image terms, leakage between the legs,
 which is checked by terminating one jammer leg).
@@ -532,6 +548,13 @@ Decided by the user on 2026-11-10:
 | 3 | Jammer levels changed inside a run (one cold start per run, one C/N0 window per level) | Yes: 9 runs instead of about 30. Cost: the windows are 40 to 55 s, and the receiver is not cold-started per level |
 | 4 | Jammer attenuators | 30 + 30 dB first; 30 + 20 dB only if L5 is out of reach (ask first) |
 | 5 | Jammer frequency | L1 + 200 kHz |
+
+Decided by the user on 2026-11-11:
+
+| # | Question | Decision |
+|---|---|---|
+| 6 | Null depth criterion | Within 3 dB of the model value, instead of at least J/N + 10 dB |
+| 7 | Cabling for the parameter runs L and A | V3 (D 100 deg), before V1-N and the further D values |
 
 ---
 

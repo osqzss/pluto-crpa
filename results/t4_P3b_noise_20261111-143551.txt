@@ -1,0 +1,29 @@
+# t3_phase.py 20261111-143551, seq one, label 'P3b_noise'
+# command: scripts/t3_phase.py --seq one --count 5 --interval 0.5 --label P3b_noise --cw-offset 0,200e3 --cw-span 15e3 --note T4 cabling V3 (jammer leg to CMB1/RX1 50 cm), second day, after power cycle of all instruments; bladeRF and B205mini connected and idle; noise only; Pluto RX-only --log results/t4_P3b_noise_20261111-143551.txt
+# note: T4 cabling V3 (jammer leg to CMB1/RX1 50 cm), second day, after power cycle of all instruments; bladeRF and B205mini connected and idle; noise only; Pluto RX-only
+# start: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 15000 Hz of -delta + cw_offset (0,200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db
+0,P3b_noise,one,2.3,1578420000,10000000,60,24.6,-42.48,-42.82,-0.333,0.0087,-161.23,-3011475,-0.0,0.882,-121.54,56,0,2.8
+1,P3b_noise,one,2.3,1578420000,10000000,60,24.6,-42.48,-42.82,-0.333,0.0087,-161.23,-2787628,2.3,-0.793,145.94,56,200000,1.4
+2,P3b_noise,one,3.5,1578420000,10000000,60,22.8,-42.50,-42.80,-0.303,0.0080,-151.27,-2993164,1.4,0.196,-140.68,58,0,2.4
+3,P3b_noise,one,3.5,1578420000,10000000,60,22.8,-42.50,-42.80,-0.303,0.0080,-151.27,-2804565,1.4,1.776,100.28,58,200000,3.4
+4,P3b_noise,one,4.7,1578420000,10000000,60,22.8,-42.50,-42.81,-0.308,0.0060,-160.14,-3005066,0.8,1.059,-126.45,56,0,2.7
+5,P3b_noise,one,4.7,1578420000,10000000,60,22.8,-42.50,-42.81,-0.308,0.0060,-160.14,-2800903,1.0,1.208,-50.66,56,200000,2.7
+6,P3b_noise,one,5.9,1578420000,10000000,60,22.8,-42.49,-42.80,-0.305,0.0078,-148.49,-3014069,2.6,0.281,29.82,57,0,1.1
+7,P3b_noise,one,5.9,1578420000,10000000,60,22.8,-42.49,-42.80,-0.305,0.0078,-148.49,-2805328,1.3,1.146,5.05,57,200000,2.0
+8,P3b_noise,one,7.1,1578420000,10000000,60,23.7,-42.49,-42.79,-0.307,0.0084,-152.69,-2986450,1.4,1.269,-59.63,59,0,3.0
+9,P3b_noise,one,7.1,1578420000,10000000,60,23.7,-42.49,-42.79,-0.307,0.0084,-152.69,-2808533,3.0,-2.249,77.42,59,200000,1.1
+# wideband phase: mean -154.76 deg, std 5.03, max deviation 6.47 (5 captures)
+# wideband x2/x1: mean -0.311 dB, std 0.011, range -0.333 to -0.303
+# CW phase (offset +0 Hz): mean -101.03 deg, std 63.20, max deviation 130.85 (5 captures)
+# CW x2/x1 (offset +0 Hz): mean 0.737 dB, std 0.426, range 0.196 to 1.269
+# CW line over the floor (offset +0 Hz): ch0/1 1.2 dB, ch2/3 2.4 dB (means), at -3005066 Hz
+# CW phase (offset +200000 Hz): mean 65.37 deg, std 69.97, max deviation 116.03 (5 captures)
+# CW x2/x1 (offset +200000 Hz): mean 0.218 dB, std 1.509, range -2.249 to 1.776
+# CW line over the floor (offset +200000 Hz): ch0/1 1.8 dB, ch2/3 2.1 dB (means), at -2804565 Hz
+# |rho|: mean 0.0078, range 0.0060 to 0.0087; peak |x| 59 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t4_P3b_noise_20261111-143551.txt
