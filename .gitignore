@@ -15,4 +15,6 @@ tmp/
 results/t2_?.csv
 results/t2_??.csv
 results/t4_V??.csv
+results/t4_V???.csv
+results/t4_V????.csv
 results/t4_p0.csv

@@ -29,8 +29,10 @@ L5. **V3-P done** (2026-11-11, after a P3 repeat: D 100.2 deg): 3D fix with
 +0.6 / +0.3 dB at L5 / L4 / L3 against the V3-F reference (prediction
 +0.4 dB), -0.9 dB with the jammer off. **V3-L done** (2026-11-11): null depth 19.6 /
 18.9 / 14.8 / 5.3 dB at L3 and 57.9 / 57.2 / 52.4 / 37.9 dB at L5 for load
-0 / 24 / 240 / 2400; load 24 kept. Next: V3-A, then V1-N and further D values
-(Section 6).
+0 / 24 / 240 / 2400; load 24 kept. **V3-A done**: 38.1 dB at L4 with
+alpha 0, alpha 0.9 and INT_LEN 1000 alike; alpha 0 and INT_LEN 10000 kept;
+at INT_LEN 1000 the PS misses blocks. Next: V1-N and further D values
+(Section 6); both need a change of the jammer leg by the user.
 
 All levels below are estimates from T2 and T3 data until step P2 has measured
 them.
@@ -422,8 +424,10 @@ difference of more than 3 dB in null depth.
 Done: P1 to P3 in V1; P3 (twice), N, F and P in V3. V3-L done
 (as executed: one dry run, the jammer alternating L3 / L5 every 20 s, the
 loads typed about every 60 s, continuous captures; a capture takes about
-0.87 s, so 230 captures last 200 s). **Next: V3-A, then V1-N and further D
-values.**
+0.87 s, so 230 captures last 200 s). V3-A done (three dry runs at L4 chained in one ssh command,
+capture sets timed from the user's "started"). **Next: V1-N (jammer leg to
+CMB1 back to the 25 cm cable) and further D values; then the T4 summary and
+the updates of Section 7.**
 Results: `results/t4.md`. Cabling at the end of the session: V3 (jammer leg
 to CMB1 / RX1 50 cm), u-blox on USB. Check the cabling with the user and
 repeat P3 (1 min) if anything was unplugged or the Pluto was power-cycled
@@ -483,6 +487,15 @@ Open points from this session:
   port directly instead of through gpsd.
 - V3-P has no fixed-weight reference of the same day; the V3-F window of
   2026-11-10 is used.
+- V3-A: with INT_LEN 1000 `crpa_ctl` misses 0.1 to 0.8 % of the blocks
+  without any capture, and a capture takes about 11 s (5 to 6 % missed while
+  it runs). Not looked into; needed before a moving-jammer test with short
+  blocks.
+- `crpa_ctl` writes its CSV and log to `/tmp` (RAM) and does not check the
+  writes: the files of V3-A2r are cut off. Delete the fetched files from
+  `/tmp` after every run; a write check in `crpa_ctl` is a candidate change.
+- A capture takes about 0.87 s at INT_LEN 10000; plan capture counts from
+  that.
 
 ---
 
