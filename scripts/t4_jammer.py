@@ -8,7 +8,7 @@ Without --on this is a dry run: the device is opened, its TX gain range, antenna
 and frequency range are read and checked against the request, and nothing is tuned
 or streamed. With --on it transmits and needs:
   --ext-att DB    attenuators between the B205mini and the splitter, as cabled
-                  (the operator's statement; refused below 50)
+                  (the operator's statement; refused below 40, T5 decision 3)
   --max-gain DB   highest TX gain this run may use; any higher step is refused
 
 States: a gain in dB (streaming) or "off" (end of burst sent, no streaming, gain
@@ -38,7 +38,7 @@ import threading
 import time
 
 L1 = 1575420000
-MIN_EXT_ATT = 50.0
+MIN_EXT_ATT = 40.0
 BUF = 10000          # samples per send call
 
 

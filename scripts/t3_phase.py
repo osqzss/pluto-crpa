@@ -37,6 +37,16 @@ T4 additions (docs/t4_plan.md):
                        dry run is active. The TX state must already be safe and
                        LO, fs and gain must already match; only --seq one
 
+T5 additions (docs/t5_plan.md, Section 4.1):
+  clip1, clip2         samples per capture with |i| or |q| at the ADC limit
+                       (>= 2047 or <= -2048), ch0/1 and ch2/3
+  skirt columns        floor at 20 kHz, 100 kHz and 500 kHz from each line, both
+                       sides averaged, over the median floor of the band, in dB:
+                       a phase-noise skirt of the jammer shows as > 0 dB
+  --spurs N            per capture and channel, the N strongest lines outside the
+                       searched lines (+/- 2 bins), as '# spurs' lines: frequency
+                       in Hz and level over the median floor in dB
+
 Usage: .venv/bin/python scripts/t3_phase.py --seq retune --count 30 --label B
 Log: results/t3_<label>_<date>-<time>.txt (or --log). Needs iio_attr, iio_readdev, numpy.
 """
@@ -51,6 +61,9 @@ import numpy as np
 L1 = 1575420000
 TX_MAX_ATT = -89.75
 SEG = 65536          # FFT length of the CW analysis
+ADC_MAX = 2047       # 12-bit two's complement: -2048 .. 2047
+SKIRT_HZ = (20e3, 100e3, 500e3)
+SKIRT_HALF = 10      # bins on each side of a skirt point (about 1.5 kHz at 10 MSPS)
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument("--uri", default="ip:192.168.2.1")
@@ -74,6 +87,7 @@ ap.add_argument("--cw-offset", default="0", help="line search centre(s) relative
 ap.add_argument("--cw-span", type=float, default=200e3, help="half width of the line search, Hz")
 ap.add_argument("--cap", default="raw", choices=["raw", "y"], help="capture mux state (labels only)")
 ap.add_argument("--passive", action="store_true", help="no writes to the Pluto")
+ap.add_argument("--spurs", type=int, default=0, help="list the N strongest other lines per channel")
 ap.add_argument("--note", default="", help="free text for the log header (cabling, source)")
 ap.add_argument("--log", default=None)
 args = ap.parse_args()
@@ -110,9 +124,44 @@ def num(text):
     return float(text.split()[0])
 
 
-def analyze(x1, x2, fs, delta, offsets=(0.0,), span=200e3):
+def clips(x):
+    """Samples with I or Q at the ADC limit."""
+    return int(((x.real >= ADC_MAX) | (x.real <= -ADC_MAX - 1) | (x.imag >= ADC_MAX) | (x.imag <= -ADC_MAX - 1)).sum())
+
+
+def skirt(p, k, fs, floor):
+    """Floor at SKIRT_HZ from bin k, both sides averaged, over floor, in dB."""
+    res = []
+    for d in SKIRT_HZ:
+        j = int(round(d * SEG / fs))
+        side = [np.median(p[np.arange(c - SKIRT_HALF, c + SKIRT_HALF + 1) % SEG]) for c in (k - j, k + j)]
+        res.append(10 * np.log10(np.mean(side) / floor))
+    return res
+
+
+def spurs(p, f, exclude, n):
+    """The n strongest local maxima of p outside +/- 2 bins of the bins in exclude.
+    Returns [(freq, dB over the median floor)], strongest first."""
+    floor = np.median(p)
+    mask = np.ones(len(p), bool)
+    for k in exclude:
+        mask[np.arange(k - 2, k + 3) % len(p)] = False
+    peak = (p >= np.roll(p, 1)) & (p >= np.roll(p, -1)) & mask
+    found = []
+    for k in np.argsort(p * peak)[::-1]:
+        if not peak[k] or len(found) >= n:
+            break
+        if any(min(abs(k - j), len(p) - abs(k - j)) <= 3 for j, _ in found):
+            continue
+        found.append((int(k), float(10 * np.log10(p[k] / floor))))
+    return [(float(f[k]), db) for k, db in found]
+
+
+def analyze(x1, x2, fs, delta, offsets=(0.0,), span=200e3, nspurs=0):
     """Return one dict of wideband and CW results per line offset. x1, x2: complex
-    arrays, LSB. The line is searched within span of -delta + offset."""
+    arrays, LSB. The line is searched within span of -delta + offset. With nspurs,
+    the first dict also carries 'spurs1', 'spurs2'."""
+    clip1, clip2 = clips(x1), clips(x2)
     x1 = x1 - x1.mean()
     x2 = x2 - x2.mean()
     r11 = float((abs(x1) ** 2).mean())
@@ -125,11 +174,12 @@ def analyze(x1, x2, fs, delta, offsets=(0.0,), span=200e3):
         "rho": abs(r21) / np.sqrt(r11 * r22),
         "phase": float(np.degrees(np.angle(r21))),
         "peak": int(max(abs(x1.real).max(), abs(x1.imag).max(), abs(x2.real).max(), abs(x2.imag).max())),
+        "clip1": clip1, "clip2": clip2,
     }
     nseg = len(x1) // SEG
     if nseg < 1:
         res.update(f_cw=float("nan"), cw_snr=float("nan"), cw_snr2=float("nan"), cw_ratio=float("nan"),
-                   cw_phase=float("nan"))
+                   cw_phase=float("nan"), skirt1=[float("nan")] * 3, skirt2=[float("nan")] * 3)
         return [dict(res, off=o) for o in offsets]
     win = np.hanning(SEG)
     X1 = np.fft.fft(x1[:nseg * SEG].reshape(nseg, SEG) * win, axis=1)
@@ -137,10 +187,13 @@ def analyze(x1, x2, fs, delta, offsets=(0.0,), span=200e3):
     f = np.fft.fftfreq(SEG, 1.0 / fs)
     p1 = (abs(X1) ** 2).mean(axis=0)
     p2 = (abs(X2) ** 2).mean(axis=0)
+    floor1, floor2 = np.median(p1), np.median(p2)
     results = []
+    lines = []
     for off in offsets:
         near = np.flatnonzero(abs(f + delta - off) <= span)
         k = int(near[np.argmax(p1[near] + p2[near])])
+        lines.append(k)
         bins = np.arange(k - 1, k + 2) % SEG      # Hann main lobe
         s11 = p1[bins].sum()
         s22 = p2[bins].sum()
@@ -149,7 +202,11 @@ def analyze(x1, x2, fs, delta, offsets=(0.0,), span=200e3):
             res, off=off, f_cw=float(f[k]),
             cw_snr=10 * np.log10(p1[k] / np.median(p1[near])),
             cw_snr2=10 * np.log10(p2[k] / np.median(p2[near])),
-            cw_ratio=10 * np.log10(s22 / s11), cw_phase=float(np.degrees(np.angle(s21)))))
+            cw_ratio=10 * np.log10(s22 / s11), cw_phase=float(np.degrees(np.angle(s21))),
+            skirt1=skirt(p1, k, fs, floor1), skirt2=skirt(p2, k, fs, floor2)))
+    if nspurs:
+        results[0]["spurs1"] = spurs(p1, f, lines, nspurs)
+        results[0]["spurs2"] = spurs(p2, f, lines, nspurs)
     return results
 
 
@@ -199,6 +256,36 @@ def selftest():
     fails += not ok
     print("%s null of 40 dB: cw_ratio %.2f dB, line in y %.1f dB over the floor" % (
         "ok  " if ok else "FAIL", r["cw_ratio"], r["cw_snr"]))
+    # T5: clip count, spur list, skirt
+    big = 2100.0 * np.exp(2j * np.pi * (-delta + 200e3) * t)
+    xc = np.clip(big.real + n1.real, -2048, 2047) + 1j * np.clip(big.imag + n1.imag, -2048, 2047)
+    want = int(((xc.real >= 2047) | (xc.real <= -2048) | (xc.imag >= 2047) | (xc.imag <= -2048)).sum())
+    r = analyze(xc, n2, fs, delta, offsets=(200e3,), span=50e3)[0]
+    ok = r["clip1"] == want and 0 < want < n and r["clip2"] == 0
+    fails += not ok
+    print("%s clip count: %d of %d samples (expected %d), ch2/3 %d" % (
+        "ok  " if ok else "FAIL", r["clip1"], n, want, r["clip2"]))
+    jam = 300.0 * np.exp(2j * np.pi * (-delta + 200e3) * t)
+    image = 3.0 * np.exp(2j * np.pi * (delta - 200e3) * t)          # IQ image at +2.8 MHz
+    spur = 1.5 * np.exp(2j * np.pi * 1.6e6 * t)
+    r = analyze(n1 + jam + image + spur, n2 + jam, fs, delta, offsets=(200e3,), span=50e3, nspurs=3)[0]
+    fl = [round(fq / 1e3) for fq, _ in r["spurs1"][:2]]
+    ok = sorted(fl) == [1600, 2800] and all(abs(fq - (-delta + 200e3)) > 1e3 for fq, _ in r["spurs2"])
+    fails += not ok
+    print("%s spurs: ch0/1 %s, ch2/3 %s" % ("ok  " if ok else "FAIL",
+          ", ".join("%.0f Hz %.1f dB" % sp for sp in r["spurs1"]),
+          ", ".join("%.0f Hz %.1f dB" % sp for sp in r["spurs2"])))
+    ok = all(abs(v) < 1.0 for v in r["skirt1"])
+    # a skirt: noise 30 dB over the floor density, falling 20 dB/decade from 10 kHz, around the jammer
+    F = np.fft.fftfreq(n, 1.0 / fs) - (-delta + 200e3)
+    shape = 10 ** 1.5 / np.maximum(abs(F) / 10e3, 1.0)
+    sk = np.fft.ifft(np.fft.fft(15 * (rng.standard_normal(n) + 1j * rng.standard_normal(n))) * shape)
+    r2 = analyze(n1 + jam + sk, n2 + jam, fs, delta, offsets=(200e3,), span=50e3)[0]
+    ok = ok and r2["skirt1"][0] > r2["skirt1"][1] > r2["skirt1"][2] and r2["skirt1"][0] > 10.0 and all(abs(v) < 1.0 for v in r2["skirt2"])
+    fails += not ok
+    print("%s skirt: clean %s dB, with skirt %s dB (20 / 100 / 500 kHz), other channel %s" % (
+        "ok  " if ok else "FAIL", " ".join("%.1f" % v for v in r["skirt1"]),
+        " ".join("%.1f" % v for v in r2["skirt1"]), " ".join("%.1f" % v for v in r2["skirt2"])))
     print("selftest:", "PASS" if not fails else "%d FAIL" % fails)
     return 1 if fails else 0
 
@@ -277,7 +364,8 @@ def capture():
 
 
 COLS = ("row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,"
-        "f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db")
+        "f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db,clip1,clip2,"
+        "skirt1_20k_db,skirt1_100k_db,skirt1_500k_db,skirt2_20k_db,skirt2_100k_db,skirt2_500k_db")
 rows = []
 t0 = time.time()
 
@@ -286,12 +374,17 @@ def measure(step, delta, fs, gain):
     x1, x2 = capture()
     t = time.time() - t0
     temp = temperature()
-    for r in analyze(x1, x2, float(fs), float(delta), OFFSETS, args.cw_span):
+    for r in analyze(x1, x2, float(fs), float(delta), OFFSETS, args.cw_span, args.spurs):
         rows.append(r)
-        out("%d,%s,%s,%.1f,%d,%d,%d,%s,%.2f,%.2f,%.3f,%.4f,%.2f,%.0f,%.1f,%.3f,%.2f,%d,%.0f,%.1f" % (
+        out("%d,%s,%s,%.1f,%d,%d,%d,%s,%.2f,%.2f,%.3f,%.4f,%.2f,%.0f,%.1f,%.3f,%.2f,%d,%.0f,%.1f,%d,%d,%s" % (
             len(rows) - 1, args.label, step, t, L1 + delta, fs, gain, temp,
             r["p1"], r["p2"], r["ratio"], r["rho"], r["phase"], r["f_cw"], r["cw_snr"], r["cw_ratio"],
-            r["cw_phase"], r["peak"], r["off"], r["cw_snr2"]))
+            r["cw_phase"], r["peak"], r["off"], r["cw_snr2"], r["clip1"], r["clip2"],
+            ",".join("%.1f" % v for v in r["skirt1"] + r["skirt2"])))
+        for ch in ("1", "2"):
+            if "spurs" + ch in r:
+                out("# spurs,row=%d,ch=%s,%s" % (len(rows) - 1, "01" if ch == "1" else "23",
+                                                 ",".join("%.0f:%.1f" % sp for sp in r["spurs" + ch])))
 
 
 def circ(deg):
@@ -322,6 +415,14 @@ def summary():
             c = np.array([r["cw_snr2"] for r in sel])
             out("# CW line over the floor%s: ch0/1 %.1f dB, ch2/3 %.1f dB (means), at %.0f Hz" % (
                 tag, b.mean(), c.mean(), np.median([r["f_cw"] for r in sel])))
+    out("# clipped samples: ch0/1 %d, ch2/3 %d over %d captures" % (
+        sum(r["clip1"] for r in wide), sum(r["clip2"] for r in wide), len(wide)))
+    for off in OFFSETS:
+        sel = [r for r in rows if r["off"] == off]
+        a1 = np.nanmean([r["skirt1"] for r in sel], axis=0)
+        a2 = np.nanmean([r["skirt2"] for r in sel], axis=0)
+        out("# skirt at 20 / 100 / 500 kHz from the line (offset %+.0f Hz): ch0/1 %.1f / %.1f / %.1f dB, "
+            "ch2/3 %.1f / %.1f / %.1f dB" % ((off,) + tuple(a1) + tuple(a2)))
     a = np.array([r["rho"] for r in wide])
     out("# |rho|: mean %.4f, range %.4f to %.4f; peak |x| %d LSB" % (
         a.mean(), a.min(), a.max(), max(r["peak"] for r in rows)))

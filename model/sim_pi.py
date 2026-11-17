@@ -7,7 +7,9 @@ Weights always come from the block before the one they are applied to.
           appears as extra off-peak power, as it would in a receiver
 Input noise and quantization are as set in Scenario.
 
-Usage: model/sim_pi.py
+Usage: model/sim_pi.py        sections A to F (results/t3_model.txt)
+       model/sim_pi.py t5     section G only: T5 null depth up to ADC clipping
+                              (docs/t5_plan.md, Section 7)
 """
 import os
 import sys
@@ -73,8 +75,10 @@ def run(sc, load, alpha=0.0, n_block=10000):
     if sc.jn_db is not None:
         f = -sc.delta + sc.jam_offset
         res["null"] = 10 * np.log10(tone(x[0], x[1], f, sc.fs) / (tone(yi, yq, f, sc.fs) / gain))
+        # as measured on hardware (T4, T5): line in x1 over line in y, no normalization
+        res["null_raw"] = 10 * np.log10(tone(x[0], x[1], f, sc.fs) / tone(yi, yq, f, sc.fs))
     else:
-        res["null"] = float("nan")
+        res["null"] = res["null_raw"] = float("nan")
     return res
 
 
@@ -85,6 +89,31 @@ def w_txt(w):
 
 
 BASE = dict(n=400000, cn0_dbhz=45.0, sat_deg=-30.0, jam_deg=40.0)
+
+if sys.argv[1:] == ["t5"]:
+    # Noise per RX gain from T3-0 / T3-D2: 15 LSB rms at 60 dB, about 9 at 50 dB.
+    # J/N60 = jammer over the gain-60 noise at the RX port: J/N here plus the noise
+    # drop, minus the gain step (10 dB assumed until P2 measures it).
+    print("G. T5: null depth up to ADC clipping, load = 0.1 x noise power, alpha 0")
+    print("   null = normalized by the noise gain of the weights (as sections A to F);")
+    print("   raw = line in x1 over line in y, the hardware definition of T4 and T5")
+    print("   gain noise  J/N  J/N60   clip   sat  null   raw   C/N0in C/N0out  weights")
+    for jn in (10.1, 20.0, 29.6):
+        r = run(Scenario(jn_db=jn, noise_rms=15.0, **BASE), 0.1 * 225.0)
+        print("%7d %5.1f %4.1f %6.1f %6d %5d %5.1f %5.1f %7.1f %7.1f  %s   (T4 levels)" % (
+            60, 15.0, jn, jn, r["clip"], r["sat"], r["null"], r["null_raw"], r["cn0_in"], r["cn0_out"],
+            w_txt(r["w"])))
+    for gain, nr, jns in ((60, 15.0, (30, 34, 36, 38, 40, 41, 42, 44)),
+                          (50, 9.0, (30, 34, 38, 42, 44, 45, 46, 48, 50))):
+        for jn in jns:
+            sc = Scenario(jn_db=jn, noise_rms=nr, **BASE)
+            r = run(sc, 0.1 * nr ** 2)
+            jn60 = jn + (60 - gain) - 20 * np.log10(15.0 / nr)
+            print("%7d %5.1f %4d %6.1f %6d %5d %5.1f %5.1f %7.1f %7.1f  %s" % (
+                gain, nr, jn, jn60, r["clip"], r["sat"], r["null"], r["null_raw"], r["cn0_in"], r["cn0_out"],
+                w_txt(r["w"])))
+    sys.exit(0)
+
 print("Common: fs 10 MSPS, delta 3 MHz, C/N0 in 45 dB-Hz, sat -30 deg, jammer 40 deg, offset +200 kHz")
 print("        block 1 ms unless noted; C/N0 in = element 1 with no combining, same samples\n")
 

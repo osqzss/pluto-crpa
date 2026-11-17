@@ -171,7 +171,7 @@ class Refusals(Base):
         self.refused(["--on", "--max-gain", "50"], "--ext-att and --max-gain")
 
     def test_ext_att_floor(self):
-        self.refused(["--on", "--ext-att", "49.9", "--max-gain", "50"], "below 50")
+        self.refused(["--on", "--ext-att", "39.9", "--max-gain", "50"], "below 40")
 
     def test_gain_above_max(self):
         self.refused(ON + ["--gain", "50.25"], "above --max-gain")

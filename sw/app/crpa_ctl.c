@@ -100,6 +100,7 @@ struct settings {
 /* ---- logging ---- */
 static FILE *log_fp;
 static FILE *csvf;
+static int log_errno;   /* first failed log write; checked by monitor() */
 
 static void say(const char *fmt, ...)
 {
@@ -114,8 +115,9 @@ static void say(const char *fmt, ...)
 	if (log_fp) {
 		struct timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
-		fprintf(log_fp, "%10.3f %s\n", ts.tv_sec + ts.tv_nsec * 1e-9, buf);
-		fflush(log_fp);
+		if ((fprintf(log_fp, "%10.3f %s\n", ts.tv_sec + ts.tv_nsec * 1e-9, buf) < 0 ||
+		     fflush(log_fp)) && !log_errno)
+			log_errno = errno ? errno : EIO;
 	}
 }
 
@@ -878,14 +880,15 @@ static int block(struct run *R, uint32_t status)
 		memcpy(R->w, wn, sizeof(wn));
 	}
 
-	if (csvf && s->csv_every && (R->blocks % (unsigned)s->csv_every) == 0)
-		fprintf(csvf, "%lu,%u,%.6f,%lld,%lld,%lld,%lld,%u,%u,%u,%u,%u,%d,%d,%d,%d,%d,"
+	if (csvf && s->csv_every && (R->blocks % (unsigned)s->csv_every) == 0 &&
+	    fprintf(csvf, "%lu,%u,%.6f,%lld,%lld,%lld,%lld,%u,%u,%u,%u,%u,%d,%d,%d,%d,%d,"
 			"%.2f,%.2f,%.2f,%s%s\n",
 			R->blocks, seq, t - R->t0, (long long)r.r11, (long long)r.r22,
 			(long long)r.r21re, (long long)r.r21im, sat, R->peak1, R->peak2, missed,
 			status, R->w[0], R->w[1], R->w[2], R->w[3], R->shift,
 			R->p1, R->p2, R->py, s->mode == MODE_PI ? "pi" : "fixed",
-			discard ? ",discard" : ",");
+			discard ? ",discard" : ",") < 0)
+		return fail("CSV write failed: %s (file system full?)", strerror(errno));
 	R->blocks++;
 	R->last_block_t = t;
 	return 0;
@@ -911,6 +914,12 @@ static int monitor(struct run *R)
 	double a2;
 	int down, ok;
 
+	/* Writes are checked here, every --monitor seconds: a full /tmp must stop the run
+	   (T4 V3-A2r lost its files without notice). */
+	if (log_errno)
+		return fail("log write failed: %s (file system full?)", strerror(log_errno));
+	if (csvf && (fflush(csvf) || ferror(csvf)))
+		return fail("CSV write failed: %s (file system full?)", strerror(errno ? errno : EIO));
 	TRY(get_sel(sel));
 	for (c = 0; c < 4; c++)
 		if (sel[c] != PATH_SEL)
@@ -1488,9 +1497,21 @@ int main(int argc, char **argv)
 	set_signals(0);
 	failed = safe_state();
 	rc = finish(failed, rc);
-	if (csvf)
-		fclose(csvf);
-	if (log_fp)
-		fclose(log_fp);
+	if (csvf && fclose(csvf)) {
+		csvf = NULL;
+		say("ERROR: CSV not completely written: %s", strerror(errno));
+		rc = rc ? rc : 1;
+	}
+	csvf = NULL;
+	if (log_errno) {
+		say("ERROR: log not completely written: %s", strerror(log_errno));
+		rc = rc ? rc : 1;
+	}
+	if (log_fp && fclose(log_fp)) {
+		log_fp = NULL;
+		say("ERROR: log not completely written: %s", strerror(errno));
+		rc = rc ? rc : 1;
+	}
+	log_fp = NULL;
 	return rc;
 }
