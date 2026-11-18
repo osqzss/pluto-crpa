@@ -6,13 +6,11 @@ the T4/T5 setup (`docs/t4_plan.md`, Section 2; `docs/t5_plan.md`, Section 2),
 and the T4/T5 rules, tools and run procedure apply unless this file says
 otherwise.
 
-Status: **P0 done (2026-11-18), next P1.** All proposals of Section 9
-decided by the user as written. Tools of Section 4 written and tested
-offline, waveform files generated, hardware checks of Section 4.7 done
-without RF ("P0 state" at the end of Section 4). Jammer attenuators back to
-30 + 20 dB (user). No RF run. Before P1: power-cycle the Pluto (the P0
-checks wrote RX gain 60 several times; T3: gain writes can shift RX1 by up to
-0.3 dB until a power cycle).
+Status: **P1 done (2026-11-18), next P2.** All proposals of Section 9
+decided by the user as written. P0 done: tools of Section 4 written and
+tested offline, waveform files generated, hardware checks of Section 4.7
+done without RF ("P0 state" at the end of Section 4). P1 done after a power
+cycle, with RX gain 60 written once (Section 2.7): the bench is as in T5.
 
 Changes against the proposal (agreed by the user on 2026-11-18):
 - Two CW tones (proposal item e) dropped. Both tones would come from one
@@ -190,6 +188,33 @@ spectrum at each step and does not use waveforms above the point where the
 skirts rise by more than 1 dB. If the noise ladder runs out of B205mini gain
 below the Gaussian clip onset, the attenuators go to 20 + 20 (the T5 floor
 of 40 dB holds: worst case -27 dBm at the Pluto RX).
+
+### 2.7 Measured in P1 (2026-11-18, V3, RX-only)
+
+After a Pluto power cycle (boot state seen: fs 30.72 MSPS, AGC). The first
+run wrote TX safe, LO L1 + 3 MHz, fs 10 MSPS, bw 9 MHz and RX gain 60 once;
+the later runs were `--passive` (nothing written). bladeRF connected,
+B205mini idle, jammer attenuators 30 + 20 dB. Logs: `results/t3_t5b_P1_noise_20261118-142542.txt` (noise only, 5
+captures, raw captures kept in `tmp/t5b_cap/`), `results/t3_t5b_P1_gps_20261118-142608.txt` (`bladegps -e
+brdc3300.18n` on, 10 captures), `results/t3_t5b_P1_after_20261118-142627.txt` (after `bladegps` quit, 3 captures).
+No clipping; TX safe at the start and end of every run.
+
+| Quantity | T5b P1 | T5 P1 (gain 60) |
+|---|---|---|
+| Noise x1 / x2 | -42.56 / -42.90 dBFS | -42.50 / -42.81 |
+| Noise in L1 +/- 1 MHz, x1 / x2 (`--band 0,2e6`) | -49.83 / -50.09 dBFS | - |
+| GPS on: \|rho\| | 0.165 | 0.168 |
+| Carrier over floor x1 / x2 | 37.8 / 37.4 dB | 38.1 / 37.7 |
+| Carrier phase, x2/x1 | 167.64 deg, -0.61 dB | 167.9 deg, -0.69 dB |
+| GPS on, L1 +/- 1 MHz x1 / x2 | -46.72 / -47.13 dBFS, coherence 0.50, phase 167.8 deg | - |
+| Lines at L1 and L1 + 200 kHz, noise only and after `bladegps` | 1.4 to 2.3 dB over the floor (noise) | about 2 dB |
+
+- The bench is as in T5: noise within 0.1 dB, GPS path phase within 0.3 deg
+  and 0.1 dB. No residual carrier after `bladegps` quit.
+- Load stays **24 LSB^2** (x1 noise 15.2 LSB rms, 0.1 x 231 = 23).
+- The noise in L1 +/- 1 MHz is the `--band-ref` for the N runs with
+  `--band 0,2e6` (-49.83,-50.09); other bands get their reference from the
+  raw noise captures or from the noise part of each N run.
 
 ---
 
