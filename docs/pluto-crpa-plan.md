@@ -265,6 +265,7 @@ Timing: all constraints met.
 | T3 | Same signal to both channels via in-phase splitter; measure inter-channel amplitude/phase | Phase difference recorded per retune. **Done** (2026-11-10, `results/t3.md`): 173 deg and -0.3 dB in the T2 cabling, unchanged by retunes, rate changes and power cycles (within about 1 deg over the day). With the legs swapped: 44 deg, so the fixture legs differ by 65 deg (or -115 deg) and the Pluto itself by 109 deg (or -71 deg) |
 | T4 | Conducted CW jammer into one channel (or both with phase offset); PI enabled | Null depth, C/N0 recovery. **Done** (2026-11-11, `results/t4.md`): null depth 19 to 20 / 38 to 40 / 57 to 59 dB at J/N 10 / 20 / 30 dB, at the model values and independent of the phase separation D; with PI the receiver cold-starts and holds a 3D fix at J/N 30 dB, where fixed weights lose it; C/N0 change with PI +0.3 to +0.7 dB at D 100 deg and -8.2 dB at D 29.5 deg, within 1.1 dB of the prediction |
 | T5 | Jammer power sweep | J/S improvement vs. no suppression. **Done** (2026-11-18, `results/t5.md`): fixed weights lose 6 dB at J/N60 13 to 16 dB and the fix at 25 to 28 dB; PI holds C/N0 within 1.5 dB up to the ADC clip onset (J/N60 42.2 dB at RX gain 60, 52.1 dB at 50) and the fix beyond it; improvement 26 to 29 / 36 to 39 dB at the 6 dB point, more than 14 to 21 / 28 to 31 dB at the fix-loss point (lower bounds). Hardware null ceiling near 75 dB |
+| T5b | Conducted wideband, swept and pulsed jammers (noise 0.1 to 10 MHz, PN, chirps, pulsed); offline space-time analysis of raw captures | Null depth against bandwidth, split into bench cable delay and hardware mismatch; J/S improvement per waveform. **Plan decided** (2026-11-18, `docs/t5b_plan.md`), not started |
 | T6 | Over-the-air test in a shielded environment (authorized only) | - |
 
 - **Regulatory**: never radiate jamming signals. Tests are conducted or shielded only.
@@ -293,7 +294,10 @@ pluto-crpa/                       # parent repository (main)
 |   |-- fixed_point.md            # crpa_core widths, rounding, saturation, simulated performance
 |   |-- regmap.md                 # crpa_core register map
 |   |-- t3_plan.md                # T3 runs, method and safety
-|   `-- t4_plan.md                # T4 levels, tools, runs, pass criteria and safety
+|   |-- t4_plan.md                # T4 levels, tools, runs, pass criteria and safety
+|   |-- t5_plan.md                # T5 jammer power sweep
+|   |-- t5b_proposal.md           # T5b proposal (user), input to t5b_plan.md
+|   `-- t5b_plan.md               # T5b wideband, swept and pulsed jammers
 |-- fw/                           # plutosdr-fw fork, branch crpa (based on upstream master)
 |   |-- hdl/                      # ADI hdl fork, branch crpa
 |   `-- linux/                    # ADI linux fork (osqzss/linux), branch crpa
@@ -486,7 +490,16 @@ Pluto TX1 -> DC block -> u-blox M8T, TX attenuation 50 dB in the Pluto (as T2)
 - **Limits of this setup:** all satellites behave alike, there is one jammer, and nothing moves. A two-element simulator (two coherent TX channels with a phase per satellite and per jammer) would give a realistic sky, a jammer direction sweep, a moving jammer and two jammers. It needs a 2-TX coherent generator, which the bladeRF x40 is not, and a modified gps-sdr-sim. Kept as a separate item for T5 and later (Section 10.2).
 
 ### T5: jammer power sweep
-Status: **done** (2026-11-18). Plan `docs/t5_plan.md` (decisions in its Section 9), results `results/t5.md`. All pass criteria met, except null depth within 3 dB of the model above J/N about 30 dB in the ADC (hardware ceiling near 75 dB, no effect at the receiver). J/S improvement of PI against fixed weights: 26 to 29 dB at RX gain 60, 36 to 39 dB at RX gain 50 (6 dB point); fix-loss point more than 14 to 21 / 28 to 31 dB (PI never lost the fix). The limit is the ADC clip onset (J/N60 42.2 / 52.1 dB). Bench state at the end: V3 cabling, jammer attenuators 20 + 20 dB, RX gain last set to 50 dB. Next: T6 (over-the-air, shielded, authorized only) is the next stage of Section 8.2; it needs a plan and the user's decision on the setting. Candidates before it: the T5 leftovers and the narrowband jammer (Section 10.2)
+Status: **done** (2026-11-18). Plan `docs/t5_plan.md` (decisions in its Section 9), results `results/t5.md`. All pass criteria met, except null depth within 3 dB of the model above J/N about 30 dB in the ADC (hardware ceiling near 75 dB, no effect at the receiver). J/S improvement of PI against fixed weights: 26 to 29 dB at RX gain 60, 36 to 39 dB at RX gain 50 (6 dB point); fix-loss point more than 14 to 21 / 28 to 31 dB (PI never lost the fix). The limit is the ADC clip onset (J/N60 42.2 / 52.1 dB). Bench state at the end: V3 cabling, jammer attenuators 20 + 20 dB, RX gain last set to 50 dB. Next: T5b (below). T6 (over-the-air, shielded, authorized only) needs a plan and the user's decision on the setting
+
+### T5b: wideband, swept and pulsed jammers
+Status: **plan decided** (2026-11-18, `docs/t5b_plan.md`, all ten proposals of its Section 9 as written), from the user's proposal `docs/t5b_proposal.md`; two CW tones dropped (one source through one pair of legs is one direction). Next: P0, the tools of its Section 4 with offline tests and the no-RF checks of its Section 4.7.
+
+- Setup as T5 G60: V3, RX gain 60 only, jammer attenuators back to 30 + 20 dB, power cycle first. Group A at fs 10 MSPS (jammers centred on L1 up to 2 MHz wide, the passband is about L1 - 1.5 to L1 + 7.5 MHz); group W at fs 30.72 MSPS, bw 18 MHz, INT_LEN 30720 for 5 and 10 MHz noise.
+- Tools: `scripts/t5b_waveform.py` (new, sc16 files in `tmp/t5b/` with JSON sidecar and PSD PNG; matplotlib to be added to `requirements.txt`), `scripts/t4_jammer.py --waveform --lo-offset` (no `tx_samples_from_file`), `scripts/t3_phase.py --band --save`, `scripts/t5b_stap.py` (new, offline H(f), delay fit, 1 / 3 / 5 / 9-tap null depth); `t5_steps.py` and `crpa_ctl` unchanged.
+- Jammer axis J/N60 as T5; J/S = J/N60 + 29.5 dB as a stated estimate.
+- Bench delay: the 25 cm extra coax of V3 is about 1.2 ns, which limits the single-weight null to about 53 / 47 / 33 dB at 1 / 2 / 10 MHz (a real lambda/2 array about 12 dB more). Raw captures in V3 and in V1 separate the cable delay from the Pluto and fixture mismatch.
+- Runs: S (raw captures, GPS off), N per waveform (RX-only), F and P for N1, N2, PN, CH-s and P-N1 (10 ms); CW from T5 if the same-day CW N run agrees within 1 dB; one alpha 0.9 run for the pulsed jammer.
 
 ---
 
