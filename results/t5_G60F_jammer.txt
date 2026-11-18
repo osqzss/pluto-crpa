@@ -1,0 +1,20 @@
+2026-11-18T00:29:44.671Z 1794961784.671 t4_jammer.py: --on --ext-att 50 --max-gain 70 --gain off --schedule 180:45,240:48,300:51,360:54,420:57,480:60,540:63,600:66,660:off,750:quit --log results/t5_G60F_jammer.txt
+2026-11-18T00:29:44.671Z 1794961784.671 mode ON (transmit), device 'serial=3297659'
+2026-11-18T00:29:46.553Z 1794961786.553 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B205mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-18T00:29:46.553Z 1794961786.553 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-18T00:29:46.553Z 1794961786.553 schedule: 180:45.0, 240:48.0, 300:51.0, 360:54.0, 420:57.0, 480:60.0, 540:63.0, 600:66.0, 660:off, 750:quit; start state off; t0 on the t0 command
+2026-11-18T00:29:46.901Z 1794961786.901 tuned: target 1575620000.0 Hz, actual RF 1575619999.7 Hz, DSP 0.320 Hz, reads 1575620000.0 Hz; rate 1000000.0; antenna TX/RX
+2026-11-18T00:29:46.901Z 1794961786.901 ext-att 50 dB (as stated), max-gain 70 dB, ampl 0.5
+2026-11-18T00:29:46.931Z 1794961786.931 STATE off (start); gain reads 0 dB
+2026-11-18T00:30:17.588Z 1794961817.588 T0 (command)
+2026-11-18T00:33:17.601Z 1794961997.602 STATE gain 45 dB (schedule 180 s)
+2026-11-18T00:34:17.591Z 1794962057.592 STATE gain 48 dB (schedule 240 s)
+2026-11-18T00:35:17.608Z 1794962117.609 STATE gain 51 dB (schedule 300 s)
+2026-11-18T00:36:17.605Z 1794962177.605 STATE gain 54 dB (schedule 360 s)
+2026-11-18T00:37:17.597Z 1794962237.597 STATE gain 57 dB (schedule 420 s)
+2026-11-18T00:38:17.608Z 1794962297.608 STATE gain 60 dB (schedule 480 s)
+2026-11-18T00:39:17.607Z 1794962357.608 STATE gain 63 dB (schedule 540 s)
+2026-11-18T00:40:17.603Z 1794962417.603 STATE gain 66 dB (schedule 600 s)
+2026-11-18T00:41:17.612Z 1794962477.612 STATE off (schedule 660 s); gain reads 0 dB
+2026-11-18T00:42:47.608Z 1794962567.608 stopping: schedule quit at 750 s
+2026-11-18T00:42:47.625Z 1794962567.626 JAMMER OFF: burst ended, gain at minimum, device closed
