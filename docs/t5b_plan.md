@@ -457,6 +457,43 @@ together).
 | P2 | Each waveform alone, RX-only: B205mini gain ladder in 2.5 dB steps from J/N60 about 10 to the clip onset, 3 captures each with clip counts, `--band`, `--spurs`; LO leakage line; skirts. Anchor: CW at gain 65 gives J/N60 30.0 +/- 1 dB (T5) | B205mini | C after the go |
 | P3 | Both on, CW and N1, 30 captures: D in V3 (expected 100.5 deg), and D of N1 in the band (the phase slope) | both | C after the go |
 
+### P2 run list (proposed to the user on 2026-11-18; P2-a is next, one go per run)
+
+State after P1: Pluto at L1 + 3 MHz, 10 MSPS, 9 MHz, RX gain 60 manual
+(written once after the power cycle), TX LO down, TX attenuation 89.75 dB;
+bladeRF connected and idle; B205mini through 30 + 20 dB. Check this state
+read-only before P2-a (if the Pluto was power-cycled, the first capture run
+must be non-passive to write LO, fs and gain once).
+
+Per waveform, host side: `python3 scripts/t4_jammer.py --on --ext-att 50
+--max-gain <top step + 3> --waveform tmp/t5b/X.sc16 --freq 1575420000
+--gain off --log results/t5b_P2_<id>_jammer.txt` reading a FIFO (CW: the
+T4/T5 path without `--waveform`, default `--freq` L1 + 200 kHz). First the
+off step, 3 captures (band reference); then per step `gain G` to the FIFO,
+1 s, and `t3_phase.py --passive --count 3 --cw-offset 0,200e3 --cw-span
+15e3 --band 0,<band> --spurs 5 --save tmp/t5b_cap --label t5b_P2_<id>_g<G>`;
+at the end `quit` (`JAMMER OFF` in the log) and 3 captures for a residual
+line. Expected scale: CW J/N60 = gain - 35 dB (T5); noise files 9 dB lower
+drive, about gain - 44 dB; Gaussian clip onset near J/N60 31 (gain about 75).
+
+| Run | Waveforms | B205mini gain ladder (dB) | Band | Time |
+|---|---|---|---|---|
+| P2-a | CW (L1 + 200 kHz) | 55, 65, 75; same-day check: gain 65 gives J/N60 30.0 +/- 1 | lines | 1 min |
+| P2-a | N1 | 55, 60, 65, 67.5, 70, 72.5, 74, 75, 76, 77, then 1 dB steps to the first clipped step + 1 | 1.2 MHz | 2 min |
+| P2-b | N0.1, N0.5, N2 | as N1 | 0.12 / 0.6 / 2.4 MHz | 5 min |
+| P2-c | PN, CH-f, CH-m, CH-s | 55, 60, 65, 67.5, 70, 72.5, 75, 76, 77, 78, then to the first clipped step + 1 | 2.4 MHz | 6 min |
+| P2-d | P-CW and P-N1, 0.1 / 1 / 10 / 100 ms | in-pulse J/N60 about 20 and 30: P-CW 55 and 65, P-N1 64 and 74; 5 captures per step (a 105 ms capture holds one 100 ms period) | 2.4 MHz | 6 min |
+| P2-W | N5, N10 (16 MSPS) | later, before the group W runs: Pluto at 30.72 MSPS with its own noise reference; power cycle before and after | | |
+
+P2-a is the first transmission of a waveform file: stop after it and report
+(exact rate and LO as requested, underflow count 0 on every STATE line,
+LO leakage line at L1 against the jammer power; an LO offset only if the
+leakage is above -30 dBc). Stop rules as T5: underflows above 0, a level
+more than 3 dB from the expected value at the CW anchor, `JAMMER OFF` not
+confirmed, TX not safe, any unexpected error. Clipping is not a stop
+condition in P2: each ladder ends one step past the first clipped step. Raw
+captures about 1.5 GB in `tmp/t5b_cap/`.
+
 ### RX-only runs
 
 | Run | Pluto | Jammer | Gives |
