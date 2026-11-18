@@ -11,8 +11,11 @@ write check on the Pluto (Section 4, "P0 state"); recabled to V3 by the
 user, jammer attenuators 30 + 20 dB. **P1 done** (2026-11-18, Section 2.0).
 **P2 at gain 60 done** (Section 2.0b): clip onset J/N60 42.2 dB at B205mini
 78 dB, no compression before it, D 100.9 deg from P1 and P2. **P3 done**:
-D 100.5 deg with both on, predicted C/N0 change with PI +0.4 dB. Next:
-G60-N (dry run), G60-F, G60-P.
+D 100.5 deg with both on, predicted C/N0 change with PI +0.4 dB. **G60-N,
+G60-F, G60-P done** (2026-11-18, `results/t5.md`): improvement 26 to 29 dB
+at the 6 dB point, more than 14 to 21 dB at the fix-loss point (PI kept the
+fix beyond the clip onset). Next: the gain-50 group (power cycle, P2 at
+gain 50 with 40 dB jammer attenuation, G50-N, G50-F, G50-P).
 
 All levels below are estimates from T3, T4 and the model until P1 and P2
 have measured them.
