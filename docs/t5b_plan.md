@@ -6,11 +6,13 @@ the T4/T5 setup (`docs/t4_plan.md`, Section 2; `docs/t5_plan.md`, Section 2),
 and the T4/T5 rules, tools and run procedure apply unless this file says
 otherwise.
 
-Status: **P0 in progress.** All proposals of Section 9 decided by the user
-as written (2026-11-18). Tools of Section 4 written and tested offline
-(2026-11-18, "P0 state" at the end of Section 4). Open in P0: matplotlib
-into `.venv/` (user), the hardware checks of Section 4.7 (no device was
-connected), waveform files, bench state. No RF run.
+Status: **P0 done (2026-11-18), next P1.** All proposals of Section 9
+decided by the user as written. Tools of Section 4 written and tested
+offline, waveform files generated, hardware checks of Section 4.7 done
+without RF ("P0 state" at the end of Section 4). Jammer attenuators back to
+30 + 20 dB (user). No RF run. Before P1: power-cycle the Pluto (the P0
+checks wrote RX gain 60 several times; T3: gain writes can shift RX1 by up to
+0.3 dB until a power cycle).
 
 Changes against the proposal (agreed by the user on 2026-11-18):
 - Two CW tones (proposal item e) dropped. Both tones would come from one
@@ -322,14 +324,60 @@ Written and tested offline, no hardware:
   noise) for the delay limit to show at 1 and 2 MHz; at 0.1 and 0.5 MHz the
   J/N limit will dominate.
 - `requirements.txt`: matplotlib 3.10.0 added (PSD PNG of the generator,
-  plot of `t5b_stap.py`); not yet installed in `.venv/` (user).
+  plot of `t5b_stap.py`); installed in `.venv/` by the user.
+- `t5b_waveform.py --lowpass HZ` added after the first PSD check: the fast
+  chirp (10 us) has lines every 100 kHz out to the 8 MSPS edge (about
+  -33 dBc each, 1 % of the power outside +/- 1.3 MHz), and 0.1 ms pulses
+  have gating sidebands to 2 MHz; at the Pluto these would be cut at the low
+  passband edge (L1 - 1.5 MHz) and aliased. CH-f and the 0.1 ms pulsed files
+  are limited to +/- 1.2 MHz. 13 tests.
+- Waveform set: `scripts/t5b_make_waveforms.sh` writes the 18 files of
+  Section 2.5 to `tmp/t5b/` (551 MB, about 40 s). Rates 8 MSPS (group A),
+  8.184 MSPS for PN (8 samples per chip), 16 MSPS for N5 and N10 (0.5 s).
+  Measured: noise crest 11.7 to 12.3 dB and bw99 within 0.05 % of B; PN
+  bw99 1.60 MHz, crest 2.9 dB; CH-m / CH-s bw99 1.97 / 1.98 MHz; CH-f bw99
+  2.2 MHz, crest 1.2 dB after the low-pass; pulsed files at the stated duty
+  (CW -16.0 dBFS mean, -6.02 in the pulse; N1 -25.0 / -15.0).
+- Bug found in the first Pluto run and fixed: the `t3_phase.py` row format
+  lacked one field for the band columns (the selftest does not reach
+  `measure()`); the two empty logs of that run were deleted.
 
 ### 4.7 Checks in P0 (no RF)
 
-Not done on 2026-11-18: no Pluto, B205mini or u-blox was connected to the
-host. Note for the B205mini: a dry run does not tune, so whether the device
-honours `lo_off` is only seen in the first P2 run with the go; the script
-checks the RF frequency read back and stops if it is not taken.
+Done on 2026-11-18 (after the user connected the devices):
+- **B205mini** (serial 3297659), `t4_jammer.py` dry runs with N1 (8 MSPS),
+  PN (8.184 MSPS) and N10 (16 MSPS), `--lo-offset=-6e6`: device opened,
+  sidecars checked, nothing tuned or streamed. TX rate range 31.25 kHz to
+  16 MSPS at the default master clock, so 16 MSPS is the top for group W.
+  Logs `tmp/t5b_dry_*.txt`. A dry run does not tune: whether `lo_off` is
+  honoured, whether the exact rates are set, and underflows are seen in the
+  first P2 run with the go (the script stops before streaming if rate or LO
+  are not as requested). LO leakage is measured first without an offset
+  (Section 2.5); if an offset is needed, note that L1 - 6 MHz lands at
+  -9 MHz in the Pluto baseband and aliases to +1 MHz at 10 MSPS behind the
+  analog filter, so the offset is chosen from the P2 spectrum.
+- **Pluto** (CRPA unit): found in its boot state (fs 30.72 MSPS, bw 18 MHz,
+  TX LO on at 2450 MHz, TX attenuation 10 dB, AGC), so the driver already
+  takes bw 18 MHz at 30.72 MSPS (`rf_bandwidth_available` 0.2 to 56 MHz).
+  `t3_phase.py --fs 30720000 --bw 18000000 --gain 60 --band 0,10e6 --save`
+  (3 captures, RX-only, TX safe; no source started by Claude): noise
+  -39.4 dBFS per channel (+3.1 dB over 10 MSPS / 9 MHz), x2/x1 -0.22 dB,
+  |rho| 0.009, no clipping; raw captures and sidecar written to
+  `tmp/t5b_cap/`. Then back to fs 10 MSPS, bw 9 MHz, gain 60: noise in
+  L1 +/- 1 MHz -49.9 / -50.1 dBFS, x2/x1 -0.28 dB. Logs
+  `results/t3_t5b_P0_W_20261118-141757.txt`,
+  `results/t3_t5b_P0_A_20261118-141800.txt`. State left: TX LO powered
+  down at 2450 MHz, TX attenuation 89.75 dB, RX at L1 + 3 MHz, 10 MSPS,
+  9 MHz, gain 60 manual.
+- **u-blox M8T**, read-only polls: CFG-GNSS has GPS L1C/A and Galileo E1
+  enabled (GLONASS, BeiDou, SBAS, QZSS, IMES off). CFG-ITFM config
+  0x2d62acf3, config2 0x31e: by the M8 protocol layout the enable bit (31)
+  is 0, so the interference monitor is off; thresholds and algorithm bits at
+  the recommended values. The CW jamming indicator of MON-HW was reported in
+  T1 to T5 all the same. The CW detection and removal is part of the
+  baseband and has no setting here. The front-end bandwidth is not in the
+  configuration and was not taken from documentation; Section 2.2 keeps it
+  as unknown. Nothing changed.
 
 
 - B205mini: TX rate range and the exact rates in Section 2.5; behaviour of

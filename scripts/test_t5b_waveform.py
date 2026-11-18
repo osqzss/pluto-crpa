@@ -135,6 +135,18 @@ class Files(unittest.TestCase):
         z, side, _ = load(base)
         self.assertEqual(len(z), 5 * 40000)
 
+    def test_lowpass(self):
+        rc, base = self.make("chirp", "--span", "2e6", "--period", "10e-6", "--rate", str(RATE),
+                             "--length", "0.01", "--lowpass", "1.2e6")
+        self.assertEqual(rc, 0)
+        z, side, _ = load(base)
+        f = np.fft.fftfreq(len(z), 1 / RATE)
+        pw = abs(np.fft.fft(z)) ** 2
+        self.assertLess(pw[abs(f) > 1.21e6].sum() / pw.sum(), 1e-6)   # only rounding is left
+        self.assertEqual(side["lowpass"], 1.2e6)
+        self.assertAlmostEqual(side["rms_dbfs"], -6.02, delta=0.01)
+        self.assertEqual(self.make("cw", "--rate", str(RATE), "--lowpass", "3e6")[0], 2)
+
     def test_clipping_refused(self):
         rc, base = self.make("noise", "--bw", "1e6", "--rate", str(RATE), "--rms-dbfs", "-3",
                              "--length", "0.1")

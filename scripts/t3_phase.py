@@ -499,7 +499,7 @@ def measure(step, delta, fs, gain):
     temp = temperature()
     for r in analyze(x1, x2, float(fs), float(delta), OFFSETS, args.cw_span, args.spurs, BAND, BAND_REF):
         rows.append(r)
-        out("%d,%s,%s,%.1f,%d,%d,%d,%s,%.2f,%.2f,%.3f,%.4f,%.2f,%.0f,%.1f,%.3f,%.2f,%d,%.0f,%.1f,%d,%d,%s" % (
+        out("%d,%s,%s,%.1f,%d,%d,%d,%s,%.2f,%.2f,%.3f,%.4f,%.2f,%.0f,%.1f,%.3f,%.2f,%d,%.0f,%.1f,%d,%d,%s,%s" % (
             len(rows) - 1, args.label, step, t, L1 + delta, fs, gain, temp,
             r["p1"], r["p2"], r["ratio"], r["rho"], r["phase"], r["f_cw"], r["cw_snr"], r["cw_ratio"],
             r["cw_phase"], r["peak"], r["off"], r["cw_snr2"], r["clip1"], r["clip2"],
@@ -550,12 +550,16 @@ def summary():
         out("# skirt at 20 / 100 / 500 kHz from the line (offset %+.0f Hz): ch0/1 %.1f / %.1f / %.1f dB, "
             "ch2/3 %.1f / %.1f / %.1f dB" % ((off,) + tuple(a1) + tuple(a2)))
     if BAND:
-        m = {k: np.nanmean([r[k] for r in wide]) for k in NOBAND}
+        def fmean(v):
+            v = np.asarray(v, float)
+            v = v[np.isfinite(v)]
+            return float(v.mean()) if len(v) else float("nan")
+        m = {k: fmean([r[k] for r in wide]) for k in NOBAND}
         out("# band %+.0f Hz, %.0f Hz wide: ch0/1 %.2f dBFS, ch2/3 %.2f dBFS; excess %.2f / %.2f dBFS; "
             "ratio %.2f dB (std %.2f); phase %.2f deg, rho %.4f, slope %.4f deg/MHz (std %.4f)" % (
                 BAND[0], BAND[1], m["band1"], m["band2"], m["band1_ex"], m["band2_ex"], m["band_ratio"],
-                np.nanstd([r["band_ratio"] for r in wide]), circ([r["band_phase"] for r in wide])[0],
-                m["band_rho"], m["band_slope"], np.nanstd([r["band_slope"] for r in wide])))
+                np.std([r["band_ratio"] for r in wide]), circ([r["band_phase"] for r in wide])[0],
+                m["band_rho"], m["band_slope"], np.std([r["band_slope"] for r in wide])))
     a = np.array([r["rho"] for r in wide])
     out("# |rho|: mean %.4f, range %.4f to %.4f; peak |x| %d LSB" % (
         a.mean(), a.min(), a.max(), max(r["peak"] for r in rows)))

@@ -17,6 +17,10 @@ Options for every kind:
   --pulse-period S --duty D  gate the waveform: on for the first D x period of
                              every period; the level is the level during the pulse
   --offset HZ                shift the whole waveform (for cw: the tone)
+  --lowpass HZ               brick-wall to +/- HZ around the centre after gating
+                             and offset (over the whole file, so it still loops);
+                             for the line spectrum of a fast chirp and the gating
+                             sidebands of short pulses
 
 Every filter acts on the whole file in the frequency domain, and the file length
 is a whole number of all periods (chirp, pulse, chip, and the offset tone), so
@@ -81,7 +85,7 @@ def brickwall(x, rate, lo, hi):
 
 
 def generate(kind, rate, length, seed=1, bw=None, chip_rate=1.023e6, pn_filter=True, span=None,
-             period=None, offset=0.0, pulse_period=None, duty=None):
+             period=None, offset=0.0, pulse_period=None, duty=None, lowpass=None):
     """Return (complex baseband at unit rms during the pulse, params dict)."""
     if kind not in KINDS:
         raise ValueError("unknown kind '%s'" % kind)
@@ -140,6 +144,11 @@ def generate(kind, rate, length, seed=1, bw=None, chip_rate=1.023e6, pn_filter=T
         k = as_int(rate * pulse_period * duty, "pulse on time x rate")
         on = (np.arange(n) % pp) < k
         x = x * on
+    if lowpass is not None:
+        if not 0 < lowpass < rate / 2:
+            raise ValueError("--lowpass must be between 0 and rate / 2")
+        x = brickwall(x, rate, -lowpass, lowpass)
+        p["lowpass"] = lowpass
     x = x / np.sqrt((abs(x[on]) ** 2).mean())
     return x, p, on
 
@@ -227,13 +236,14 @@ def main(argv=None):
     ap.add_argument("--offset", type=float, default=0.0, help="Hz from the centre")
     ap.add_argument("--pulse-period", type=float)
     ap.add_argument("--duty", type=float)
+    ap.add_argument("--lowpass", type=float, help="brick-wall to +/- HZ around the centre")
     ap.add_argument("--rms-dbfs", type=float, help="rms level during the pulse")
     ap.add_argument("--no-png", action="store_true")
     a = ap.parse_args(argv)
     rms = a.rms_dbfs if a.rms_dbfs is not None else (-15.0 if a.kind == "noise" else CW_DBFS)
     try:
         x, p, on = generate(a.kind, a.rate, a.length, a.seed, a.bw, a.chip_rate, not a.no_filter,
-                            a.span, a.period, a.offset, a.pulse_period, a.duty)
+                            a.span, a.period, a.offset, a.pulse_period, a.duty, a.lowpass)
         q = quantize(x, rms)
     except ValueError as e:
         print("REFUSED: %s" % e, file=sys.stderr)
