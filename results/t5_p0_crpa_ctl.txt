@@ -1,0 +1,46 @@
+# T5 P0, crpa_ctl write check on hardware (2026-11-18), docs/t5_plan.md Section 4
+# CRPA unit, crpa_ctl from commit 8eece67 copied to /mnt/jffs2 by the user.
+# Dry runs only (no --on): TX LO powered down, TX attenuation 89.75 / 89.75 dB.
+# Output as pasted by the user (password prompts removed).
+
+## 1. Write test on a 64 kB tmpfs
+$ ssh pluto 'mkdir -p /tmp/full && mount -t tmpfs -o size=64k tmpfs /tmp/full && /mnt/jffs2/crpa_ctl run --duration 30 --out /tmp/full/x; echo rc=$?; umount /tmp/full'
+settings: delta 3000000 fs 10000000 bw 9000000 rx_gain 60 on 0 tx_att 0.00 min_tx_att 0.00 mode fixed load 0 alpha 0 int_len 10000 shift 0 cap_sel 0 rt 40
+scheduling: SCHED_FIFO priority 40, memory locked
+DRY RUN: path set with TX muted; TX LO stays parked and powered down
+RX LO 1578419998 | TX LO 2399999998 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+RX gain manual 60 / manual 60 dB | RSSI 113.50 dB / 113.50 dB
+TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 0 | data_sel [2 2 2 2]
+crpa_core VERSION 0x00010000 CTRL 0x6 STATUS 0x1 INT_LEN 10000 MISSED 5 SEQ 0
+crpa_core staged W1 0x00007fff W2 0x00000000 OUT_SHIFT 0 (committed set not readable)
+mode fixed, start w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0, INT_LEN 10000 (1.000 ms), load 0, alpha 0
+ERROR: CSV write failed: No space left on device (file system full?)
+Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz
+rc=1
+
+## 2. Normal dry run, PI, load 24
+$ ssh pluto /mnt/jffs2/crpa_ctl run --mode pi --load 24 --duration 20 --out /tmp/t5_p0
+settings: delta 3000000 fs 10000000 bw 9000000 rx_gain 60 on 0 tx_att 0.00 min_tx_att 0.00 mode pi load 24 alpha 0 int_len 10000 shift 0 cap_sel 0 rt 40
+scheduling: SCHED_FIFO priority 40, memory locked
+DRY RUN: path set with TX muted; TX LO stays parked and powered down
+RX LO 1578419998 | TX LO 2399999998 | fs 10000000 | RX bw 9000000 | TX bw 9000000
+RX gain manual 60 / manual 60 dB | RSSI 113.50 dB / 113.50 dB
+TX attenuation 89.75 / 89.75 dB | TX LO powerdown 1 | loopback 0 | data_sel [2 2 2 2]
+crpa_core VERSION 0x00010000 CTRL 0x6 STATUS 0x1 INT_LEN 10000 MISSED 5 SEQ 0
+crpa_core staged W1 0x00007fff W2 0x00000000 OUT_SHIFT 0 (committed set not readable)
+mode pi, start w1 +1.0000+0.0000j w2 +0.0000+0.0000j (|w1| 1.000 |w2| 0.000) shift 0, INT_LEN 10000 (1.000 ms), load 24, alpha 0
+blocks 2002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 49/47 sat 0 | w1 +1.0000+0.0000j w2 +0.0050+0.0023j (|w1| 1.000 |w2| 0.006) shift 0
+blocks 4003 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.7 y~ -42.5 dBFS | peak 45/40 sat 0 | w1 +1.0000+0.0000j w2 +0.0029+0.0236j (|w1| 1.000 |w2| 0.024) shift 0
+blocks 6004 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.4 x2 -42.9 y~ -42.4 dBFS | peak 47/46 sat 0 | w1 +1.0000+0.0000j w2 +0.0086-0.0008j (|w1| 1.000 |w2| 0.009) shift 0
+blocks 8005 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.5 dBFS | peak 55/41 sat 0 | w1 +1.0000+0.0000j w2 +0.0033+0.0023j (|w1| 1.000 |w2| 0.004) shift 0
+blocks 10006 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 46/48 sat 0 | w1 +1.0000+0.0000j w2 +0.0026-0.0039j (|w1| 1.000 |w2| 0.005) shift 0
+blocks 12007 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 49/41 sat 0 | w1 +1.0000+0.0000j w2 +0.0072+0.0008j (|w1| 1.000 |w2| 0.007) shift 0
+blocks 14008 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.4 x2 -42.8 y~ -42.4 dBFS | peak 42/42 sat 0 | w1 +1.0000+0.0000j w2 +0.0093-0.0016j (|w1| 1.000 |w2| 0.009) shift 0
+blocks 16009 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 47/44 sat 0 | w1 +1.0000+0.0000j w2 +0.0062+0.0032j (|w1| 1.000 |w2| 0.007) shift 0
+blocks 18010 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.5 x2 -42.8 y~ -42.5 dBFS | peak 45/52 sat 0 | w1 +1.0000+0.0000j w2 -0.0059+0.0139j (|w1| 1.000 |w2| 0.015) shift 0
+duration reached
+blocks 20002 missed 5 seq_gaps 1 sat_blocks 0 | x1 -42.6 x2 -42.8 y~ -42.6 dBFS | peak 44/44 sat 0 | w1 +1.0000+0.0000j w2 -0.0031+0.0039j (|w1| 1.000 |w2| 0.005) shift 0
+Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz
+
+## 3. crpa_ctl off
+Safe state: TX attenuation 89.75 dB, crpa_core CTRL 0, data_sel 0, TX LO powered down at 2400000000 Hz

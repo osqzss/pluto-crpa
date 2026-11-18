@@ -6,9 +6,11 @@ The setup is the T4 setup (`docs/t4_plan.md`, Section 2), and the T4 rules,
 tools and run procedure apply unless this file says otherwise.
 
 Status: **decided by the user (2026-11-18): all proposals of Section 9 as
-written.** P0 in progress: tools done and tested offline (Section 4, "P0
-state"); the hardware part of P0 (recabling, `crpa_ctl` copy and write test)
-is next. Nothing transmitted.
+written.** **P0 done** (2026-11-18): tools tested offline and `crpa_ctl`
+write check on the Pluto (Section 4, "P0 state"); recabled to V3 by the
+user, jammer attenuators 30 + 20 dB. **P1 done** (2026-11-18, Section 2.0).
+**P2 at gain 60 done** (Section 2.0b): clip onset J/N60 42.2 dB at B205mini
+78 dB, no compression before it, D 100.9 deg from P1 and P2. Next: P3.
 
 All levels below are estimates from T3, T4 and the model until P1 and P2
 have measured them.
@@ -60,6 +62,98 @@ As T4 (`docs/t4_plan.md`, Section 2), with these choices:
   go below 50 dB. In the F runs OUT_SHIFT 1 halves the output headroom: x1
   must stay below about -6 dBFS for no output saturation, which holds up to
   the fixed-weight failure point (Section 2.1). Decide, Section 9.
+
+### 2.0 Measured in P1 (2026-11-18, V3, RX-only)
+
+Logs: `results/t5_P1_noise_*.txt` (bladeRF connected, `bladegps` not
+running, B205mini idle, 5 captures per gain), `results/t5_P1_gps_*.txt`
+(`bladegps` on, 10 per gain), `results/t5_P1_after_*.txt` (after `bladegps`
+quit). No clipping anywhere; TX side safe at start and end of every set.
+
+| RX gain | Noise x1 / x2 | x1 rms | Load 0.1 x P1 | GPS on: \|rho\| | GPS SNR against gain 60 | Carrier over floor x1 / x2 | Carrier phase, x2/x1 |
+|---|---|---|---|---|---|---|---|
+| 60 dB | -42.50 / -42.81 dBFS | 15.4 LSB | 23.6 LSB^2 | 0.168 | 0 | 38.1 / 37.7 dB | 167.9 deg, -0.69 dB |
+| 55 dB | -45.34 / -46.68 | 11.1 | 12.3 | 0.125 | -1.5 dB | 37.4 / 37.2 | 167.8, -0.57 |
+| 50 dB | -47.78 / -49.80 | 8.4 | 7.0 | 0.079 | -3.7 dB | 35.6 / 36.3 | 168.1, -0.69 |
+| 45 dB | -47.75 / -50.86 | 8.4 | 7.0 | 0.024 | -9.1 dB | 31.9 / 32.5 | 170.5, -0.47 |
+
+- GPS SNR from \|rho\| as rho / (1 - rho). Gain 50 costs 3.7 dB (estimate
+  3.6), gain 45 9.1 dB: **gain 50 confirmed** as the lower gain. Load at
+  gain 50: **7 LSB^2**; at 60: 24 (unchanged).
+- The x1 noise stops falling below 50 dB (-47.8 dBFS at 50 and 45), as in
+  T3-D2. At low gain x1 is 2.0 dB (50) and 3.1 dB (45) above x2: the known
+  ch0/1 excess (plan Section 10.2), so the noise is not equal on the two
+  elements at gain 50; Gn of Section 5 uses the measured values.
+- Noise only: no line at the carrier or the jammer frequency (about 2 dB
+  over the floor, i.e. noise) before and after `bladegps`; \|rho\| 0.004
+  to 0.009.
+- GPS path at gain 60: carrier phase 167.9 deg, -0.69 dB, against 167.72 deg
+  and -0.64 dB in T4 V3 P3: the V3 cabling is back within 0.2 deg.
+- Several RX gain writes were made (P1 sequences); power-cycle the Pluto
+  before P2.
+
+### 2.0b Measured in P2 at gain 60 (2026-11-18, after a power cycle)
+
+Jammer alone (`bladegps` off), 30 + 20 dB, amplitude 0.5, 3 passive captures
+per step. Logs `results/t5_P2_r60_g*.txt`, `results/t5_P2_r60f_g*.txt`
+(0.5 dB steps near the onset), jammer logs `results/t5_P2_r60*_jammer.txt`.
+Noise before: -42.55 / -42.86 dBFS (`results/t5_P2_pre_*.txt`, the first set
+after the power cycle, which wrote LO, fs and gain once). J/N60 =
+(P_x1 - P_noise) / P_noise.
+
+| B205mini gain | x1 dBFS | J/N60 | Step | Peak | Clipped (x1 / x2, of 3.1 M) | Floor near the line, x1, 20 / 100 / 500 kHz |
+|---|---|---|---|---|---|---|
+| 55 | -22.53 | 20.0 | - | 207 | 0 | 0.0 / -0.2 / -0.3 dB |
+| 57.5 | -19.98 | 22.5 | +2.55 | 255 | 0 | 0.0 / 0.0 / -0.2 |
+| 60 | -17.54 | 25.0 | +2.44 | 325 | 0 | 0.0 / -0.2 / -0.2 |
+| 62.5 | -15.07 | 27.5 | +2.47 | 418 | 0 | 0.3 / -0.1 / 0.2 |
+| 65 | -12.55 | 30.0 | +2.52 | 534 | 0 | 0.7 / 0.6 / 0.1 |
+| 67.5 | -9.91 | 32.6 | +2.63 | 705 | 0 | 1.2 / 0.9 / 0.6 |
+| 70 | -7.54 | 35.0 | +2.37 | 907 | 0 | 1.6 / 1.4 / 0.9 |
+| 72.5 | -5.38 | 37.2 | +2.16 | 1149 | 0 | 2.3 / 2.0 / 1.1 |
+| 75 | -3.01 | 39.5 | +2.37 | 1502 | 0 | 3.3 / 3.5 / 1.8 |
+| 77.5 | -0.66 / -0.61 | 41.9 / 42.0 | +2.35 | 1981 / 1991 | 0 | 4.0 / 3.7 / 2.2 |
+| 78 | -0.14 | about 42.4 | +0.5 | 2047 | 55155 / 2137 | - |
+| 78.5 | 0.49 | clipped | - | 2067 | 1631365 / 996852 | - |
+| 79, 80, 82.5, 85 | 0.9 | clipped | - | 2056 to 2066 | 2.4 M | - |
+
+- **Anchor:** gain 65 gives J/N60 30.0 (T4 L5, gain 75 at 60 dB: 30.5):
+  passes (+/- 1 dB).
+- **Clip onset at gain 60: B205mini 78 dB, J/N60 42.2 +/- 0.25 dB** (model:
+  between 42 and 44). x1 clips first (jammer 0.19 dB stronger than in x2).
+- **No analog compression before the ADC clips:** the line follows the
+  B205mini gain within 2.16 to 2.63 dB per 2.5 dB step up to 77.5 dB. The
+  shortfall at 70 to 75 dB is the same as in T4, where the Pluto input was
+  10 dB lower, so it is the B205mini.
+- Jammer phase x2 against x1 -91.2 deg (-91.14 to -91.34 over 22 dB of
+  level), line ratio -0.19 dB. With phi_G 167.9 deg (P1): D = 100.9 deg.
+- **Floor near the line rises with the jammer**, equally in both channels:
+  +1.6 dB at J/N60 35, +4 dB at 42 (20 kHz from the line), less further
+  out. Whether PI removes it is a question for G60-N (skirt columns of y).
+- Lines (`--spurs`): the jammer's 2nd harmonic at +/-4.389 MHz in baseband
+  (2 x -2.806 MHz aliased by fs), 20 to 36 dB over the floor, after
+  re-transmission at L1 + 7.4 MHz; sidebands at +/-4 kHz of the jammer,
+  growing with it (12 to 28 dB); DC 18 to 21 dB, constant. The IQ image at
+  +2.8 MHz is not among the six strongest lines at any level. In clipping
+  (78.5 dB and up): the 3rd harmonic at -1.583 MHz (63 to 65 dB) and other
+  products.
+- Residual check after `quit`: no line at either frequency.
+- The first start of the jammer script did not reach its start state within
+  the 8 s of the wrapper (firmware and FPGA load after the power cycle took
+  13 s); the wrapper sent quit, nothing was transmitted
+  (`results/t5_P2_r60_jammer_nostart.txt`). Wait up to 60 s.
+
+**Ladders for G60** (B205mini gain at 50 dB; J/N60 from the table, below
+55 dB by 1 dB per dB as in T4):
+
+| Run | J/N60 steps | B205mini gain |
+|---|---|---|
+| G60-F | 10, 13, 16, 19, 22, 25, 28, 31 | 45, 48, 51, 54, 57, 60, 63, 66 |
+| G60-N | 30, 35, 37.2, 39.5, 41.9, then + steps | 65, 70, 72.5, 75, 77.5; + at 80 and 82 (onset + 2 and + 4 dB of gain) |
+| G60-P | cold start at 35, then 37.2, 39.5, 41.9, + steps, back to 35 | 70; 72.5, 75, 77.5; + at 80 and 82; 70 |
+
+Above 78 dB the ADC is saturated, so the + steps have no measured J/N60;
+they are reported by B205mini gain. `--max-gain` for the G60 runs: 85.
 
 ### 2.1 Jammer scale and level estimates
 
@@ -176,7 +270,13 @@ No other change: the schedule already takes any gain steps.
   every `--monitor` interval; a failed write stops the run to the safe state
   with `CSV write failed` or `log write failed`; errors at close reported and
   the exit code set. Cross-built without warnings; `make test` 4156 weight
-  sets, 0 mismatches. Not yet on the Pluto; write test on hardware below.
+  sets, 0 mismatches. **On the Pluto (2026-11-18, `results/t5_p0_crpa_ctl.txt`):**
+  on a 64 kB tmpfs the run stopped with `CSV write failed: No space left on
+  device` before the first 2 s summary, safe state confirmed, rc 1; a normal
+  20 s PI dry run (load 24) ran 20002 blocks with 5 missed at startup only
+  (as before), no saturation, x1 / x2 -42.5 / -42.8 dBFS, |w2| 0.004 to
+  0.024 on noise; `crpa_ctl off` confirmed the safe state. Steps 1 to 3
+  below are done; recabling (step 4) is open.
 - Model: `model/sim_pi.py t5` (section G) with the raw null column,
   `results/t5_model.txt`.
 
