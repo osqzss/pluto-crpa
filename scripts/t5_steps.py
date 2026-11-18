@@ -60,10 +60,10 @@ def read_jammer(path):
             m = STOP.match(line)
             if m and stop is None:
                 stop = float(m.group(1))
-    if t0 is None:
-        raise SystemExit("%s: no T0 line" % path)
     if not states:
         raise SystemExit("%s: no STATE lines" % path)
+    if t0 is None:
+        t0 = states[0][0]       # no cold start (N runs): time counts from the first STATE line
     return t0, states, stop
 
 

@@ -10,7 +10,9 @@ written.** **P0 done** (2026-11-18): tools tested offline and `crpa_ctl`
 write check on the Pluto (Section 4, "P0 state"); recabled to V3 by the
 user, jammer attenuators 30 + 20 dB. **P1 done** (2026-11-18, Section 2.0).
 **P2 at gain 60 done** (Section 2.0b): clip onset J/N60 42.2 dB at B205mini
-78 dB, no compression before it, D 100.9 deg from P1 and P2. Next: P3.
+78 dB, no compression before it, D 100.9 deg from P1 and P2. **P3 done**:
+D 100.5 deg with both on, predicted C/N0 change with PI +0.4 dB. Next:
+G60-N (dry run), G60-F, G60-P.
 
 All levels below are estimates from T3, T4 and the model until P1 and P2
 have measured them.
@@ -142,6 +144,26 @@ after the power cycle, which wrote LO, fs and gain once). J/N60 =
   the 8 s of the wrapper (firmware and FPGA load after the power cycle took
   13 s); the wrapper sent quit, nothing was transmitted
   (`results/t5_P2_r60_jammer_nostart.txt`). Wait up to 60 s.
+
+**P3 (2026-11-18, 09:14 to 09:16):** `bladegps` and the jammer on together,
+RX gain 60, 15 passive captures at B205mini 55 dB (J/N60 20) and 15 at
+70 dB (J/N60 35); logs `results/t5_P3_g55.txt`, `results/t5_P3_g70.txt`,
+`results/t5_P3_jammer.txt`. No clipping.
+
+| Jammer | GPS carrier phase, x2/x1 | Jammer phase, x2/x1 | D | Carrier over the floor |
+|---|---|---|---|---|
+| 55 dB | 168.21 deg (std 0.24), -0.70 dB | -91.31 deg (std 0.01), -0.17 dB | **100.5 deg** | 36.4 dB |
+| 70 dB | 168.35 deg (std 0.30), -0.72 dB | -91.21 deg (std 0.00), -0.19 dB | **100.4 deg** | 35.1 dB |
+
+- D 100.4 to 100.5 deg: equal to the separate measurement (P1 and P2,
+  100.9 deg) and to T4 V3 (100.0 / 100.2 deg); no dependence on the jammer
+  level over 15 dB. The carrier line is 1.3 dB lower against the floor at
+  70 dB: the floor rise next to the jammer of P2.
+- Section 5 of `docs/t4_plan.md` with these values: Gs +3.48 dB, Gn
+  +3.10 dB, **C/N0 change with PI +0.4 dB** against w = [1,0] with the jammer
+  off (T4 V3: same prediction, +0.3 to +0.7 dB measured).
+- Both sources stopped after the captures (`q`, `quit`), both exited by
+  themselves.
 
 **Ladders for G60** (B205mini gain at 50 dB; J/N60 from the table, below
 55 dB by 1 dB per dB as in T4):
