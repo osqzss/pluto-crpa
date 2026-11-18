@@ -14,8 +14,8 @@ user, jammer attenuators 30 + 20 dB. **P1 done** (2026-11-18, Section 2.0).
 D 100.5 deg with both on, predicted C/N0 change with PI +0.4 dB. **G60-N,
 G60-F, G60-P done** (2026-11-18, `results/t5.md`): improvement 26 to 29 dB
 at the 6 dB point, more than 14 to 21 dB at the fix-loss point (PI kept the
-fix beyond the clip onset). Next: the gain-50 group (power cycle, P2 at
-gain 50 with 40 dB jammer attenuation, G50-N, G50-F, G50-P).
+fix beyond the clip onset). **P2 at gain 50 done** (Section 2.0c): gain
+step 9.88 dB, clip onset J/N60 52.1 dB. Next: G50-N, G50-F, G50-P.
 
 All levels below are estimates from T3, T4 and the model until P1 and P2
 have measured them.
@@ -179,6 +179,62 @@ RX gain 60, 15 passive captures at B205mini 55 dB (J/N60 20) and 15 at
 
 Above 78 dB the ADC is saturated, so the + steps have no measured J/N60;
 they are reported by B205mini gain. `--max-gain` for the G60 runs: 85.
+
+### 2.0c Measured in P2 at gain 50 (2026-11-18, after a power cycle)
+
+First set after the power cycle (writes gain 50): noise -47.3 / -49.6 dBFS
+(`results/t5_P2_pre50_*.txt`; P1 read -47.8 / -49.8). Jammer alone, 3
+passive captures per step. Part a with 30 + 20 = 50 dB
+(`results/t5_P2_r50a_*`), part b with 20 + 20 = 40 dB changed by the user
+(`results/t5_P2_r50b_*`, 0.5 dB steps near the onset in `results/t5_P2_r50bf_*`).
+
+**RX gain step 60 -> 50 dB: 9.88 dB** (jammer line at B205mini 70 / 72.5 /
+75 / 77.5 dB through 50 dB: 9.85 / 9.92 / 9.88 / 9.88 dB lower than in the
+gain-60 P2). J/N60 at gain 50 = P_x1 + 9.88 dB - (-42.55 dBFS).
+
+| Att. | B205mini | x1 dBFS | J/N60 | Peak | Floor near the line x1, 20 / 100 / 500 kHz |
+|---|---|---|---|---|---|
+| 50 | 70 | -17.40 | 35.0 | 305 | 0.7 / 0.6 / 0.5 dB |
+| 50 | 72.5 | -15.27 | 37.2 | 381 | 1.1 / 0.8 / 0.5 |
+| 50 | 75 | -12.87 | 39.6 | 494 | 2.1 / 2.0 / 1.1 |
+| 50 | 77.5 | -10.56 | 41.9 | 637 | 3.6 / 3.0 / 2.0 |
+| 50 | 80 | -8.14 | 44.3 | 829 | 5.0 / 4.7 / 3.1 |
+| 50 | 82.5 | -5.85 | 46.6 | 1072 | 7.0 / 6.2 / 4.4 |
+| 50 | 85 | -3.58 | 48.8 | 1387 | 8.6 / 8.1 / 5.8 |
+| 40 | 72.5 | -5.34 | 47.1 | 1135 | 7.0 / 6.8 / 5.0 |
+| 40 | 75 | -2.96 | 49.5 | 1489 | 8.9 / 8.8 / 6.9 |
+| 40 | 77.5 | -0.60 | 51.8 | 1971 | 9.5 / 9.1 / 7.4 |
+| 40 | 78 | -0.11 | clip onset (23061 / 1039 of 3.1 M clipped) | 2048 | - |
+| 40 | 78.5 and up | 0.3 to 0.94 | clipped | 2048 to 2055 | - |
+
+- **Clip onset at gain 50: B205mini 78 dB at 40 dB, J/N60 52.1 +/- 0.25
+  dB**, i.e. 9.9 dB above gain 60, as the gain step says. The clipping
+  level in dBFS is the same at both gains.
+- Overlap of the two attenuator settings: 40 dB at 72.5 / 75 dB reads
+  0.5 / 0.7 dB above 50 dB at 82.5 / 85 dB (attenuator tolerance or the
+  B205mini near its top); the runs use the measured levels.
+- **Floor next to the jammer grows with the jammer power, not with the ADC
+  level**: at J/N60 41.9 it is +3.6 dB at gain 50 and +4.0 dB at gain 60;
+  at J/N60 51.8 +9.5 dB at 20 kHz and still +7.4 dB at 500 kHz, equal in
+  both channels. It comes with the jammer (B205mini phase and wideband
+  noise, or reciprocal mixing on the common Pluto LO), so PI should remove it
+  as at gain 60 (G60-N); G50-N checks this.
+- The 2nd harmonic at +/-4.388 MHz is 33 to 39 dB over the floor; in
+  clipping the 3rd harmonic -1.582 MHz at 64 to 66 dB.
+
+**Ladders for G50** (RX gain 50, `--shift 1`, load 8 = 0.1 x the noise power
+at -47.3 dBFS; jammer attenuators stay at 40 dB for all three runs; below
+72.5 dB J/N60 = B205mini gain - 25.4 dB, from the 72.5 / 75 dB points and
+the 1 dB per dB slope seen in T4 and P2):
+
+| Run | J/N60 steps | B205mini gain at 40 dB |
+|---|---|---|
+| G50-F | 10, 13, 16, 19, 22, 25, 28, 31 | 35.5, 38.5, 41.5, 44.5, 47.5, 50.5, 53.5, 56.5 |
+| G50-N | 35, 40, 44.5, 47.1, 49.5, 51.8, then + steps | 60.5, 65.5, 70, 72.5, 75, 77.5; + at 80 and 82 |
+| G50-P | cold start at 45, then 47.1, 49.5, 51.8, + steps, back to 45 | 70.5; 72.5, 75, 77.5; + at 80 and 82; 70.5 |
+
+`--max-gain`: 60 for G50-F, 85 for G50-N and G50-P. The F steps get their
+J/N60 from the x1 level of each window as a check.
 
 ### 2.1 Jammer scale and level estimates
 

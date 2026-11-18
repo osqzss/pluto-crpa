@@ -1,0 +1,20 @@
+2026-11-18T01:18:47.368Z 1794964727.369 t4_jammer.py: --on --ext-att 40 --max-gain 60 --gain off --schedule 180:35.5,240:38.5,300:41.5,360:44.5,420:47.5,480:50.5,540:53.5,600:56.5,660:off,750:quit --log results/t5_G50F_jammer.txt
+2026-11-18T01:18:47.368Z 1794964727.369 mode ON (transmit), device 'serial=3297659'
+2026-11-18T01:18:49.206Z 1794964729.206 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B205mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-18T01:18:49.206Z 1794964729.206 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-18T01:18:49.206Z 1794964729.207 schedule: 180:35.5, 240:38.5, 300:41.5, 360:44.5, 420:47.5, 480:50.5, 540:53.5, 600:56.5, 660:off, 750:quit; start state off; t0 on the t0 command
+2026-11-18T01:18:49.553Z 1794964729.554 tuned: target 1575620000.0 Hz, actual RF 1575619999.7 Hz, DSP 0.320 Hz, reads 1575620000.0 Hz; rate 1000000.0; antenna TX/RX
+2026-11-18T01:18:49.554Z 1794964729.554 ext-att 40 dB (as stated), max-gain 60 dB, ampl 0.5
+2026-11-18T01:18:49.582Z 1794964729.583 STATE off (start); gain reads 0 dB
+2026-11-18T01:19:20.288Z 1794964760.288 T0 (command)
+2026-11-18T01:22:20.294Z 1794964940.294 STATE gain 35.5 dB (schedule 180 s)
+2026-11-18T01:23:20.305Z 1794965000.305 STATE gain 38.5 dB (schedule 240 s)
+2026-11-18T01:24:20.294Z 1794965060.295 STATE gain 41.5 dB (schedule 300 s)
+2026-11-18T01:25:20.300Z 1794965120.300 STATE gain 44.5 dB (schedule 360 s)
+2026-11-18T01:26:20.299Z 1794965180.299 STATE gain 47.5 dB (schedule 420 s)
+2026-11-18T01:27:20.289Z 1794965240.290 STATE gain 50.5 dB (schedule 480 s)
+2026-11-18T01:28:20.305Z 1794965300.305 STATE gain 53.5 dB (schedule 540 s)
+2026-11-18T01:29:20.303Z 1794965360.304 STATE gain 56.5 dB (schedule 600 s)
+2026-11-18T01:30:20.304Z 1794965420.305 STATE off (schedule 660 s); gain reads 0 dB
+2026-11-18T01:31:50.302Z 1794965510.303 stopping: schedule quit at 750 s
+2026-11-18T01:31:50.320Z 1794965510.320 JAMMER OFF: burst ended, gain at minimum, device closed

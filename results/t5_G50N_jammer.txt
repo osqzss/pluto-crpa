@@ -1,0 +1,19 @@
+2026-11-18T01:10:07.825Z 1794964207.825 t4_jammer.py: --on --ext-att 40 --max-gain 85 --gain off --log results/t5_G50N_jammer.txt
+2026-11-18T01:10:07.825Z 1794964207.825 mode ON (transmit), device 'serial=3297659'
+2026-11-18T01:10:09.667Z 1794964209.667 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B205mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-18T01:10:09.667Z 1794964209.668 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-18T01:10:09.668Z 1794964209.668 schedule: none; start state off; t0 on the t0 command
+2026-11-18T01:10:10.034Z 1794964210.035 tuned: target 1575620000.0 Hz, actual RF 1575619999.7 Hz, DSP 0.320 Hz, reads 1575620000.0 Hz; rate 1000000.0; antenna TX/RX
+2026-11-18T01:10:10.034Z 1794964210.035 ext-att 40 dB (as stated), max-gain 85 dB, ampl 0.5
+2026-11-18T01:10:10.062Z 1794964210.062 STATE off (start); gain reads 0 dB
+2026-11-18T01:10:13.750Z 1794964213.751 STATE gain 60.5 dB (command)
+2026-11-18T01:10:24.891Z 1794964224.892 STATE gain 65.5 dB (command)
+2026-11-18T01:10:36.007Z 1794964236.008 STATE gain 70 dB (command)
+2026-11-18T01:10:47.041Z 1794964247.042 STATE gain 72.5 dB (command)
+2026-11-18T01:10:58.164Z 1794964258.165 STATE gain 75 dB (command)
+2026-11-18T01:11:09.172Z 1794964269.173 STATE gain 77.5 dB (command)
+2026-11-18T01:11:20.154Z 1794964280.155 STATE gain 80 dB (command)
+2026-11-18T01:11:31.144Z 1794964291.144 STATE gain 82 dB (command)
+2026-11-18T01:11:42.090Z 1794964302.091 STATE off (command); gain reads 0 dB
+2026-11-18T01:11:43.089Z 1794964303.089 stopping: quit command
+2026-11-18T01:11:43.104Z 1794964303.105 JAMMER OFF: burst ended, gain at minimum, device closed
