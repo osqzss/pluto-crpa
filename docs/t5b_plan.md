@@ -6,9 +6,11 @@ the T4/T5 setup (`docs/t4_plan.md`, Section 2; `docs/t5_plan.md`, Section 2),
 and the T4/T5 rules, tools and run procedure apply unless this file says
 otherwise.
 
-Status: **decided (2026-11-18), not started.** All proposals of Section 9
-decided by the user as written. Next: P0 (tools of Section 4 with offline
-tests, checks of Section 4.7). No code written, no RF run.
+Status: **P0 in progress.** All proposals of Section 9 decided by the user
+as written (2026-11-18). Tools of Section 4 written and tested offline
+(2026-11-18, "P0 state" at the end of Section 4). Open in P0: matplotlib
+into `.venv/` (user), the hardware checks of Section 4.7 (no device was
+connected), waveform files, bench state. No RF run.
 
 Changes against the proposal (agreed by the user on 2026-11-18):
 - Two CW tones (proposal item e) dropped. Both tones would come from one
@@ -231,12 +233,25 @@ All changes are tested offline before P1, as in T4 and T5.
 
 ### 4.2 `scripts/t4_jammer.py` (extension)
 
-- `--waveform FILE`: reads the sc16 file and its sidecar, keeps it in memory
-  and loops it into the TX stream with CPU format sc16 (no float
-  conversion); `--rate` is taken from the sidecar, and a mismatch is refused.
-  `--freq` is then the centre of the waveform.
-- `--lo-offset HZ`: `TuneRequest(freq, lo_off)`; actual RF and DSP
-  frequencies are read back and logged.
+- `--waveform FILE.sc16`: reads the file and its sidecar `FILE.json`,
+  checks size and sha256, keeps it in memory as fc32 (int16 / 32768) and
+  loops it into the TX stream in 10000-sample chunks. The CPU format stays
+  fc32 as in the CW path: the UHD Python examples on this host (UHD 4.6)
+  send complex64 buffers only, and how a numpy buffer is passed with CPU
+  format sc16 is not documented here. The fc32 to sc16 conversion in UHD
+  costs nothing measurable. `--rate` is taken from the sidecar; `--rate` and
+  `--ampl` together with `--waveform` are refused. `--freq` is the centre of
+  the waveform.
+- `--lo-offset=HZ` (write it with `=` for negative values):
+  `TuneRequest(freq, lo_off)`, present in the installed Python API
+  (`help(uhd.types.TuneRequest)`). The RF frequency is read back and must be
+  freq + offset within 1 kHz, else the run ends with `JAMMER OFF`. Limit
+  +/- 30 MHz.
+- TX underflows and sequence errors from `recv_async_msg` (as in the UHD
+  example `benchmark_rate.py`) are counted and logged on every STATE and
+  STATUS line and at the end. A waveform with underflows is not the waveform
+  in the file; P2 checks that the count stays at 0 at each rate.
+- The dry run also prints the TX rate range of the device.
 - Logs the file name, sha256 and the sidecar parameters.
 - Without `--waveform` the CW path is unchanged.
 - The offline tests (`scripts/test_t4_jammer.py`, stand-in `uhd`) get cases
@@ -245,9 +260,15 @@ All changes are tested offline before P1, as in T4 and T5.
 ### 4.3 `scripts/t3_phase.py` (extension)
 
 - `--band OFFSET,WIDTH`: power of x1, x2 (raw) or y, x1 (`--cap y`) in a band
-  relative to -delta, minus the noise in the same band from a reference
-  capture. Gives the wideband null depth = band power in x1 over band power
-  in y, after noise subtraction.
+  relative to -delta (Hann-averaged periodogram, dBFS like p1 / p2), phase
+  and coherence of the band cross-spectrum, and its phase slope in deg/MHz
+  (fit to 32 sub-band sums; a delay tau gives -360 tau x 1e6 deg/MHz).
+  `--band-ref P1,P2`: the noise in the same band from a noise-only run;
+  then the excess powers and `band_ratio_db` = jammer in x1 over jammer in
+  y with `--cap y`, the wideband null depth. Selftest: slope within
+  0.07 deg/MHz of 1.2 ns in one capture with the jammer 14 dB over the noise
+  in the band (std about 0.06 per capture), within 0.02 deg/MHz of 20 ns;
+  ratio and excess within 0.02 dB; a 40 dB null read as 40.0 dB.
 - `--save DIR`: raw captures as `.npy` with the settings in a JSON sidecar,
   for the offline analysis of Section 4.5 (to `tmp/t5b_cap/`, git-ignored;
   only derived results are committed).
@@ -275,7 +296,41 @@ From raw x1 / x2 captures with a noise jammer and GPS off:
 
 No change. Group W uses `--fs 30720000 --int-len 30720` (options exist).
 
+### P0 state (2026-11-18)
+
+Written and tested offline, no hardware:
+- `scripts/t5b_waveform.py`, tests `scripts/test_t5b_waveform.py` (12
+  tests, about 1 s): 99 % bandwidth within 2 % for 0.1 to 2 MHz noise, chirp
+  instantaneous frequency, chip boundaries, main-lobe filter, pulse gate and
+  duty, whole periods, loop continuity of an offset tone, refusal on
+  clipping, sidecar sha256. Default constant-envelope level -6.02 dBFS (the
+  T4/T5 CW amplitude 0.5), noise -15 dBFS. Example crest factors: noise 11
+  to 12 dB, filtered PN 2.4 dB, chirp and CW 0 dB.
+- `scripts/t4_jammer.py --waveform --lo-offset` and underflow count; tests
+  `scripts/test_t4_jammer.py` now 23 (9 new: refusals, dry run, the sent
+  samples equal the file looped in order across the wrap, LO offset not
+  taken ends with `JAMMER OFF`, CW path unchanged, underflows counted).
+- `scripts/t3_phase.py --band --band-ref --save`; `--seq selftest` passes
+  with the band checks.
+- `scripts/t5b_stap.py`; `--selftest` (about 8 s): tau 1.201 ns for 1.2 ns,
+  single-weight null 47.2 dB at 2 MHz against 47.2 dB from Section 2.3,
+  3 taps 58.7 dB, delay removed 67.9 dB, array delay 58.7 dB against 58.8.
+  A run on synthetic files through the CLI with the jammer only 17 dB over
+  the total noise gives 33.6 dB for every case: there the null is limited by
+  J/N (as the T4/T5 model, about 2 x J/N - 2 dB), not by the delay.
+  **So the S runs need the jammer near its clip onset** (J/N60 about 30 for
+  noise) for the delay limit to show at 1 and 2 MHz; at 0.1 and 0.5 MHz the
+  J/N limit will dominate.
+- `requirements.txt`: matplotlib 3.10.0 added (PSD PNG of the generator,
+  plot of `t5b_stap.py`); not yet installed in `.venv/` (user).
+
 ### 4.7 Checks in P0 (no RF)
+
+Not done on 2026-11-18: no Pluto, B205mini or u-blox was connected to the
+host. Note for the B205mini: a dry run does not tune, so whether the device
+honours `lo_off` is only seen in the first P2 run with the go; the script
+checks the RF frequency read back and stops if it is not taken.
+
 
 - B205mini: TX rate range and the exact rates in Section 2.5; behaviour of
   `lo_off` (UHD dry run, nothing streamed).

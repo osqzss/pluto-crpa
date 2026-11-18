@@ -39,16 +39,29 @@ class _Range:
     def step(self): return self.c
 
 class _Res:
-    def __init__(self, f): self.actual_rf_freq, self.actual_dsp_freq = f, 0.0
+    def __init__(self, f, lo=0.0):
+        if lo is None or flag("ignore_lo_off"):
+            lo = 0.0
+        self.actual_rf_freq, self.actual_dsp_freq = f + lo, -lo
 
 class _Stream:
-    def __init__(self): self.n = 0
+    def __init__(self): self.n = 0; self.ev = 0
+    def recv_async_msg(self, md, timeout):
+        if flag("underflows") and self.ev < 3:
+            self.ev += 1
+            md.event_code = types.TXMetadataEventCode.underflow
+            return True
+        time.sleep(0.01)
+        return False
     def send(self, buf, md, timeout=0.1):
         if md.end_of_burst:
             rec("eob")
             return buf.shape[1]
         if md.start_of_burst:
             rec("sob", ampl=float(abs(buf[0, 0])))
+        if flag("record_data"):
+            with open(os.path.join(D, "data"), "ab") as f:
+                f.write(buf.astype("complex64").tobytes())
         self.n += 1
         if flag("fail_send") and self.n > 3:
             raise RuntimeError("fake send failure")
@@ -65,6 +78,7 @@ class _Usrp:
     def get_tx_gain_range(self, ch): return _Range(0.0, 89.75, 0.25)
     def get_tx_antennas(self, ch): return ["TX/RX"]
     def get_tx_freq_range(self, ch): return _Range(22e6, 6e9)
+    def get_tx_rates(self, ch): return _Range(1e5, 61.44e6)
     def set_tx_gain(self, g, ch):
         rec("gain", gain=g)
         if not flag("stuck_gain"):
@@ -74,7 +88,10 @@ class _Usrp:
     def get_tx_antenna(self, ch): return self.ant
     def set_tx_rate(self, r, ch): self.rate = r; rec("rate", rate=r)
     def get_tx_rate(self, ch): return self.rate
-    def set_tx_freq(self, req, ch): self.freq = req.f; rec("freq", freq=req.f); return _Res(req.f)
+    def set_tx_freq(self, req, ch):
+        self.freq = req.f
+        rec("freq", freq=req.f, lo_off=req.lo)
+        return _Res(req.f, req.lo)
     def get_tx_freq(self, ch): return self.freq
     def get_tx_stream(self, sa): rec("stream"); return _Stream()
 
@@ -82,7 +99,13 @@ class _MD:
     def __init__(self): self.start_of_burst = False; self.end_of_burst = False
 
 class _TR:
-    def __init__(self, f): self.f = f
+    def __init__(self, f, lo=None): self.f, self.lo = f, lo
+
+class _AMD:
+    def __init__(self): self.event_code = None
+
+class _Codes:
+    burst_ack, underflow, seq_error, time_error, underflow_in_packet, seq_error_in_packet = 1, 2, 4, 8, 16, 32
 
 class usrp:
     MultiUSRP = _Usrp
@@ -92,6 +115,8 @@ class usrp:
 class types:
     TXMetadata = _MD
     TuneRequest = _TR
+    TXAsyncMetadata = _AMD
+    TXMetadataEventCode = _Codes
 '''
 
 ON = ["--on", "--ext-att", "60", "--max-gain", "50"]
@@ -193,6 +218,7 @@ class DryRun(Base):
         self.assertNotIn("JAMMER OFF", out)
         ops = [x["op"] for x in self.calls()]
         self.assertEqual(ops, ["open", "gain", "gain"])
+        self.assertIn("TX rate range", out)
         self.assertTrue(all(x["gain"] == 0.0 for x in self.calls() if x["op"] == "gain"))
 
     def test_gain_outside_device_range(self):
@@ -292,6 +318,13 @@ class Transmit(Base):
         self.assertIn("JAMMER OFF NOT CONFIRMED", out)
         self.assertIn("Unplug", out)
 
+    def test_underflows_counted(self):
+        self.flag("underflows")
+        rc, out, err = self.run_j(ON + ["--gain", "30", "--start-now", "--schedule", "0.5:quit"], stdin=None)
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("underflows 3", out)
+        self.assert_off(out)
+
     def test_log_file(self):
         log = os.path.join(self.d, "j.txt")
         rc, out, err = self.run_j(ON + ["--gain", "30", "--log", log], stdin=b"quit\n")
@@ -300,6 +333,95 @@ class Transmit(Base):
             text = f.read()
         self.assertEqual(text, out)
         self.assertIn("ext-att 60 dB (as stated), max-gain 50 dB", text)
+
+
+class Waveform(Base):
+    def make_wave(self, n=25000, rate=4e6, bad_sha=False, kind="noise"):
+        import hashlib
+        import numpy as np
+        rng = np.random.default_rng(3)
+        q = rng.integers(-8000, 8000, 2 * n).astype("<i2")
+        data = q.tobytes()
+        base = os.path.join(self.d, "w")
+        with open(base + ".sc16", "wb") as f:
+            f.write(data)
+        side = {"rate": rate, "n": n, "kind": kind, "rms_dbfs": -15.0, "crest_db": 10.0, "bw99_hz": 1e6,
+                "sha256": "0" * 64 if bad_sha else hashlib.sha256(data).hexdigest()}
+        with open(base + ".json", "w") as f:
+            json.dump(side, f)
+        return base + ".sc16", q
+
+    def test_refusals(self):
+        path, _ = self.make_wave()
+        for extra, text in ((["--ampl", "0.5"], "not used with --waveform"),
+                            (["--rate", "4e6"], "not used with --waveform"),
+                            (["--lo-offset", "31e6"], "--lo-offset")):
+            rc, out, err = self.run_j(["--waveform", path] + extra)
+            self.assertEqual(rc, 2, out + err)
+            self.assertIn(text, err)
+        path, _ = self.make_wave(bad_sha=True)
+        rc, out, err = self.run_j(["--waveform", path])
+        self.assertEqual(rc, 2)
+        self.assertIn("sha256", err)
+        rc, out, err = self.run_j(["--waveform", os.path.join(self.d, "missing.sc16")])
+        self.assertEqual(rc, 2)
+        with open(path, "ab") as f:
+            f.write(b"\0\0\0\0")
+        rc, out, err = self.run_j(["--waveform", path])
+        self.assertEqual(rc, 2)
+        self.assertEqual(self.calls(), [])
+
+    def test_dry_run(self):
+        path, _ = self.make_wave()
+        rc, out, err = self.run_j(["--waveform", path, "--lo-offset=-6e6", "--gain", "30"])
+        self.assertEqual(rc, 0, out + err)
+        self.assertIn("waveform %s: 25000 samples at 4000000 Hz" % path, out)
+        self.assertIn("sidecar: ", out)
+        self.assertIn("LO offset -6e+06 Hz requested", out)
+        self.assertEqual([x["op"] for x in self.calls()], ["open", "gain", "gain"])
+
+    def test_loops_the_file_in_order(self):
+        self.flag("record_data")
+        path, q = self.make_wave()
+        p = self.popen(ON + ["--waveform", path, "--gain", "30", "--lo-offset=-6e6"])
+        dpath = os.path.join(self.d, "data")
+        deadline = time.time() + 20
+        while time.time() < deadline:                   # until the file has gone out more than twice
+            if os.path.exists(dpath) and os.path.getsize(dpath) > 8 * 2.5 * len(q) / 2:
+                break
+            time.sleep(0.05)
+        out, err = p.communicate(b"quit\n", timeout=10)
+        out, err, rc = out.decode(), err.decode(), p.returncode
+        self.assertEqual(rc, 0, out + err)
+        self.assert_off(out)
+        import numpy as np
+        data = np.fromfile(os.path.join(self.d, "data"), dtype=np.complex64)
+                                                          # (the end-of-burst sample is not recorded)
+        want = (q[0::2] + 1j * q[1::2]).astype(np.complex64) / 32768
+        self.assertGreater(len(data), 2 * len(want))      # wrapped at least twice
+        reps = int(np.ceil(len(data) / len(want))) + 1
+        self.assertTrue(np.array_equal(data, np.tile(want, reps)[:len(data)]))
+        f = [x for x in self.calls() if x["op"] == "freq"][0]
+        self.assertEqual((f["freq"], f["lo_off"]), (1575620000.0, -6e6))
+        self.assertEqual([x["rate"] for x in self.calls() if x["op"] == "rate"], [4e6])
+        self.assertIn("waveform w.sc16, LO offset -6e+06 Hz", out)
+
+    def test_lo_offset_not_taken_is_an_error(self):
+        self.flag("ignore_lo_off")
+        path, _ = self.make_wave()
+        rc, out, err = self.run_j(ON + ["--waveform", path, "--gain", "30", "--lo-offset=-6e6"], stdin=b"")
+        self.assertEqual(rc, 1)
+        self.assertIn("LO offset not taken", out)
+        self.assertIn("JAMMER OFF", out)
+        self.assertEqual(self.calls()[-1], {"op": "gain", "gain": 0.0})
+
+    def test_cw_path_unchanged(self):
+        rc, out, err = self.run_j(ON + ["--gain", "30"], stdin=b"quit\n")
+        self.assertEqual(rc, 0, out + err)
+        f = [x for x in self.calls() if x["op"] == "freq"][0]
+        self.assertIsNone(f["lo_off"])                     # plain TuneRequest(freq)
+        self.assertEqual([x["rate"] for x in self.calls() if x["op"] == "rate"], [1e6])
+        self.assertIn("ampl 0.5", out)
 
 
 if __name__ == "__main__":

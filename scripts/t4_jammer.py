@@ -24,12 +24,25 @@ On quit, end of input, a "quit" step, any error and SIGINT/TERM/HUP the script
 ends the burst, sets the gain to the minimum, closes the device and logs
 "JAMMER OFF". After SIGKILL or a crash the state is unknown: unplug the B205mini.
 
+T5b (docs/t5b_plan.md, Section 4.2):
+  --waveform FILE.sc16  loop this file (t5b_waveform.py) instead of the constant
+                        baseband. The JSON sidecar next to it (FILE.json) gives the
+                        rate and sha256; both are checked. --freq is then the centre
+                        of the waveform; --ampl and --rate are not used. Samples are
+                        sent as fc32 (int16 / 32768), as in the CW path.
+  --lo-offset HZ        tune with uhd.types.TuneRequest(freq, lo_offset): the LO at
+                        freq + lo_offset, the DUC shifts back. RF and DSP frequencies
+                        are read back and checked. Default 0 (plain TuneRequest).
+  TX underflows and sequence errors from the async messages are counted and
+  logged on every STATE and STATUS line and at the end.
+
 Uses the UHD Python API (python3-uhd), so it runs with the system Python.
 Usage: scripts/t4_jammer.py --on --ext-att 60 --max-gain 60 --gain off \
            --schedule "180:30,240:40,300:off" --log results/t4_X_jammer.txt < fifo
 """
 import argparse
 import datetime
+import json
 import os
 import select
 import signal
@@ -40,6 +53,7 @@ import time
 L1 = 1575420000
 MIN_EXT_ATT = 40.0
 BUF = 10000          # samples per send call
+MAX_LO_OFFSET = 30e6
 
 
 def parse_state(text):
@@ -75,12 +89,43 @@ def parse_schedule(text):
     return steps
 
 
+def load_waveform(path):
+    """Read FILE.sc16 and FILE.json; check size and sha256. Returns (complex64 array
+    of shape (1, n), sidecar dict). ValueError on any mismatch."""
+    import hashlib
+    if not path.endswith(".sc16"):
+        raise ValueError("--waveform needs a .sc16 file")
+    side_path = path[:-len(".sc16")] + ".json"
+    try:
+        with open(side_path) as f:
+            side = json.load(f)
+        with open(path, "rb") as f:
+            data = f.read()
+    except OSError as e:
+        raise ValueError("waveform: %s" % e)
+    for key in ("rate", "n", "sha256"):
+        if key not in side:
+            raise ValueError("sidecar %s has no '%s'" % (side_path, key))
+    if len(data) != 4 * side["n"]:
+        raise ValueError("waveform has %d bytes, sidecar says %d samples" % (len(data), side["n"]))
+    if hashlib.sha256(data).hexdigest() != side["sha256"]:
+        raise ValueError("waveform sha256 does not match the sidecar")
+    import numpy as np
+    q = np.frombuffer(data, dtype="<i2").astype(np.float32) / 32768.0
+    buf = np.empty((1, side["n"]), dtype=np.complex64)
+    buf[0].real = q[0::2]
+    buf[0].imag = q[1::2]
+    return buf, side
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--args", default="serial=3297659", help="UHD device address")
     ap.add_argument("--freq", type=float, default=L1 + 200e3, help="CW frequency in Hz")
-    ap.add_argument("--rate", type=float, default=1e6)
-    ap.add_argument("--ampl", type=float, default=0.5, help="digital amplitude, 0 < a <= 0.7")
+    ap.add_argument("--rate", type=float, default=None, help="sample rate (CW: default 1e6)")
+    ap.add_argument("--ampl", type=float, default=None, help="CW digital amplitude, 0 < a <= 0.7 (default 0.5)")
+    ap.add_argument("--waveform", default=None, help="T5b: loop this .sc16 file (sidecar .json)")
+    ap.add_argument("--lo-offset", type=float, default=0.0, help="T5b: LO offset in Hz")
     ap.add_argument("--ant", default="TX/RX")
     ap.add_argument("--gain", default="off", help="state at the start: gain in dB or off")
     ap.add_argument("--schedule", default="")
@@ -102,8 +147,22 @@ def main():
         refuse(str(e))
     if first == "quit":
         refuse("--gain quit makes no sense")
-    if not 0 < a.ampl <= 0.7:
-        refuse("--ampl %g is outside 0 to 0.7" % a.ampl)
+    wave, side = None, None
+    if a.waveform:
+        if a.ampl is not None or a.rate is not None:
+            refuse("--ampl and --rate are not used with --waveform (the file sets them)")
+        try:
+            wave, side = load_waveform(a.waveform)
+        except ValueError as e:
+            refuse(str(e))
+        a.rate = float(side["rate"])
+    else:
+        a.ampl = 0.5 if a.ampl is None else a.ampl
+        a.rate = 1e6 if a.rate is None else a.rate
+        if not 0 < a.ampl <= 0.7:
+            refuse("--ampl %g is outside 0 to 0.7" % a.ampl)
+    if abs(a.lo_offset) > MAX_LO_OFFSET:
+        refuse("--lo-offset %g Hz is beyond %g Hz" % (a.lo_offset, MAX_LO_OFFSET))
     if abs(a.freq - L1) > 2e6:
         refuse("--freq %.0f Hz is more than 2 MHz from L1" % a.freq)
     if a.on:
@@ -147,6 +206,7 @@ def main():
     rc = 0
     streaming = {"on": False}
     sender = {"thread": None, "run": False, "error": None, "sent": 0}
+    events = {"underflow": 0, "seq_error": 0, "other": 0, "run": False, "thread": None}
     gmin = None
     tx = None
     try:
@@ -169,35 +229,87 @@ def main():
         out("schedule: %s; start state %s; t0 %s" % (
             ", ".join("%g:%s" % (t, s) for t, s in steps) or "none", first,
             "at start" if a.start_now else "on the t0 command"))
+        if wave is not None:
+            out("waveform %s: %d samples at %.0f Hz (%.3f s), kind %s, rms %.2f dBFS, crest %.1f dB, "
+                "bw99 %.0f Hz, sha256 %s" % (
+                    a.waveform, side["n"], a.rate, side["n"] / a.rate, side.get("kind", "?"),
+                    side.get("rms_dbfs", float("nan")), side.get("crest_db", float("nan")),
+                    side.get("bw99_hz", float("nan")), side["sha256"]))
+            out("sidecar: %s" % json.dumps(side, sort_keys=True))
         if not a.on:
+            rates = usrp.get_tx_rates(0)
+            out("TX rate range %g to %g Hz; LO offset %g Hz requested" % (
+                rates.start(), rates.stop(), a.lo_offset))
+            if not rates.start() <= a.rate <= rates.stop():
+                raise RuntimeError("rate %g Hz is outside the device range" % a.rate)
             out("dry run: nothing tuned, nothing streamed")
             return 0
 
         usrp.set_tx_antenna(a.ant, 0)
         usrp.set_tx_rate(a.rate, 0)
-        res = usrp.set_tx_freq(uhd.types.TuneRequest(a.freq), 0)
+        if a.lo_offset:
+            res = usrp.set_tx_freq(uhd.types.TuneRequest(a.freq, a.lo_offset), 0)
+        else:
+            res = usrp.set_tx_freq(uhd.types.TuneRequest(a.freq), 0)
         rate = usrp.get_tx_rate(0)
         freq = usrp.get_tx_freq(0)
         out("tuned: target %.1f Hz, actual RF %.1f Hz, DSP %.3f Hz, reads %.1f Hz; rate %.1f; antenna %s" % (
             a.freq, res.actual_rf_freq, res.actual_dsp_freq, freq, rate, usrp.get_tx_antenna(0)))
         if abs(freq - a.freq) > 100 or abs(rate - a.rate) > 1:
             raise RuntimeError("frequency or rate not as requested")
-        out("ext-att %g dB (as stated), max-gain %g dB, ampl %g" % (a.ext_att, a.max_gain, a.ampl))
+        if a.lo_offset and abs(res.actual_rf_freq - (a.freq + a.lo_offset)) > 1e3:
+            raise RuntimeError("LO at %.1f Hz, wanted %.1f Hz (LO offset not taken)" % (
+                res.actual_rf_freq, a.freq + a.lo_offset))
+        if wave is not None:
+            out("ext-att %g dB (as stated), max-gain %g dB, waveform %s, LO offset %g Hz" % (
+                a.ext_att, a.max_gain, os.path.basename(a.waveform), a.lo_offset))
+        else:
+            out("ext-att %g dB (as stated), max-gain %g dB, ampl %g" % (a.ext_att, a.max_gain, a.ampl))
         tx = usrp.get_tx_stream(uhd.usrp.StreamArgs("fc32", "sc16"))
-        buf = np.full((1, BUF), a.ampl, dtype=np.complex64)
+        if wave is None:
+            chunks = [np.full((1, BUF), a.ampl, dtype=np.complex64)]
+        else:
+            chunks = [np.ascontiguousarray(wave[:, i:i + BUF]) for i in range(0, wave.shape[1], BUF)]
 
         def send_loop():
             md = uhd.types.TXMetadata()
             md.start_of_burst = True
+            k = 0
             try:
                 while sender["run"]:
+                    buf = chunks[k]
+                    k = (k + 1) % len(chunks)
                     n = tx.send(buf, md, 1.0)
                     md.start_of_burst = False
-                    if n != BUF:
-                        raise RuntimeError("send returned %d of %d samples" % (n, BUF))
+                    if n != buf.shape[1]:
+                        raise RuntimeError("send returned %d of %d samples" % (n, buf.shape[1]))
                     sender["sent"] += n
             except Exception as e:  # reported by the main loop
                 sender["error"] = "%s: %s" % (type(e).__name__, e)
+
+        def event_loop():
+            md = uhd.types.TXAsyncMetadata()
+            codes = uhd.types.TXMetadataEventCode
+            while events["run"]:
+                try:
+                    if not tx.recv_async_msg(md, 0.1):
+                        continue
+                except Exception:
+                    continue
+                if md.event_code in (codes.underflow, codes.underflow_in_packet):
+                    events["underflow"] += 1
+                elif md.event_code in (codes.seq_error, codes.seq_error_in_packet):
+                    events["seq_error"] += 1
+                elif md.event_code != codes.burst_ack:
+                    events["other"] += 1
+
+        def ev():
+            return "underflows %d, seq errors %d, other events %d" % (
+                events["underflow"], events["seq_error"], events["other"])
+
+        events["run"] = True
+        events["thread"] = threading.Thread(target=event_loop, daemon=True)
+        events["thread"].start()
 
         def burst_end():
             """Stop the sender and end the burst. Safe to call in any state."""
@@ -218,7 +330,7 @@ def main():
             if state == "off":
                 burst_end()
                 usrp.set_tx_gain(gmin, 0)
-                out("STATE off (%s); gain reads %g dB" % (why, usrp.get_tx_gain(0)))
+                out("STATE off (%s); gain reads %g dB; %s" % (why, usrp.get_tx_gain(0), ev()))
                 return
             if state > a.max_gain or not gmin <= state <= gmax:
                 out("REFUSED gain %g dB (max-gain %g, device %g to %g)" % (state, a.max_gain, gmin, gmax))
@@ -232,7 +344,7 @@ def main():
                 sender["run"] = True
                 sender["thread"] = threading.Thread(target=send_loop, daemon=True)
                 sender["thread"].start()
-            out("STATE gain %g dB (%s)" % (got, why))
+            out("STATE gain %g dB (%s); %s" % (got, why, ev()))
 
         apply(first, "start")
         t0 = None
@@ -292,12 +404,12 @@ def main():
                 elif cmd == "note":
                     out("NOTE " + rest)
                 elif cmd == "status":
-                    out("STATUS streaming %s, gain reads %g dB, samples sent %d, t %s" % (
+                    out("STATUS streaming %s, gain reads %g dB, samples sent %d, t %s; %s" % (
                         streaming["on"], usrp.get_tx_gain(0), sender["sent"],
-                        "%.1f s" % (time.time() - t0) if t0 is not None else "before t0"))
+                        "%.1f s" % (time.time() - t0) if t0 is not None else "before t0", ev()))
                 else:
                     out("unknown command '%s'" % cmd)
-        out("stopping: %s" % stop["why"])
+        out("stopping: %s; samples sent %d; %s" % (stop["why"], sender["sent"], ev()))
     except Exception as e:
         out("ERROR: %s: %s" % (type(e).__name__, e))
         rc = 1
@@ -316,6 +428,9 @@ def main():
                     failed.append("gain reads %g dB" % got)
             except Exception as e:
                 failed.append("gain: %s" % e)
+        if events["thread"] is not None:
+            events["run"] = False
+            events["thread"].join(1.0)
         tx = None
         usrp = None
         if failed:
