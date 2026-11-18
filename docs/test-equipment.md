@@ -134,6 +134,15 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
   65 / 75 dB give J/N -9 / 1 / 10 to 11 / 20 to 21 / 30 dB in 9 MHz at the
   Pluto with RX gain 60 dB (`docs/t4_plan.md`, Section 2.2); the last 5 dB
   of gain give 4.6 dB. The line is 5.6 kHz below nominal at the Pluto.
+- T5 (2026-11-18, `docs/t5_plan.md`, Sections 2.0b and 2.0c): the floor of
+  `--ext-att` is 40 dB (AD9363 RF input absolute maximum +2.5 dBm peak,
+  datasheet Rev. D, Table 10; worst case -27 dBm). Through 30 + 20 dB at RX
+  gain 60: gain 65 / 70 / 75 / 77.5 dB gives J/N60 30.0 / 35.0 / 39.5 /
+  41.9 dB, the ADC clips from 78 dB. Through 20 + 20 dB: 72.5 / 75 / 77.5 dB
+  give J/N60 47.1 / 49.5 / 51.8 dB. The line steps 2.2 to 2.6 dB per 2.5 dB
+  up to 85 dB. The jammer carries sidebands at +/-4 kHz and a floor that
+  rises up to +9.6 dB next to the line at J/N60 52 (both Pluto channels
+  alike).
 - After `off` and after the script exits no line is left at the Pluto, on
   both days and after every run: the B205mini need not be unplugged between
   runs. After SIGKILL or a crash the state is unknown: unplug it.

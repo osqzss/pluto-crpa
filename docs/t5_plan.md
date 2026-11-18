@@ -5,17 +5,12 @@ jammer power sweep, pass criterion "J/S improvement vs. no suppression".
 The setup is the T4 setup (`docs/t4_plan.md`, Section 2), and the T4 rules,
 tools and run procedure apply unless this file says otherwise.
 
-Status: **decided by the user (2026-11-18): all proposals of Section 9 as
-written.** **P0 done** (2026-11-18): tools tested offline and `crpa_ctl`
-write check on the Pluto (Section 4, "P0 state"); recabled to V3 by the
-user, jammer attenuators 30 + 20 dB. **P1 done** (2026-11-18, Section 2.0).
-**P2 at gain 60 done** (Section 2.0b): clip onset J/N60 42.2 dB at B205mini
-78 dB, no compression before it, D 100.9 deg from P1 and P2. **P3 done**:
-D 100.5 deg with both on, predicted C/N0 change with PI +0.4 dB. **G60-N,
-G60-F, G60-P done** (2026-11-18, `results/t5.md`): improvement 26 to 29 dB
-at the 6 dB point, more than 14 to 21 dB at the fix-loss point (PI kept the
-fix beyond the clip onset). **P2 at gain 50 done** (Section 2.0c): gain
-step 9.88 dB, clip onset J/N60 52.1 dB. Next: G50-N, G50-F, G50-P.
+Status: **done (2026-11-18)**, results and the summary in `results/t5.md`.
+All proposals of Section 9 decided by the user as written. P0 to P3, the
+gain-60 runs (G60-N, G60-F, G60-P), P2 at gain 50 and the gain-50 runs
+(G50-N, G50-F, G50-P) done. J/S improvement 26 to 29 dB (gain 60) and 36 to
+39 dB (gain 50) at the 6 dB point, more than 14 to 21 / 28 to 31 dB at the
+fix-loss point. Bench state at the end: V3, jammer attenuators 20 + 20 dB.
 
 All levels below are estimates from T3, T4 and the model until P1 and P2
 have measured them.
