@@ -544,3 +544,67 @@ same file and gain (`t5b_stap.py --taps 1`, band 2.4 MHz).
   the band (PN, CH-f, CH-m up to 2.0 dB at J/N60 40.5); beyond the onset PI
   no longer helps: y rises by 13 to 25 dB of the band noise at the first +
   step (y up to -18 dBFS), as CW in T5. PN fails first (crest factor).
+
+## N-d: pulsed CW and pulsed N1 with PI, RX-only (2026-11-21, 15:17 to 15:26)
+
+`crpa_ctl run --mode pi --load 24 --cap-sel --duration 1500 --out
+/tmp/t5b_Nd` (dry run, by the user, alpha 0; one dry run for both parts,
+safe state confirmed, no FRAME_ERR). bladeRF unplugged. P-CW at gains 55 /
+65 / 75 (in the pulse J/N60 19.5 / 29.5 / about 39), P-N1 at 65 / 75 (20 /
+30); duty 10 %; 10 captures per step, `--cap y --band 0,1.2e6 --save`. Logs
+`results/t3_t5b_N-d_*_20261121-15*.txt`,
+`results/t5b_N-d_*_jammer_20261121-15*.txt`, `results/t5b_N-d.txt`,
+`results/t5b_N-d_every100.csv`. No clipping, no underflow, `JAMMER OFF`
+after every file.
+
+**Stop and rerun.** The first part (P-CW 0.1, 1, 10 ms) stopped at
+15:19:16 on the runner's check "y at least 3 dB under x1 at the first step"
+for P-CW-10ms: y was 0.3 dB under x1. Not a fault (PI was active, see below):
+the check assumed that PI nulls every waveform. Jammer stopped by the runner,
+`JAMMER OFF` confirmed. Rerun after the user's go (15:21 to 15:26), same dry
+run: P-N1 0.1 / 1 ms with the check, then P-CW 10 / 100 ms and P-N1 10 /
+100 ms without it.
+
+Mean levels over the captures (x1 J/N60 is the mean, 10 dB under the pulse):
+
+| File (pulse length) | Gains | y (dBFS) | Result |
+|---|---|---|---|
+| P-CW-0.1ms (10 us), P-CW-1ms (100 us) | 55 / 65 / 75 | -39.9 / -39.7 / -39.7 | y at the two-channel noise: nulled |
+| P-N1-0.1ms, P-N1-1ms | 65 / 75 | -39.8 / -39.7 | nulled |
+| P-CW-10ms (1 ms) | 55 / 65 / 75 | -38.3 / -31.9 / -25.1 | mostly not nulled |
+| P-N1-10ms (1 ms) | 65 / 75 | -32.7 / -24.5 | not nulled (y 1 to 2 dB under x1) |
+| P-CW-100ms (10 ms) | 55 / 65 / 75 | -41.4 / -38.2 / -32.1 | nulled except the onset |
+| P-N1-100ms (10 ms) | 65 / 75 | -39.4 / -33.6 | nulled except the onset |
+
+**Per block (crpa_ctl CSV, top step, alpha 0):**
+
+| File | Blocks per pulse | First block of the pulse: x1 / y (dBFS) | Later blocks: x1 / y | Block after the pulse: \|w2\| |
+|---|---|---|---|---|
+| P-CW-10ms | 2 (1025 of 1047 pulses), 1 | -17.5 / -18.4 (0.9 dB) | -3.6 / -35.8 | 0.10 |
+| P-N1-10ms | 2 (1024 of 1046), 1 | -13.9 / -15.0 (1.1 dB) | -18.7 / -39.7 | 0.12 |
+| P-CW-100ms | 11 (93 of 107), 9 to 10 | -13.9 / -14.7 (0.8 dB) | -3.5 / -39.3 to -39.4 | 0.09 |
+| P-N1-100ms | 11 (90 of 106), 8 to 10 | -13.7 / -14.4 (0.7 dB) | -12.7 / -39.5 | 0.08 |
+
+(y "-39.4" is the two-channel noise with \|w2\| = 1, as in the continuous
+runs: the jammer is under the noise in those blocks.)
+
+- **The weight loop lags by exactly one block:** the first block that holds
+  any part of a pulse is passed with less than 1.1 dB of suppression; from
+  the second block on, the pulse is nulled as a continuous jammer. With
+  alpha 0, one jammer-free block brings the weights back to about [1, 0]
+  (\|w2\| 0.08 to 0.12), so every pulse starts unprotected.
+- **What leaks is the pulse energy in its first block.** 1 ms pulses
+  (10 ms period) straddle two blocks; the split depends on how the pulses
+  fall on the 1 ms block grid, which drifts only slowly (independent
+  clocks): in this run P-CW-10ms had most of the pulse in the second block
+  (mean y -25 dBFS, about 12 dB suppression overall), P-N1-10ms most in the
+  first (1 to 2 dB). 10 ms pulses leak one block in ten (overall about
+  17 to 24 dB). Pulses of 100 us and shorter (0.1 and 1 ms periods) are in
+  every block and are nulled as their mean power.
+- Section 5 predicted up to about 2 leaked blocks per pulse; measured: 1.
+  For a 1 ms pulse that is most of the pulse. Whether `--alpha 0.9` (R
+  smoothed, decay 0.9 per block) holds the weights over the 9 off blocks of
+  the 10 ms period (jammer part of R still 0.39 of the pulse value at the
+  next onset) is the question of the alpha 0.9 run; over the 90 off blocks of
+  the 100 ms period it decays to 8e-5, so the onset block would leak there
+  as with alpha 0.
