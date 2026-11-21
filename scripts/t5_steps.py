@@ -21,7 +21,7 @@ constant within the steps (least within-step variance). The offset found and
 the remaining scatter are printed; --csv-offset S sets it by hand instead
 (host time of CSV t_s = 0, in seconds from T0).
 
---cal "GAIN:JN60,..." gives J/N60 per B205mini gain (from P2), printed as a
+--cal "GAIN:JN60,..." gives J/N60 per jammer USRP gain (from P2), printed as a
 column. Without it the column is the x1 level over the reference window.
 
 Usage: scripts/t5_steps.py --jammer results/t5_G60F_jammer.txt \

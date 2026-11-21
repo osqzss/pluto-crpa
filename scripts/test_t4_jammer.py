@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Tests of scripts/t4_jammer.py without a B205mini and without RF.
+"""Tests of scripts/t4_jammer.py without a USRP and without RF.
 
 The uhd module is replaced by a stand-in that records every call. The stand-in
 only has the calls the script uses; it says nothing about the real device.
@@ -74,7 +74,7 @@ class _Usrp:
             raise RuntimeError("LookupError: KeyError: No devices found for ----->")
         rec("open", args=args)
         self.gain, self.freq, self.rate, self.ant = 40.0, 0.0, 0.0, "TX/RX"
-    def get_pp_string(self): return "Fake B205mini"
+    def get_pp_string(self): return "Fake B206mini"
     def get_tx_gain_range(self, ch): return _Range(0.0, 89.75, 0.25)
     def get_tx_antennas(self, ch): return ["TX/RX"]
     def get_tx_freq_range(self, ch): return _Range(22e6, 6e9)

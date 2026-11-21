@@ -1,13 +1,16 @@
 #!/usr/bin/python3
-"""T4: CW jammer on the USRP B205mini, conducted use only (docs/t4_plan.md).
+"""T4: CW jammer on the USRP B206mini, conducted use only (docs/t4_plan.md).
 
-Sends a constant baseband, so the CW is on the B205mini LO at --freq. The level is
+The B206mini (serial 352F132, UHD >= 4.9) replaced the B205mini (serial 3297659)
+on 2026-11-21 (docs/b206mini_check.md); use --args serial=3297659 for the old unit.
+
+Sends a constant baseband, so the CW is on the USRP LO at --freq. The level is
 set by the analog TX gain; the digital amplitude stays fixed.
 
 Without --on this is a dry run: the device is opened, its TX gain range, antennas
 and frequency range are read and checked against the request, and nothing is tuned
 or streamed. With --on it transmits and needs:
-  --ext-att DB    attenuators between the B205mini and the splitter, as cabled
+  --ext-att DB    attenuators between the USRP and the splitter, as cabled
                   (the operator's statement; refused below 40, T5 decision 3)
   --max-gain DB   highest TX gain this run may use; any higher step is refused
 
@@ -22,7 +25,7 @@ Stdin may be a FIFO. End of input is a quit.
 
 On quit, end of input, a "quit" step, any error and SIGINT/TERM/HUP the script
 ends the burst, sets the gain to the minimum, closes the device and logs
-"JAMMER OFF". After SIGKILL or a crash the state is unknown: unplug the B205mini.
+"JAMMER OFF". After SIGKILL or a crash the state is unknown: unplug the USRP.
 
 T5b (docs/t5b_plan.md, Section 4.2):
   --waveform FILE.sc16  loop this file (t5b_waveform.py) instead of the constant
@@ -120,7 +123,7 @@ def load_waveform(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--args", default="serial=3297659", help="UHD device address")
+    ap.add_argument("--args", default="serial=352F132", help="UHD device address")
     ap.add_argument("--freq", type=float, default=L1 + 200e3, help="CW frequency in Hz")
     ap.add_argument("--rate", type=float, default=None, help="sample rate (CW: default 1e6)")
     ap.add_argument("--ampl", type=float, default=None, help="CW digital amplitude, 0 < a <= 0.7 (default 0.5)")
@@ -434,7 +437,7 @@ def main():
         tx = None
         usrp = None
         if failed:
-            out("JAMMER OFF NOT CONFIRMED: " + "; ".join(failed) + ". Unplug the B205mini.")
+            out("JAMMER OFF NOT CONFIRMED: " + "; ".join(failed) + ". Unplug the USRP.")
             rc = rc or 1
         elif a.on:
             out("JAMMER OFF: burst ended, gain at minimum, device closed")

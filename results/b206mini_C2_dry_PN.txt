@@ -1,0 +1,10 @@
+2026-11-21T04:20:27.329Z 1795234827.329 t4_jammer.py: --args serial=352F132 --waveform tmp/t5b/PN.sc16 --freq 1575420000 --lo-offset=-6e6 --log results/b206mini_C2_dry_PN.txt
+2026-11-21T04:20:27.329Z 1795234827.329 mode dry run, device 'serial=352F132'
+2026-11-21T04:20:28.928Z 1795234828.928 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T04:20:28.928Z 1795234828.928 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T04:20:28.928Z 1795234828.928 schedule: none; start state off; t0 on the t0 command
+2026-11-21T04:20:28.928Z 1795234828.929 waveform tmp/t5b/PN.sc16: 8184000 samples at 8184000 Hz (1.000 s), kind pn, rms -6.02 dBFS, crest 2.9 dB, bw99 1604454 Hz, sha256 8e5daf778e456c106a2b7de30bb8db2d1c632b6cffe5b35b2206b6deba7daabe
+2026-11-21T04:20:28.928Z 1795234828.929 sidecar: {"bw99_hz": 1604454.0, "bytes": 32736000, "centroid_hz": -3.951555579848523e-10, "chip_rate": 1023000.0, "command": "scripts/t5b_waveform.py pn --rate 8.184e6 --out tmp/t5b/PN", "created": "2026-11-18T05:16:09Z", "crest_db": 2.8786752072559008, "duty_measured": 1.0, "file": "PN.sc16", "format": "sc16 interleaved int16 I/Q, little endian", "full_scale": 32768.0, "generator": "t5b_waveform.py v1", "kind": "pn", "length": 1.0, "loop_period_samples": 8, "n": 8184000, "offset": 0.0, "peak_abs_iq": 22822, "peak_dbfs": -3.141924678529047, "pn_filter": true, "rate": 8184000.0, "rms_dbfs": -6.020599885784947, "rms_dbfs_on": -6.020599885784947, "rms_dbfs_target": -6.020599913279624, "samples_per_chip": 8, "seed": 1, "sha256": "8e5daf778e456c106a2b7de30bb8db2d1c632b6cffe5b35b2206b6deba7daabe"}
+2026-11-21T04:20:28.928Z 1795234828.929 TX rate range 31250 to 1.6e+07 Hz; LO offset -6e+06 Hz requested
+2026-11-21T04:20:28.928Z 1795234828.929 dry run: nothing tuned, nothing streamed
+2026-11-21T04:20:29.040Z 1795234829.040 device closed

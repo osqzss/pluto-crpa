@@ -116,6 +116,19 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
 
 ## 5. USRP B205mini (UHD)
 
+**Replaced by a B206mini on 2026-11-21** (serial `352F132`, name `B206i`,
+FW 8.0, FPGA 7.0, same image `usrp_b205mini_fpga.bin`). It needs UHD >= 4.9:
+UHD 4.10.0.0 is built from source (`scripts/build_uhd.sh`) and installed in
+`/usr/local`, next to the Ubuntu UHD 4.6 packages (kept for GNU Radio);
+tools in `/usr/local/bin`, Python module in
+`/usr/local/lib/python3.12/dist-packages`, images in
+`/usr/local/share/uhd/images`, udev rule
+`/etc/udev/rules.d/60-uhd-usrp-local.rules`. `t4_jammer.py` defaults to the
+B206mini. Enumeration and dry runs match the B205mini; the levels below
+(gain to J/N60, line offset, off-state) are B205mini values until the RF
+check C3 of `docs/b206mini_check.md` (results `results/b206mini_check.md`).
+This section is rewritten after C3.
+
 - UHD 4.6.0 from the Ubuntu packages (`uhd-host`
   4.6.0.0+ds1-5.1ubuntu0.24.04.1). FPGA images: `/usr/share/uhd/images`
   (the B205mini loads `usrp_b205mini_fpga.bin` at runtime).

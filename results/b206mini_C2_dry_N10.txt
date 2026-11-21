@@ -1,0 +1,10 @@
+2026-11-21T04:20:29.282Z 1795234829.283 t4_jammer.py: --args serial=352F132 --waveform tmp/t5b/N10.sc16 --freq 1575420000 --lo-offset=-6e6 --log results/b206mini_C2_dry_N10.txt
+2026-11-21T04:20:29.282Z 1795234829.283 mode dry run, device 'serial=352F132'
+2026-11-21T04:20:30.915Z 1795234830.915 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T04:20:30.915Z 1795234830.915 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T04:20:30.916Z 1795234830.916 schedule: none; start state off; t0 on the t0 command
+2026-11-21T04:20:30.916Z 1795234830.916 waveform tmp/t5b/N10.sc16: 8000000 samples at 16000000 Hz (0.500 s), kind noise, rms -15.00 dBFS, crest 11.9 dB, bw99 10000360 Hz, sha256 9991ec5398e45f1c02c0c005d663fe86f0f6ca12dfe4deabe3945214676320af
+2026-11-21T04:20:30.916Z 1795234830.916 sidecar: {"bw": 10000000.0, "bw99_hz": 10000360.0, "bytes": 32000000, "centroid_hz": 239.99492088456978, "command": "scripts/t5b_waveform.py noise --bw 10e6 --rate 16e6 --length 0.5 --out tmp/t5b/N10", "created": "2026-11-18T05:16:36Z", "crest_db": 11.935068474847519, "duty_measured": 1.0, "file": "N10.sc16", "format": "sc16 interleaved int16 I/Q, little endian", "full_scale": 32768.0, "generator": "t5b_waveform.py v1", "kind": "noise", "length": 0.5, "loop_period_samples": 1, "n": 8000000, "offset": 0.0, "peak_abs_iq": 22188, "peak_dbfs": -3.0649317447287476, "rate": 16000000.0, "rms_dbfs": -15.000000219576268, "rms_dbfs_on": -15.000000219576268, "rms_dbfs_target": -15.0, "seed": 1, "sha256": "9991ec5398e45f1c02c0c005d663fe86f0f6ca12dfe4deabe3945214676320af"}
+2026-11-21T04:20:30.916Z 1795234830.917 TX rate range 31250 to 1.6e+07 Hz; LO offset -6e+06 Hz requested
+2026-11-21T04:20:30.916Z 1795234830.917 dry run: nothing tuned, nothing streamed
+2026-11-21T04:20:31.028Z 1795234831.028 device closed

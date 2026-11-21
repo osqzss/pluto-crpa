@@ -1,0 +1,8 @@
+2026-11-21T04:21:01.065Z 1795234861.066 t4_jammer.py: --log results/b206mini_C2_dry_default.txt
+2026-11-21T04:21:01.065Z 1795234861.066 mode dry run, device 'serial=352F132'
+2026-11-21T04:21:02.613Z 1795234862.614 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T04:21:02.614Z 1795234862.614 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T04:21:02.614Z 1795234862.615 schedule: none; start state off; t0 on the t0 command
+2026-11-21T04:21:02.615Z 1795234862.615 TX rate range 31250 to 1.6e+07 Hz; LO offset 0 Hz requested
+2026-11-21T04:21:02.615Z 1795234862.615 dry run: nothing tuned, nothing streamed
+2026-11-21T04:21:02.727Z 1795234862.728 device closed
