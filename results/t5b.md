@@ -777,3 +777,60 @@ F-N1" is against the F-N1 reference window (-5.18 dB against T1), as T5.
   14.9 to 17.9 (F) to beyond 34.9: more than 17 to 20 dB.** Both lower
   bounds, limited by the jammer level (the B206mini gain of the + steps).
   T5 CW at gain 60: 26 to 29 dB and more than 14 to 21 dB.
+
+## F-N2: fixed w = [1, 0], N2 ladder to J/N60 +29.6, receiver run (2026-11-21, 16:24 to 16:45)
+
+As F-N1 with the longer ladder (decided after F-N1): idle check (1.63 dB),
+`bladegps` (carrier 36.7 dB, phase 167.64 deg), `crpa_ctl run --on --tx-att
+80 --min-tx-att 50 --mode fixed --w 1,0,0,0 --csv-every 10 --out
+/tmp/t5b_FN2` (user), cold start with `t0` (T0 1795245903.230), off to
+200 s, then N2 (`tmp/t5b/N2.sc16`) gain 32.5 to 74.5 in 3 dB steps (J/N60
+gain - 44.6; 74.5: 29.6 from the P2 table), `--max-gain 77.5`, off at
+1100 s, quit at 1194 s. The 30 s rule did not trigger. Files:
+`t5b_F-N2.ubx` (+ `.idx`), `t5b_F-N2_jammer.txt`, `t5b_F-N2_bladegps.txt`,
+`t5b_F-N2.txt`, `t5b_F-N2_every100.csv`, `t3_t5b_F-N2_{idle,gps}_*.txt`. No
+underflow, `JAMMER OFF`, safe state; no missed or saturated block.
+
+| Step | Gain | J/N60 | C/N0 against ref. | Against T1 | SVs used | 3D fix | AGC | Jamming ind. | x1 / y (dBFS) | Peak |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | off | - | 0 | -5.29 dB | 11 | 137 of 137 | 2106 | 112 to 125 | -42.00 / -42.00 | 70 |
+| 1 | 32.5 | -12.1 | -0.92 dB | -6.21 | 11 | 42 of 42 | 2106 | 114 to 124 | -41.79 | 68 |
+| 2 | 35.5 | -9.1 | -1.82 | -7.11 | 11 | 41 of 41 | 2106 | 113 to 123 | -41.59 | 71 |
+| 3 | 38.5 | -6.1 | -2.94 | -8.23 | 11 | 36 of 36 | 2028 | 102 to 112 | -41.23 | 73 |
+| 4 | 41.5 | -3.1 | -4.56 | -9.85 | 11 | 41 of 41 | 2028 | 101 to 110 | -40.58 | 77 |
+| 5 | 44.5 | -0.1 | -6.77 | -12.07 | 11 | 42 of 42 | 1872 | 80 to 86 | -39.52 | 89 |
+| 6 | 47.5 | 2.9 | -9.03 | -14.32 | 11 | 37 of 37 | 1872 | 80 to 85 | -37.96 | 102 |
+| 7 | 50.5 | 5.9 | -11.99 | -17.28 | 11 | 41 of 41 | 1482 | 32 to 65 | -35.79 | 137 |
+| 8 | 53.5 | 8.9 | -15.35 | -20.64 | 11 | 42 of 42 | 1326 | 25 to 48 | -33.33 | 188 |
+| 9 | 56.5 | 11.9 | -18.30 | -23.60 | 11 | 37 of 37 | 936 | 18 to 34 | -30.66 | 251 |
+| 10 | 59.5 | 14.9 | -21.54 | -26.83 | 11 | 42 of 42 | 780 | 15 to 32 | -27.80 | 340 |
+| 11 | 62.5 | 17.9 | -24.69 | -29.98 | 9 to 11 | 37 of 37 | 312 | 11 to 28 | -24.88 | 464 |
+| 12 | 65.5 | 20.9 | -27.33 | -32.62 | 7 to 11 | 43 of 43 | 156 | 10 to 35 | -21.94 | 617 |
+| 13 | 68.5 | 23.9 | -29.13 | -34.42 | 8 to 11 | 37 of 37 | 0 | 12 to 36 | -18.97 | 865 |
+| 14 | 71.5 | 26.9 | -29.70 | -34.99 | 6 to 11 | 43 of 43 | 0 | 14 to 48 | -16.31 | 1153 |
+| 15 | 74.5 | 29.6 | -30.10 | -35.39 | 7 to 11 | 37 of 37 | 0 | 16 to 58 | -13.38 | 1576 |
+| 16 | off | - | -0.08 | -5.37 | 11 | 75 of 75 | 2106 | 115 to 126 | -41.99 | 70 |
+
+(y equals x1 within 0.01 dB in every step: fixed w = [1, 0].)
+
+- **6 dB point without suppression: J/N60 -3.1 to -0.1 (about -1.2)**,
+  predicted -2 to 0; 2.3 dB later than N1. Up to J/N60 +18 N2 costs about
+  3.5 dB less C/N0 than N1 at the same J/N60 (17.9: -24.7 against -28.4).
+- **Fix: 3D in every window epoch up to J/N60 29.6.** At 29.6 the fix
+  dropped at once (9 SVs to none) 54 s into the step, at 1096.0 s, 4 s
+  before the jammer `off` (1099.8 s), and came back at 1101.1 s; too short
+  for the 30 s rule. **Fix-loss point for N2: about +27 to +30** (N1: +15
+  to +18).
+- **Above J/N60 +21 the reported C/N0 stops following the jammer** (steps
+  of 1.8 / 0.6 / 0.4 dB instead of 3), while x1 and y still rise 2.7 to 3.0
+  dB per step and the u-blox AGC is at its minimum (0) from +23.9. Per-SV
+  C/N0 (NAV-SAT, GPS): median 15 / 11 / 10 / 10 / 9 dB-Hz at 17.9 / 20.9 /
+  23.9 / 26.9 / 29.6, minima 1 to 4 dB-Hz, 11 SVs still tracked; this is
+  the floor of the u-blox C/N0 report, not a measure of the jammer. N1 at
+  14.9 / 17.9 / 20.9: median 15 / 16 / 14 dB-Hz with 10 / 3.3 / 2.1 SVs
+  tracked. So at the same reported C/N0 the M8T keeps tracking under N2
+  but drops the SVs under N1; the cause (the 1 MHz N1 against the C/A main
+  lobe, the M8T's interference handling) is not identified. The F-N2
+  values above +21 and the N1/N2 fix-loss difference are recorded as
+  observed, not used as a model check.
+- Recovery -0.08 dB, 11 SVs.

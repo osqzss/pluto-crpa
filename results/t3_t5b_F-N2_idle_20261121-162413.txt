@@ -1,0 +1,20 @@
+# t3_phase.py 20261121-162413, seq one, label 't5b_F-N2_idle'
+# command: scripts/t3_phase.py --passive --count 3 --gain 60 --label t5b_F-N2_idle --note T5b F-N2, V3, bladegps -e brdc3300.18n through 40 dB, jammer B206mini through 30+20 dB, RX gain 60 --cw-offset 0 --cw-span 15e3
+# note: T5b F-N2, V3, bladegps -e brdc3300.18n through 40 dB, jammer B206mini through 30+20 dB, RX gain 60
+# start (passive, nothing written): TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 15000 Hz of -delta + cw_offset (0)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db,clip1,clip2,skirt1_20k_db,skirt1_100k_db,skirt1_500k_db,skirt2_20k_db,skirt2_100k_db,skirt2_500k_db,band1_dbfs,band2_dbfs,band1_ex_dbfs,band2_ex_dbfs,band_ratio_db,band_phase_deg,band_rho,band_slope_deg_mhz
+0,t5b_F-N2_idle,one,0.7,1578420000,10000000,60,36.0,-42.58,-42.90,-0.324,0.0084,-166.07,-2985535,2.0,-0.001,120.41,59,0,2.2,0,0,0.1,-0.4,-0.0,0.6,0.2,0.3,nan,nan,nan,nan,nan,nan,nan,nan
+1,t5b_F-N2_idle,one,1.4,1578420000,10000000,60,36.0,-42.58,-42.90,-0.322,0.0076,176.41,-2986298,0.8,0.907,-11.20,60,0,3.1,0,0,-0.0,-0.2,-0.2,-0.4,-0.5,-0.1,nan,nan,nan,nan,nan,nan,nan,nan
+2,t5b_F-N2_idle,one,2.1,1578420000,10000000,60,35.1,-42.57,-42.90,-0.327,0.0081,-159.68,-2993927,2.1,-0.586,64.29,61,0,1.8,0,0,-0.5,-0.5,0.2,-0.0,0.1,-0.1,nan,nan,nan,nan,nan,nan,nan,nan
+# wideband phase: mean -169.76 deg, std 10.11, max deviation 13.84 (3 captures)
+# wideband x2/x1: mean -0.324 dB, std 0.002, range -0.327 to -0.322
+# CW phase: mean 59.93 deg, std 53.92, max deviation 71.13 (3 captures)
+# CW x2/x1: mean 0.106 dB, std 0.614, range -0.586 to 0.907
+# clipped samples: ch0/1 0, ch2/3 0 over 3 captures
+# skirt at 20 / 100 / 500 kHz from the line (offset +0 Hz): ch0/1 -0.1 / -0.4 / -0.0 dB, ch2/3 0.1 / -0.1 / 0.0 dB
+# |rho|: mean 0.0080, range 0.0076 to 0.0084; peak |x| 61 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_t5b_F-N2_idle_20261121-162413.txt

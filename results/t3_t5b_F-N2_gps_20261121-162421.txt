@@ -1,0 +1,20 @@
+# t3_phase.py 20261121-162421, seq one, label 't5b_F-N2_gps'
+# command: scripts/t3_phase.py --passive --count 3 --gain 60 --label t5b_F-N2_gps --note T5b F-N2, V3, bladegps -e brdc3300.18n through 40 dB, jammer B206mini through 30+20 dB, RX gain 60 --cw-offset 0 --cw-span 15e3
+# note: T5b F-N2, V3, bladegps -e brdc3300.18n through 40 dB, jammer B206mini through 30+20 dB, RX gain 60
+# start (passive, nothing written): TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 15000 Hz of -delta + cw_offset (0)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db,clip1,clip2,skirt1_20k_db,skirt1_100k_db,skirt1_500k_db,skirt2_20k_db,skirt2_100k_db,skirt2_500k_db,band1_dbfs,band2_dbfs,band1_ex_dbfs,band2_ex_dbfs,band_ratio_db,band_phase_deg,band_rho,band_slope_deg_mhz
+0,t5b_F-N2_gps,one,0.7,1578420000,10000000,60,36.8,-41.94,-42.30,-0.363,0.1358,168.78,-3004608,36.7,-0.550,167.80,59,0,36.2,0,0,0.5,0.2,0.2,0.8,0.9,0.3,nan,nan,nan,nan,nan,nan,nan,nan
+1,t5b_F-N2_gps,one,1.4,1578420000,10000000,60,35.1,-41.94,-42.32,-0.373,0.1368,168.68,-3004608,36.9,-0.551,167.77,60,0,36.4,0,0,1.0,0.5,0.4,0.4,0.4,-0.2,nan,nan,nan,nan,nan,nan,nan,nan
+2,t5b_F-N2_gps,one,2.1,1578420000,10000000,60,36.0,-41.95,-42.30,-0.346,0.1357,168.70,-3004608,36.6,-0.510,167.35,60,0,36.2,0,0,0.4,0.2,-0.1,0.5,0.6,0.3,nan,nan,nan,nan,nan,nan,nan,nan
+# wideband phase: mean 168.72 deg, std 0.05, max deviation 0.06 (3 captures)
+# wideband x2/x1: mean -0.360 dB, std 0.011, range -0.373 to -0.346
+# CW phase: mean 167.64 deg, std 0.21, max deviation 0.29 (3 captures)
+# CW x2/x1: mean -0.537 dB, std 0.019, range -0.551 to -0.510
+# clipped samples: ch0/1 0, ch2/3 0 over 3 captures
+# skirt at 20 / 100 / 500 kHz from the line (offset +0 Hz): ch0/1 0.7 / 0.3 / 0.2 dB, ch2/3 0.6 / 0.6 / 0.1 dB
+# |rho|: mean 0.1361, range 0.1357 to 0.1368; peak |x| 60 LSB
+# end: TX LO powerdown 1 at 2399999998 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_t5b_F-N2_gps_20261121-162421.txt
