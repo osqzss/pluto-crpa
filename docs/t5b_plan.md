@@ -457,7 +457,7 @@ together).
 | P2 | Each waveform alone, RX-only: B205mini gain ladder in 2.5 dB steps from J/N60 about 10 to the clip onset, 3 captures each with clip counts, `--band`, `--spurs`; LO leakage line; skirts. Anchor: CW at gain 65 gives J/N60 30.0 +/- 1 dB (T5) | B205mini | C after the go |
 | P3 | Both on, CW and N1, 30 captures: D in V3 (expected 100.5 deg), and D of N1 in the band (the phase slope) | both | C after the go |
 
-### P2 run list (proposed to the user on 2026-11-18; P2-a is next, one go per run)
+### P2 run list (proposed to the user on 2026-11-18; P2-a done 2026-11-21, P2-b next; one go per run)
 
 State after P1: Pluto at L1 + 3 MHz, 10 MSPS, 9 MHz, RX gain 60 manual
 (written once after the power cycle), TX LO down, TX attenuation 89.75 dB;
@@ -501,7 +501,11 @@ check met), every CW step within 0.4 dB of the B205mini, clip from 78.5 dB;
 the ladders above apply unchanged, with "B205mini gain" read as B206mini
 gain. C3 also gave N1 at 65 / 75 dB (J/N60 20.6 / 30.2, one clipped sample at
 75), N10 at 16 MSPS without underflow, LO leakage about -40 dBc (no LO
-offset). P2-a continues with the N1 ladder. Bench after C3: Pluto
+offset). **P2-a done 2026-11-21** (`results/t5b.md`): N1 J/N60 = gain - 44.6
+dB to 70 dB, Gaussian clip onset at gain 76 (J/N60 30.9), phase slope in
+L1 +/- 0.6 MHz +0.08 to +0.15 deg/MHz (tau about -0.2 to -0.4 ns, not the
+1.2 ns of Section 2.3; for the S runs), no LO offset needed. Next: P2-b.
+Bench after C3: Pluto
 power-cycled and set once (L1 + 3 MHz, 10 MSPS, 9 MHz, gain 60, TX safe),
 bladeRF unplugged; noise x1 / x2 -42.52 / -42.81 dBFS, L1 +/- 1 MHz
 -49.79 dBFS.
