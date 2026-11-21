@@ -212,3 +212,59 @@ chirps 0.25 to 0.34 M at 79.
   at gain 75, each 5.4 kHz low as the line offset; CH-m: about 20 dB;
   CH-s: 1 to 10 dB). PN: no line at L1
   (2.4 to 3.0 dB, statistical level).
+
+### P2-d pulsed CW and pulsed N1 (2026-11-21, 13:55 to 13:58)
+
+Two runs of four files each, as P2-b, 5 captures per step (105 ms each, so a
+capture holds at least one 100 ms period), fixed steps for an in-pulse J/N60
+of about 20 and 30: P-CW at gain 55 and 65 (`--max-gain 68`), P-N1 at 64 and
+74 (`--max-gain 77`). The +/- 3 dB level stop was off for this run (the mean
+of one capture of a 100 ms period depends on whether it holds one or two
+pulses); the other stop rules applied. Files: P-CW-{0.1,1,10,100}ms (CW at
+L1 + 200 kHz inside the file, centre L1; 0.1 ms low-passed to 1.2 MHz),
+P-N1-{0.1,1,10,100}ms (N1 gated; 0.1 ms low-passed), duty 10 %, in-pulse
+level as the continuous files (-6.02 / -15 dBFS), 8 MSPS. Logs
+`results/t3_t5b_P2_P-*_*.txt`, `results/t5b_P2_P-*_jammer_*.txt`. No
+underflow on any of the 56 STATUS and stop lines; `JAMMER OFF` after each
+file; no clipped sample; no line after each `quit`.
+
+In-pulse levels from the saved raw captures (scratch analysis: x1 power in
+10 us blocks, blocks above the geometric mean of the noise and the 99th
+percentile are "on", one block either side of each edge left out; J/N60 in
+the pulse against N = -42.52 dBFS):
+
+| File | Gain | Mean J/N60 (log) | Duty seen | In-pulse J/N60 | x2/x1 in pulse | Off level x1 (dBFS) |
+|---|---|---|---|---|---|---|
+| P-CW-0.1ms | 55 / 65 | 9.5 / 19.6 | not resolved | (19.5 / 29.6 from mean + 10 dB) | -0.11 / -0.12 dB, -90.8 / -90.7 deg | - |
+| P-CW-1ms | 55 / 65 | 9.5 / 19.5 | 0.110 | 19.5 / 29.5 | -0.11 / -0.12, -90.8 / -90.7 | -42.52 / -42.49 |
+| P-CW-10ms | 55 / 65 | 9.6 / 19.6 | 0.096 to 0.106 | 19.5 / 29.5 | as above | -42.52 / -42.48 |
+| P-CW-100ms | 55 / 65 | 9.3 / 19.7 | 0.095 to 0.142 | 19.5 / 29.5 | as above | -42.52 / -42.46 |
+| P-N1-0.1ms | 64 / 74 | 9.3 / 19.0 | not resolved | (19.3 / 29.0 from mean + 10 dB) | -0.10 / -0.11, -90.8 / -90.7 | - |
+| P-N1-1ms | 64 / 74 | 9.3 / 19.0 | 0.101 to 0.110 | 19.3 / 29.0 | -0.11 / -0.11, -90.8 / -90.7 | -42.49 / **-41.86** |
+| P-N1-10ms | 64 / 74 | 9.3 / 19.1 | 0.096 to 0.106 | 19.3 / 28.9 | as above | -42.49 / **-41.90** |
+| P-N1-100ms | 64 / 74 | 9.4 / 19.1 | 0.095 to 0.142 | 19.3 / 29.0 | as above | -42.49 / **-41.89** |
+
+- **In-pulse levels as the continuous files:** P-CW 19.5 / 29.5 (CW at
+  8 MSPS: the PN / chirp scale, 29.2 to 29.3 at gain 65), P-N1 19.3 / 29.0
+  (N1: 19.4 at 64, 29.1 at 74 from the P2-a table). The mean levels are
+  10.0 dB lower (duty 10 %). In-pulse x2/x1 phase and ratio as continuous.
+- **0.1 ms period:** the 10 us pulses equal one analysis block, so on and
+  off are not separated at this resolution; the mean is the useful number,
+  and the in-pulse level follows as mean + 10 dB.
+- **Duty seen** 0.10 to 0.11 for 1 to 100 ms (0.142 where a 105 ms capture
+  held two 10 ms pulses of the 100 ms file).
+- **Finding: the off-time level at P-N1 gain 74 is 0.6 dB above the noise**
+  (-41.86 to -41.90 against -42.52 dBFS, all three resolved periods), while
+  at gain 64 and for P-CW at 65 it is within 0.05 dB. The file is zero in
+  the off-time, so this is B206mini output with zero samples at high TX
+  gain: added power about -50.5 dBFS at x1, 8.0 dB under the receiver noise
+  in 9 MHz. It is common to both channels (the jammer path), so PI should
+  null it with the jammer; it raises the floor seen by the u-blox in F runs
+  without suppression at the high steps. Not seen as such in the continuous
+  runs (hidden under the jammer). To check in the N runs: residual in y in
+  the off-time.
+
+**P2 done for group A** (P2-W, N5 and N10 at 30.72 MSPS, follows before the
+group W runs). Clean levels for the N runs, J/N60 in the jammer (in-pulse
+for P-x): CW to 41.7, PN to 38.8, chirps to 40.5, Gaussian noise to 30
+(N0.1 to 30.1 by regrowth), pulsed as their base waveform.

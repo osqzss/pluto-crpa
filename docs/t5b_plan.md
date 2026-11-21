@@ -457,7 +457,7 @@ together).
 | P2 | Each waveform alone, RX-only: B205mini gain ladder in 2.5 dB steps from J/N60 about 10 to the clip onset, 3 captures each with clip counts, `--band`, `--spurs`; LO leakage line; skirts. Anchor: CW at gain 65 gives J/N60 30.0 +/- 1 dB (T5) | B205mini | C after the go |
 | P3 | Both on, CW and N1, 30 captures: D in V3 (expected 100.5 deg), and D of N1 in the band (the phase slope) | both | C after the go |
 
-### P2 run list (proposed to the user on 2026-11-18; P2-a to P2-c done 2026-11-21, P2-d next; one go per run)
+### P2 run list (proposed to the user on 2026-11-18; P2-a to P2-d done 2026-11-21, P2-W later; one go per run)
 
 State after P1: Pluto at L1 + 3 MHz, 10 MSPS, 9 MHz, RX gain 60 manual
 (written once after the power cycle), TX LO down, TX attenuation 89.75 dB;
@@ -511,7 +511,12 @@ spectral regrowth (skirt +1 dB at gain 76), slope with N2 +0.10 to +0.17
 deg/MHz (tau about -0.3 to -0.45 ns), level-dependent. **P2-c done
 2026-11-21:** PN and chirps follow CW 0.5 to 0.7 dB lower; clip onset chirps
 gain 78 (J/N60 41.5), PN gain 76 (39.7); slope +0.20 to +0.22 deg/MHz at
-J/N60 34 to 41. Next: P2-d.
+J/N60 34 to 41. **P2-d done 2026-11-21:** pulsed files at the in-pulse level
+of the continuous ones (P-CW 19.5 / 29.5, P-N1 19.3 / 29.0), duty 0.10 to
+0.11; finding: off-time level +0.6 dB over the noise at P-N1 gain 74 (B206mini
+output with zero samples at high gain, common to both channels). P2 done for
+group A (P2-W later). Next: P3 (both on, CW and N1, 30 captures; needs the
+bladeRF plugged in and the go), then S-V3 (Section 8).
 Bench after C3: Pluto
 power-cycled and set once (L1 + 3 MHz, 10 MSPS, 9 MHz, gain 60, TX safe),
 bladeRF unplugged; noise x1 / x2 -42.52 / -42.81 dBFS, L1 +/- 1 MHz
