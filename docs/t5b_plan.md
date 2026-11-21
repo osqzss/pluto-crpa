@@ -583,6 +583,77 @@ J/N60 35, N1 at 19.3).
 **After P3.** S-V3 (Section 8): GPS off, so the bladeRF is unplugged again
 before S-V3 (its carrier stays after `bladegps` exits).
 
+### S-V3 plan (written 2026-11-21)
+
+**Status 2026-11-21: S-V3a done** (results in `results/t5b.md`, "S-V3a"):
+N21 is not the cause of the level-dependent tau (the fit is unbiased; the
+dependence is in the hardware, cause open). The multi-tap results were not a
+bug: null depth is the wrong figure for L > 1 (temporal notch), so
+`t5b_stap.py` now gives the noise gain and the GPS loss. One weight: GPS
+loss -0.5 to -0.6 dB at J/N60 25 to 30 for N0.1 to N2, unchanged with the
+delay removed or replaced by the array delay: not wideband-limited at the
+J/N the B206mini reaches. Multi-tap: no gain. S-V3b (hardware) is not
+needed for these questions: dropped (agreed with the user 2026-11-21); S-V1 stays. The text below
+is the plan as written; its table predates the tool change.
+
+**What P2 already gives.** The S-V3 bench state (V3, GPS off with the bladeRF
+unplugged, capture mux at reset, no `crpa_ctl`, RX gain 60) is the P2 state,
+and P2 saved raw captures of N0.1, N0.5, N1, N2 at J/N60 10 to 33 with a
+noise-only step per file (3 captures each instead of 10). `t5b_stap.py` on
+them (2026-11-21, offline; scratch CSV, not committed):
+
+| Jammer (J/N60 30, gain 75) | tau fit | Phase residual | Amplitude slope | 1-weight null | Limit: tau alone | Limit: amplitude slope alone | Both |
+|---|---|---|---|---|---|---|---|
+| N0.1 | -0.38 ns | 0.008 deg | -0.045 dB/MHz | 57.7 dB | 83 | 76 | 76 |
+| N0.5 | -0.40 | 0.008 | -0.049 | 56.5 | 69 | 62 | 61 |
+| N1 | -0.39 | 0.008 | -0.048 | 52.5 | 63 | 56 | 55 |
+| N2 | -0.37 | 0.019 | -0.048 | 48.8 | 57 | 50 | 49 |
+
+(Amplitude-slope limit for a flat jammer of width B: -10 log10((s B / 8.686)^2
+/ 12), s in dB/MHz, B in MHz.) Findings:
+- **The bench delay is about -0.39 ns, not 1.2 ns** (Section 2.3), with a
+  0.008 deg rms phase residual: a pure delay fits well.
+- **The single-weight null over 1 to 2 MHz is limited by the inter-channel
+  amplitude slope (-0.05 dB/MHz) more than by the delay**; the two together
+  give 55 / 49 dB against 52.5 / 48.8 measured (N1 / N2). N0.1 and N0.5 are
+  limited by J/N.
+- **tau depends on the level** (-0.5 to -0.8 ns at J/N60 15, -0.2 to -0.3 at
+  25, -0.4 at 30). `fit_h` subtracts the noise powers (N11, N22) but not the
+  noise cross-spectrum N21; with |rho| about 0.01 of correlated receiver noise
+  this biases the phase slope at low J/N. Candidate cause, to be checked.
+- **The multi-tap results are not usable as they stand:** 3 / 5 / 9 taps give
+  27 to 65 dB, often below one weight, and not monotonic in L, against the
+  synthetic selftest where 3 taps beat 1. Suspected: the evaluation
+  (residual = P_y - N_y with N_y from another capture through the same
+  weights; with temporal taps N_y can be much larger than the residual
+  jammer), or the temporal prediction of x1 by its own taps. To be checked
+  before any tap result is used.
+
+**S-V3a, offline (no RF; Claude):**
+1. `t5b_stap.py`: subtract the noise cross-spectrum N21 in `fit_h`; check on
+   the P2 captures whether tau becomes level-independent.
+2. Print the amplitude-slope limit and the combined model next to the
+   delay limit.
+3. Multi-tap check: synthetic data built from the measured H(f) (delay,
+   amplitude slope, phase) and the measured noise (noise-only captures,
+   including their correlation), at the P2 levels; compare 1 / 3 / 5 / 9 taps
+   with the known truth; inspect the noise gain of the weights and the
+   x1-only temporal prediction. Fix the evaluation if it is the cause; add the
+   case to the selftest.
+4. Re-run on all P2 captures; table of tau, amplitude slope, null depth
+   against B, taps and J/N60; offline tests (`--selftest`) pass.
+
+**S-V3b, hardware (only if S-V3a leaves the statistics short; needs the go):**
+the run of the table below as decided (noise only, then N0.1, N0.5, N1, N2
+at J/N60 30, 10 captures each, `--save`), bladeRF unplugged first, about
+3 min of RF. 10 captures give train / test pairs for the multi-tap
+evaluation that 3 do not. Pluto RX-only, B206mini through 30 + 20 dB.
+
+**S-V1** (decided) stays after the receiver runs (Section 8, step 7): it
+needs the user to recable the jammer legs to V1; it separates the cable part
+of tau from the Pluto and fixture part, and now also tells whether the
+amplitude slope is in the Pluto (expected: the cable gives none).
+
 ### RX-only runs
 
 | Run | Pluto | Jammer | Gives |

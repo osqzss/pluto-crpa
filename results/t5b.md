@@ -330,3 +330,77 @@ at gain 55 (biased by the carrier inside the band at J/N60 10) and -90.76 at
   phase of `t3_phase.py` is biased once the jammer density in the 3 line bins
   is within about 20 dB of the carrier; use the saved captures with the
   background removal above.
+
+## S-V3a: wideband transfer and null depth from the P2 captures, offline (2026-11-21)
+
+Plan: `docs/t5b_plan.md`, "S-V3 plan". No RF. The P2 noise-ladder captures
+(V3, GPS off, bladeRF unplugged, capture mux at reset, RX gain 60, 3 captures
+of 1048576 samples per step, a noise-only step per file) are the S-V3 bench
+state. `scripts/t5b_stap.py` (changed, see below) on N0.1, N0.5, N1, N2 at
+gains 60 / 65 / 70 / 75 (J/N60 about 15 / 20 / 25 / 30), band = the jammer
+width; rows in `results/t5b_S-V3a.csv`.
+
+**Tool changes** (`t5b_stap.py`; `--selftest` PASS, 10 checks, about 10 s):
+- The noise cross-spectrum N21 is subtracted from S21 in the H(f) fit
+  (correlated receiver noise, |rho| 0.005 to 0.012 in the band). It changes
+  tau by at most 0.02 ns, so it is not the cause of the level dependence.
+- The single-weight limit is printed for the delay, the amplitude slope and
+  both (new selftest check: 0.5 dB/MHz over 2 MHz gives 29.6 dB, as the
+  formula).
+- For every tap count also the noise gain |w|^2 and the **GPS loss**: C/N0
+  of a correlator after the combiner over x1 alone with the jammer off, C/A
+  main lobe, GPS x2/x1 = 167.5 deg / -0.53 dB (P3), `--gps` to change it.
+  Negative = better than one element without a jammer. New selftest check
+  against the analytic value for one weight (0.08 dB against 0.06 dB).
+
+**Why null depth misled for L > 1.** On synthetic data without a delay
+(white noise, J/N60 30, 1 MHz), 3 taps gave a 40 dB null against > 57 dB
+for one weight, with the noise gain 0.9 dB instead of 3.1 dB. Output budget
+in the band (dB re the in-band noise of x1): 1 tap: residual jammer -19.1,
+noise +3.1; 3 taps: residual +0.2, noise -0.6; 9 taps: residual -17.0,
+noise -1.7. The x1 taps predict the band-limited jammer in x1 (a temporal
+notch), which trades residual jammer for full-band noise and notches a GPS
+signal in the band too. This is correct power minimization, not a bug; null
+depth is not the figure for L > 1, the GPS loss is.
+
+**Tau estimator check.** Synthetic captures with the measured H(f) (tau
+-0.39 ns, -0.048 dB/MHz) on the real noise captures, N2: fitted tau -0.43 /
+-0.38 / -0.38 / -0.39 / -0.40 ns at J/N60 10 / 15 / 20 / 25 / 30. The fit is
+unbiased, so the level dependence below is in the hardware.
+
+**Results (measured case; J/N60 30 = gain 75):**
+
+| Jammer | tau (ns) at gain 60 / 65 / 70 / 75 | Amplitude slope at 75 (dB/MHz) | 1-weight null at 75 | Model limit (delay + slope) | 1-weight GPS loss at 65 / 70 / 75 | 3 / 5 / 9 taps GPS loss at 75 |
+|---|---|---|---|---|---|---|
+| N0.1 | -0.49 / -0.24 / -0.27 / -0.38 | -0.045 | 57.7 dB | 75.6 | -0.36 / -0.53 / -0.60 | -0.61 / -0.62 / -0.42 |
+| N0.5 | -0.53 / -0.52 / -0.17 / -0.40 | -0.049 | 56.5 | 61.0 | -0.34 / -0.52 / -0.55 | -0.18 / +1.07 / -0.04 |
+| N1 | -0.69 / -0.48 / -0.23 / -0.39 | -0.048 | 52.5 | 55.1 | -0.38 / -0.52 / -0.53 | +1.81 / +0.19 / -0.54 |
+| N2 | -0.78 / -0.48 / -0.28 / -0.37 | -0.048 | 48.8 | 49.2 | -0.50 / -0.58 / -0.60 | +0.52 / -0.64 / -0.33 |
+
+- **One weight is not wideband-limited on this bench at reachable J/N.** The
+  GPS loss with one weight is -0.5 to -0.6 dB at J/N60 25 to 30 for all four
+  widths: the jammer is removed from the correlator and what is left is the
+  PI combination of the GPS signal for D about 101 deg (analytic -0.5 dB;
+  T4: about +0.4 dB against w = [1, 0]). With the delay removed or replaced
+  by the lambda/2 array delay the loss changes by less than 0.07 dB. A
+  48.8 dB null at J/N60 30 leaves the residual about 19 dB under the
+  noise; the delay / slope limit would start to cost C/N0 only at J/N60 of
+  about 45 and more (2 MHz), above what the B206mini delivers unclipped
+  (32.9 for noise, P2).
+- **The single-weight null over 1 to 2 MHz follows the delay plus amplitude
+  slope model**: 52.5 / 48.8 dB against 55.1 / 49.2 (N1 / N2). The
+  amplitude slope (-0.05 dB/MHz) limits more than the delay (63 / 57 dB
+  alone).
+- **Multi-tap combiners give no gain here** and are erratic from 3
+  captures (+1.8 dB at N1 3 taps, +1.1 dB at N0.5 5 taps): their benefit
+  would only show where one weight is limited, which these levels do not
+  reach. Not pursued; `crpa_core` is a single weight.
+- **tau and the amplitude slope depend on the level, together**: -0.7 to
+  -1.1 ns and -0.08 to -0.10 dB/MHz at J/N60 10 to 15, smallest at J/N60
+  25 to 29 (-0.2 to -0.3 ns, -0.04), and -0.45 to -0.6 ns above 30 (PN and
+  chirps up to J/N60 40, same values at the same J/N60 for all five
+  waveforms); the phase at the band centre moves -90.95 to -90.6 deg with
+  it. Not an estimator effect (check above) and not the noise cross-spectrum.
+  Cause open (Pluto RX chain against level, or the B206mini output); S-V1
+  (jammer legs recabled) can separate the cable from the rest. For the null
+  depth it is a few dB at most at the levels where one weight matters.
