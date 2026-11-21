@@ -1,0 +1,29 @@
+2026-11-21T05:40:59.101Z 1795239659.101 t4_jammer.py: --on --ext-att 50 --gain off --log results/t5b_N-a_CW_jammer_20261121-144050.txt --max-gain 85
+2026-11-21T05:40:59.101Z 1795239659.101 mode ON (transmit), device 'serial=352F132'
+2026-11-21T05:41:10.691Z 1795239670.691 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T05:41:10.691Z 1795239670.692 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T05:41:10.692Z 1795239670.692 schedule: none; start state off; t0 on the t0 command
+2026-11-21T05:41:11.071Z 1795239671.071 tuned: target 1575620000.0 Hz, actual RF 1575619999.7 Hz, DSP 0.320 Hz, reads 1575620000.0 Hz; rate 1000000.0; antenna TX/RX
+2026-11-21T05:41:11.071Z 1795239671.071 ext-att 50 dB (as stated), max-gain 85 dB, ampl 0.5
+2026-11-21T05:41:11.099Z 1795239671.100 STATE off (start); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:11.274Z 1795239671.274 STATE gain 55 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:21.363Z 1795239681.363 STATUS streaming True, gain reads 55 dB, samples sent 10140000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:21.950Z 1795239681.950 STATE gain 60 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:32.129Z 1795239692.130 STATUS streaming True, gain reads 60 dB, samples sent 20910000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:32.664Z 1795239692.664 STATE gain 65 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:42.923Z 1795239702.923 STATUS streaming True, gain reads 65 dB, samples sent 31700000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:43.485Z 1795239703.486 STATE gain 70 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:53.677Z 1795239713.677 STATUS streaming True, gain reads 70 dB, samples sent 42450000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:41:54.242Z 1795239714.243 STATE gain 72.5 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:04.527Z 1795239724.527 STATUS streaming True, gain reads 72.5 dB, samples sent 53300000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:05.091Z 1795239725.091 STATE gain 75 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:15.334Z 1795239735.335 STATUS streaming True, gain reads 75 dB, samples sent 64110000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:15.898Z 1795239735.898 STATE gain 77.5 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:25.957Z 1795239745.957 STATUS streaming True, gain reads 77.5 dB, samples sent 74730000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:26.518Z 1795239746.519 STATE gain 80 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:36.665Z 1795239756.665 STATUS streaming True, gain reads 80 dB, samples sent 85440000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:37.180Z 1795239757.180 STATE gain 82 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:47.289Z 1795239767.290 STATUS streaming True, gain reads 82 dB, samples sent 96070000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:47.811Z 1795239767.811 STATE off (command); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:48.807Z 1795239768.808 stopping: quit command; samples sent 96590000; underflows 0, seq errors 0, other events 0
+2026-11-21T05:42:48.979Z 1795239768.979 JAMMER OFF: burst ended, gain at minimum, device closed

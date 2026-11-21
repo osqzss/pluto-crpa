@@ -20,3 +20,5 @@ results/t4_V????.csv
 results/t4_p0.csv
 results/t5_G??[A-Z].csv
 results/t5_G??[A-Z]?.csv
+results/t5b_[NFP]-*.csv
+!results/t5b_*_every100.csv

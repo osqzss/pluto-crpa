@@ -404,3 +404,94 @@ unbiased, so the level dependence below is in the hardware.
   Cause open (Pluto RX chain against level, or the B206mini output); S-V1
   (jammer legs recabled) can separate the cable from the rest. For the null
   depth it is a few dB at most at the levels where one weight matters.
+
+## N-a: CW null depth with PI, RX-only, same-day check against T5 (2026-11-21, 14:40 to 14:45)
+
+`crpa_ctl run --mode pi --load 24 --cap-sel --duration 600 --out
+/tmp/t5b_Na` (dry run, by the user; quit by the user at 267 s, after the
+run; safe state confirmed). bladeRF unplugged, B206mini CW at L1 + 200 kHz
+through 30 + 20 dB (`--max-gain 85`). Per step 10 passive captures of y
+(ch0/1) and x1 (ch2/3), `--cap y --cw-offset 0,200e3 --cw-span 15e3
+--spurs 6 --save`. Logs `results/t3_t5b_N-a_CW_*_20261121-14*.txt`,
+`results/t5b_N-a_CW_jammer_20261121-144050.txt`, `results/t5b_N-a.txt`
+(crpa_ctl), `results/t5b_N-a_every100.csv`. No underflow on any STATUS
+line; `JAMMER OFF` confirmed; no line in x1 after the jammer (2.7 dB);
+sat_blocks 0 throughout; PEAK 2048 only at 80 and 82 (marked +); 2220 of
+265218 blocks missed, all during the captures (as T4 / T5).
+
+| Gain | J/N60 (x1) | Null depth (x1 line over y line) | T5 G60-N | y | w2 (w1 about 0.985 to 0.999) |
+|---|---|---|---|---|---|
+| off | - | - | - | -42.57 dBFS | \|w2\| 0.002 to 0.03 |
+| 55 | 19.5 | 38.8 dB | - | -39.58 | +0.013 + 1.000j |
+| 60 | 24.6 | 48.8 | - | -39.65 | +0.010 + 1.000j |
+| 65 | 29.6 | 58.4 | 57.8 | -39.73 | +0.009 + 1.000j |
+| 70 | 34.6 | 67.3 | 67.3 | -39.62 | +0.010 + 1.000j |
+| 72.5 | 36.7 | 71.7 | 71.2 | -39.58 | +0.011 + 1.000j |
+| 75 | 39.1 | 75.1 | 74.7 | -39.51 | +0.012 + 1.000j |
+| 77.5 | 41.4 | 76.4 | 74.2 | -38.09 (T5 -35.91) | +0.012 + 1.000j |
+| 80 + | clipped | 64.1 | 62.1 | -30.37 | +0.023 + 0.999j |
+| 82 + | clipped | 66.8 | 64.0 | -31.55 | |
+
+- The null grows 10 dB per 5 dB of J/N60 to J/N60 39 and stops near 75 dB,
+  as T5 (the hardware ceiling): the B206mini does not change it.
+- Same-day check (Section 6, "CW F / P"): within 0.6 dB of T5 G60-N at 65 to
+  75. At 77.5, just under full scale (x1 -1.09 dBFS, T5 -0.73), the null is
+  2.2 dB deeper and y 2.2 dB lower than in T5; the clipped steps 2.0 / 2.8 dB
+  deeper. The difference is in the favourable direction and follows the
+  0.4 dB lower drive near full scale.
+
+## N-b: noise null depth with PI, RX-only (2026-11-21, 14:52 to 14:58)
+
+`crpa_ctl run --mode pi --load 24 --cap-sel --duration 1500 --out
+/tmp/t5b_Nb` (dry run, by the user; quit at 420 s, after the run; safe state
+confirmed, no FRAME_ERR). bladeRF unplugged. Files N0.1 / N0.5 / N1 / N2,
+each: off step, gains 65 / 70 / 75 / 76 (clip onset) / 78 + / 80 +, `off`,
+`quit`, after step; 10 captures per step, `--cap y --band 0,B` (B = 0.12 /
+0.6 / 1.2 / 2.4 MHz) `--save`. Logs `results/t3_t5b_N-b_*_20261121-14*.txt`,
+`results/t5b_N-b_*_jammer_20261121-145227.txt`, `results/t5b_N-b.txt`
+(crpa_ctl), `results/t5b_N-b_every100.csv`. Levels within 0.1 dB of P2; no
+underflow on any of the 60 STATUS / stop lines; `JAMMER OFF` after each
+file; x1 clipped: 0 to 2 samples at 76, 40 to 107 at 78, 1143 to 2325 at
+80 (of 10.5 M); y never clipped.
+
+**Null depth = jammer in x1 over jammer in y, in the band.** With PI on, y
+holds the noise of both channels (|w2| = 1.000, |w1| 0.984 to 0.999), about
+2.9 dB more than the off step, so the band reference of the off step does
+not apply to y (the `band_ratio_db` column of the logs understates the null
+by up to 13 dB). The y noise was computed as
+n_y = |w1|^2 n11 + |w2|^2 n22 + 2 Re(conj(w1) w2 conj(n21)), with n11 from
+the off step of the same file, n22 / n11 and the correlated part n21 / n11
+from the P2 off captures of the same band, and the weights from the
+`crpa_ctl` CSV on each step's x1 plateau (scratch analysis). The residual
+(y band power less n_y) is 0.09 to 0.36 dB of n_y at J/N60 30, above its
+uncertainty (0.02 dB drift, 3 sigma), so all values are values, not bounds.
+
+| J/N60 (gain) | N0.1 | N0.5 | N1 | N2 |
+|---|---|---|---|---|
+| 20 (65) | 39.9 dB (offline 40.4) | 39.9 (40.1) | 39.6 (39.5) | 37.1 (38.2) |
+| 25 (70) | 50.0 (50.1) | 49.5 (49.8) | 48.5 (48.3) | 44.8 (46.0) |
+| 30 (75) | 57.3 (57.7) | 55.6 (56.5) | 53.6 (52.5) | 48.0 (48.8) |
+| 31 (76, clip onset) | 58.3 | 56.5 | 54.2 | 48.0 |
+| 33 (78 +) | 53.3 | 53.5 | 51.1 | 47.3 |
+| 35 (80 +, clipped) | 39.3 | 40.0 | 40.4 | 39.6 |
+| Model at J/N60 30: J/N limit (CW, N-a: 58.4) with the delay + amplitude-slope limit (S-V3a) | 58.3 | 56.5 | 53.4 | 48.7 |
+
+(Offline: single weight on the P2 captures at the same gain, S-V3a.)
+
+- **Hardware agrees with offline within 1.2 dB at every step** (criterion
+  of Section 7, compared against the P2 captures as decided: 3 dB, met) and
+  **with the model within 1 dB at J/N60 30** (criterion: 3 dB, met). The
+  model is the J/N-limited CW null combined with the S-V3a limit of the
+  delay (-0.39 ns) and the amplitude slope (-0.05 dB/MHz). With the delay
+  alone (Section 2.3, ND_tau: 63 / 57.5 dB for N1 / N2) N2 would miss by
+  9.5 dB: the amplitude slope between the channels is what limits the
+  wideband null on this bench.
+- Up to J/N60 25 the noise null is the CW null (10 dB per 5 dB of J/N60);
+  from J/N60 30 the wider files flatten at their mismatch limit.
+- The clip onset (76) costs nothing; at the first + step (J/N60 33, tens of
+  clipped samples per 10 M) the null drops by 0.7 to 5 dB; at J/N60 35 it is
+  39 to 40 dB for every width (the clipping distortion in x1 is not in x2
+  in the same form and cannot be nulled).
+- The residual jammer in y at J/N60 30 is 0.09 to 0.36 dB of the noise in
+  the band (N1: 0.086 dB, -17 dB): for the u-blox the jammer is gone up to the
+  clip onset, as S-V3a predicted.

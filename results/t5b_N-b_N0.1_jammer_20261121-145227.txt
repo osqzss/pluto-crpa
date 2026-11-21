@@ -1,0 +1,25 @@
+2026-11-21T05:52:36.114Z 1795240356.115 t4_jammer.py: --on --ext-att 50 --gain off --log results/t5b_N-b_N0.1_jammer_20261121-145227.txt --max-gain 83 --waveform tmp/t5b/N0.1.sc16 --freq 1575420000
+2026-11-21T05:52:36.114Z 1795240356.115 mode ON (transmit), device 'serial=352F132'
+2026-11-21T05:52:37.613Z 1795240357.614 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T05:52:37.613Z 1795240357.614 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T05:52:37.614Z 1795240357.614 schedule: none; start state off; t0 on the t0 command
+2026-11-21T05:52:37.614Z 1795240357.615 waveform tmp/t5b/N0.1.sc16: 8000000 samples at 8000000 Hz (1.000 s), kind noise, rms -15.00 dBFS, crest 11.7 dB, bw99 99955 Hz, sha256 bcedbdf84b688f0ec963ea079358419dfa400730f8847a2f735a77855081fdb2
+2026-11-21T05:52:37.614Z 1795240357.615 sidecar: {"bw": 100000.0, "bw99_hz": 99955.0, "bytes": 32000000, "centroid_hz": -70.93207577116087, "command": "scripts/t5b_waveform.py noise --bw 0.1e6 --rate 8e6 --out tmp/t5b/N0.1", "created": "2026-11-18T05:15:59Z", "crest_db": 11.687385631074774, "duty_measured": 1.0, "file": "N0.1.sc16", "format": "sc16 interleaved int16 I/Q, little endian", "full_scale": 32768.0, "generator": "t5b_waveform.py v1", "kind": "noise", "length": 1.0, "loop_period_samples": 1, "n": 8000000, "offset": 0.0, "peak_abs_iq": 20294, "peak_dbfs": -3.312614329825711, "rate": 8000000.0, "rms_dbfs": -14.999999960900485, "rms_dbfs_on": -14.999999960900485, "rms_dbfs_target": -15.0, "seed": 1, "sha256": "bcedbdf84b688f0ec963ea079358419dfa400730f8847a2f735a77855081fdb2"}
+2026-11-21T05:52:37.970Z 1795240357.971 tuned: target 1575420000.0 Hz, actual RF 1575419999.5 Hz, DSP 0.484 Hz, reads 1575420000.0 Hz; rate 8000000.0; antenna TX/RX
+2026-11-21T05:52:37.971Z 1795240357.971 ext-att 50 dB (as stated), max-gain 83 dB, waveform N0.1.sc16, LO offset 0 Hz
+2026-11-21T05:52:38.001Z 1795240358.001 STATE off (start); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T05:52:38.174Z 1795240358.175 STATE gain 65 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:52:49.214Z 1795240369.215 STATUS streaming True, gain reads 65 dB, samples sent 88360000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:52:49.770Z 1795240369.770 STATE gain 70 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:52:59.906Z 1795240379.907 STATUS streaming True, gain reads 70 dB, samples sent 173900000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:00.426Z 1795240380.427 STATE gain 75 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:10.572Z 1795240390.573 STATUS streaming True, gain reads 75 dB, samples sent 259230000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:11.094Z 1795240391.095 STATE gain 76 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:21.315Z 1795240401.315 STATUS streaming True, gain reads 76 dB, samples sent 345160000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:21.836Z 1795240401.837 STATE gain 78 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:31.942Z 1795240411.943 STATUS streaming True, gain reads 78 dB, samples sent 430180000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:32.457Z 1795240412.458 STATE gain 80 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:42.565Z 1795240422.566 STATUS streaming True, gain reads 80 dB, samples sent 515170000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:43.070Z 1795240423.071 STATE off (command); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:44.071Z 1795240424.071 stopping: quit command; samples sent 519210000; underflows 0, seq errors 0, other events 0
+2026-11-21T05:53:44.197Z 1795240424.197 JAMMER OFF: burst ended, gain at minimum, device closed

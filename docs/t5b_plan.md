@@ -654,6 +654,121 @@ needs the user to recable the jammer legs to V1; it separates the cable part
 of tau from the Pluto and fixture part, and now also tells whether the
 amplitude slope is in the Pluto (expected: the cable gives none).
 
+### N, F and P run plan (written 2026-11-21; decided by the user the same day as proposed: N runs grouped with GPS off, F ladders from J/N60 -12, offline comparison against the P2 captures; a go per run)
+
+Order of Section 8: the N runs first (RX-only, they set the P ladders and the
+CW same-day check), then the F and P runs of the receiver subset. Setup as
+P2 / P3: V3, jammer attenuators 30 + 20 dB (`--ext-att 50`), Pluto gain 60
+as set in this power cycle, B206mini. Procedure as T5 G60-N / G60-F / G60-P
+(`results/t5.md`): the user starts `crpa_ctl` (and types CONDUCTED, `tx 60`,
+`tx 50`, "on" in F / P); Claude runs the jammer, `bladegps`, `ubx_log.py`,
+the captures and the analysis; stop by PID.
+
+**Level scale (P2, J/N60 against gain).** Noise files and P-N1 in the pulse:
+gain - 44.6 dB to 70 dB, then the P2 table. PN, chirps and P-CW in the pulse:
+gain - 35.8 dB to 70 dB, then the P2 table. CW: gain - 35.2 (C3). Below
+55 dB: 1 dB per dB (as T5; C3 checked CW linear from 35 dB). Steps above the
+P2 ladder (marked +): about 1 dB per dB, extrapolated; the 3 dB level stop
+applies only to steps inside the P2 table.
+
+#### N runs: RX-only, `crpa_ctl` dry run, GPS off (proposed: bladeRF unplugged)
+
+GPS off because with `bladegps` on, the GPS signal in L1 +/- 1 MHz is
+3 dB over the noise (P1), and it would swamp the residual of a wideband
+jammer in y. Grouped as P2, one go and one `crpa_ctl` dry run per group:
+`crpa_ctl run --mode pi --load 24 --cap-sel --duration 1200 --out
+/tmp/t5b_N<x>` (user), then per file: jammer start, an off step, gain steps,
+`off`, `quit`. Per step 10 captures `t3_phase.py --passive --cap y
+--cw-offset 0,200e3 --cw-span 15e3 --spurs 6 --save` (plus `--band` of the
+file), about 15 s; the underflow check and `JAMMER OFF` as P2.
+
+| Run | Files | Gains (J/N60) | `--max-gain` |
+|---|---|---|---|
+| N-a | CW (`--freq` L1 + 200 kHz) | 55, 60, 65, 70, 72.5, 75, 77.5, 80 +, 82 + (19.8, 24.8, 29.8, 34.9, 37.0, 39.4, 41.7, +, +); 65 to 82 as T5 G60-N | 85 |
+| N-b | N0.1, N0.5, N1, N2 | 65, 70, 75, 76, 78 +, 80 + (20.4, 25.5, 30.0, 30.9 = clip onset, about 32.9, 34.9) | 83 |
+| N-c | PN; CH-f, CH-m, CH-s | PN: 55, 60, 65, 70, 72.5, 75, 76, 78 +, 80 + (19.3 ... 38.8, 39.7 = onset); chirps: 55, 60, 65, 70, 72.5, 75, 77, 78, 80 +, 82 + (19.2 ... 40.5, 41.5 = onset) | 83 / 85 |
+| N-d | P-CW and P-N1, 0.1 / 1 / 10 / 100 ms | in the pulse 20 / 30 (/ 39 for P-CW): P-CW 55, 65, 75; P-N1 65, 75 | 78 |
+
+Gives: null depth against J/N60 per waveform (CW: line in x1 over line in
+y, against T5 G60-N within 1 dB as the same-day check that decides whether
+CW F / P are taken from T5); for wideband files the residual in y in the band
+over the y noise. The y noise is n_x1 + |w2|^2 n_x2 in the band, from the
+off-step captures and |w2| of the CSV. S-V3a predicts a residual about 19 dB
+under the noise at J/N60 30, near the precision of 10 captures, so these
+null depths may be lower bounds; that answers the GPS question already (the
+residual does not matter). Chirps and pulsed: null per block from the
+`crpa_ctl` CSV (every block) around pulse onsets and against the chirp
+period; residual in y during and after the pulse (also the off-time floor of
+P-N1 at 74, P2-d). Clipping and SAT_CNT only in the steps marked +.
+
+The offline criterion of Section 7 ("for the same captures") cannot be met
+literally: with the mux on y, the captures hold y and x1, not x2. Proposed:
+compare the hardware null with the offline single weight of the P2 captures
+at the same file and gain (`results/t5b_S-V3a.csv`).
+
+About 3 to 4 min per file, 12 to 25 min per run.
+
+**Status 2026-11-21:** N-a and N-b done (`results/t5b.md`). For the wideband
+null, the y noise must come from the weights (n_y = |w1|^2 n11 + |w2|^2 n22 +
+2 Re(conj(w1) w2 conj(n21))), not from the off step; with it the residual is
+measurable (0.1 to 0.4 dB of the noise at J/N60 30) and the nulls are values.
+
+#### F runs (fixed w = [1,0]) and P runs (PI, load 24): receiver subset, `bladegps` on
+
+**Prediction for the F ladder (new).** With fixed weights the u-blox sees
+the jammer through the Pluto, and its noise is mainly the Pluto noise relayed
+(T5 reference 5.1 dB under T1). For a flat jammer of width B at L1 the
+effective density over the C/A main lobe is J/N60 + 10 log10(fs / B x
+int_B S_g): +8.8 dB for N1, +6.5 dB for N2, +8.6 dB for PN. The 6 dB C/N0
+point is where that reaches 4.8 dB, so **J/N60 about -4 to -2 (N1, PN) and
+-2 to 0 (N2)**, against 13 to 16 dB for CW (the M8 removes CW). The planned
+F ladder (Section 6: from J/N60 10) would start with the fix already lost.
+CH-s: between noise-like (-2) and CW-like (13 to 16), depending on whether
+the M8 treats a 20 kHz/ms sweep as CW: a finding. P-N1 (10 ms, duty 10 %):
+mean power 10 dB under the pulse, so about +6 to +8 in the pulse if the M8
+does not blank pulses.
+
+| Run | Jammer (B206mini gain; J/N60) | `--max-gain` |
+|---|---|---|
+| F-N1, F-N2 | off 180 s (reference), then 3 dB steps from J/N60 -12 to +15 (gain 32.6 to 59.6 by -44.6), 60 s each; off 90 s | 63 |
+| F-PN | as F-N1, gain 23.8 to 50.8 (by -35.8) | 54 |
+| F-CH-s | J/N60 -12 to +30 (gain 23.8 to 65.8), 60 s each | 69 |
+| F-P-N1-10ms | in the pulse -6 to +30 (gain 38.6 to 75) | 78 |
+
+The 30 s fix-loss rule of Section 3 ends every F ladder after the fix is lost
+(`off`, then the recovery part), so the long ladders cost time only while the
+fix holds. Run time up to 15 to 20 min.
+
+| Run | Jammer before `crpa_ctl` starts, cold start under it, 120 s | 60 s steps | Then |
+|---|---|---|---|
+| P-N1, P-N2 | gain 70 (J/N60 25.5) | 72.5, 74.5, 76 (30.9, onset), 78 +, 80 + | 70 for 60 s, off 60 s |
+| P-PN | 70 (34.4) | 72.5, 75, 76 (39.7, onset), 78 +, 80 + | as above |
+| P-CH-s | 70 (34.3) | 72.5, 75, 77, 78 (41.5, onset), 80 +, 82 + | as above |
+| P-P-N1-10ms, and the same with `--alpha 0.9` | 70 (in the pulse 25.5) | 72.5, 74.5, 76, 78 +, 80 + | as above |
+
+`--max-gain` top + 3. About 10 min per run. If an N run shows a hardware
+limit below the clip onset, the P run of that waveform ends 4 dB above that
+limit instead (as T5).
+
+Evaluation: `t5_steps.py --cal` from the scale above; 6 dB and fix-loss
+points with and without PI, improvement P - F per waveform next to CW (T5:
+26 to 29 dB at the 6 dB point). Prediction: P holds to the clip onset
+(J/N60 31 for noise, 39.7 PN, 41.5 CH-s), so the improvement at the 6 dB
+point is **more than 31 to 35 dB for noise and PN**, larger than for CW,
+because without suppression the wideband jammer hurts the u-blox more.
+
+**CW F / P:** taken from T5 G60-F / G60-P if N-a agrees with T5 G60-N within
+1 dB at every unclipped step; otherwise repeated with the T5 ladders.
+N-a (2026-11-21): within 0.6 dB at 65 to 75, 2.2 dB deeper at 77.5 (0.4 dB
+lower drive just under full scale). **Decided by the user: CW F / P taken
+from T5.**
+
+**Runs and order:** N-a, N-b, N-c, N-d (bladeRF unplugged; about 1.5 h
+together); evaluation; then (bladeRF back in, P3-0 style idle check first)
+F-N1, P-N1, F-N2, P-N2, F-PN, P-PN, F-CH-s, P-CH-s, F-P-N1-10ms,
+P-P-N1-10ms, P-P-N1-10ms alpha 0.9: 11 runs, about 2.5 h. Group W (N5, N10
+at 30.72 MSPS) after P2-W, separate.
+
 ### RX-only runs
 
 | Run | Pluto | Jammer | Gives |
