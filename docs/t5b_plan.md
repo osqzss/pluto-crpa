@@ -457,7 +457,7 @@ together).
 | P2 | Each waveform alone, RX-only: B205mini gain ladder in 2.5 dB steps from J/N60 about 10 to the clip onset, 3 captures each with clip counts, `--band`, `--spurs`; LO leakage line; skirts. Anchor: CW at gain 65 gives J/N60 30.0 +/- 1 dB (T5) | B205mini | C after the go |
 | P3 | Both on, CW and N1, 30 captures: D in V3 (expected 100.5 deg), and D of N1 in the band (the phase slope) | both | C after the go |
 
-### P2 run list (proposed to the user on 2026-11-18; P2-a and P2-b done 2026-11-21, P2-c next; one go per run)
+### P2 run list (proposed to the user on 2026-11-18; P2-a to P2-c done 2026-11-21, P2-d next; one go per run)
 
 State after P1: Pluto at L1 + 3 MHz, 10 MSPS, 9 MHz, RX gain 60 manual
 (written once after the power cycle), TX LO down, TX attenuation 89.75 dB;
@@ -508,7 +508,10 @@ L1 +/- 0.6 MHz +0.08 to +0.15 deg/MHz (tau about -0.2 to -0.4 ns, not the
 2026-11-21:** N0.1, N0.5, N2 on the same gain scale as N1 (within 0.2 dB),
 first clipped samples at J/N60 30.9 to 32.9, N0.1 limited to J/N60 30.1 by
 spectral regrowth (skirt +1 dB at gain 76), slope with N2 +0.10 to +0.17
-deg/MHz (tau about -0.3 to -0.45 ns), level-dependent. Next: P2-c.
+deg/MHz (tau about -0.3 to -0.45 ns), level-dependent. **P2-c done
+2026-11-21:** PN and chirps follow CW 0.5 to 0.7 dB lower; clip onset chirps
+gain 78 (J/N60 41.5), PN gain 76 (39.7); slope +0.20 to +0.22 deg/MHz at
+J/N60 34 to 41. Next: P2-d.
 Bench after C3: Pluto
 power-cycled and set once (L1 + 3 MHz, 10 MSPS, 9 MHz, gain 60, TX safe),
 bladeRF unplugged; noise x1 / x2 -42.52 / -42.81 dBFS, L1 +/- 1 MHz

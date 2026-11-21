@@ -159,3 +159,56 @@ first two clipped steps: N0.1 93 / 82 (78), 523 / 445 (79); N0.5 14 / 10
 **P2 so far, for the N runs:** CW and all Gaussian noise widths have one
 gain scale (noise 9.6 dB more gain than CW for the same J/N60); clean up to
 J/N60 30 (noise) and 41.7 (CW); N0.1 limited to J/N60 30.1 by regrowth.
+
+### P2-c PN, CH-f, CH-m, CH-s (2026-11-21, 13:49 to 13:53)
+
+One run, the four files in turn, as P2-b, `--band 0,2.4e6`, `--max-gain 83`.
+Files (all -6.02 dBFS rms, the CW drive; centre L1, no LO offset): PN
+(random BPSK 1.023 Mcps, main-lobe filtered, 8.184 MSPS, bw99 1.60 MHz,
+crest 2.9 dB, sha256 `8e5daf77...`), CH-f (sawtooth chirp L1 +/- 1 MHz,
+period 10 us, low-pass 1.2 MHz, bw99 2.2 MHz, crest 1.2 dB, `9a9f88e1...`),
+CH-m (1 ms, 1.97 MHz, 0 dB, `7ec85e4a...`), CH-s (100 ms, 1.98 MHz, 0 dB,
+`93d4df4a...`). Logs `results/t3_t5b_P2_{PN,CH-f,CH-m,CH-s}_*.txt`,
+`results/t5b_P2_{PN,CH-f,CH-m,CH-s}_jammer_20261121-134947.txt`. No
+underflow, sequence error or other event; `JAMMER OFF` after each file, no
+line after each `quit`. Rates: 8 MSPS exact; PN reads 8184000.1 Hz
+(0.01 ppm, inside the 1 Hz check of the script).
+
+J/N60 per gain (c: clipped samples; CW from C3 for comparison):
+
+| Gain (dB) | 55 | 60 | 65 | 67.5 | 70 | 72.5 | 75 | 76 | 77 | 78 | 79 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PN | 19.3 | 24.3 | 29.3 | 32.0 | 34.4 | 36.4 | 38.8 | 39.7 c | 40.7 c | | |
+| CH-f | 19.2 | 24.2 | 29.2 | 31.9 | 34.3 | 36.3 | 38.7 | 39.6 | 40.6 | 41.6 c | 42.6 c |
+| CH-m | 19.2 | 24.2 | 29.2 | 31.9 | 34.3 | 36.3 | 38.7 | 39.6 | 40.5 | 41.5 c | 42.5 c |
+| CH-s | 19.1 | 24.2 | 29.2 | 31.9 | 34.3 | 36.3 | 38.7 | 39.6 | 40.5 | 41.5 c | 42.5 c |
+| CW (C3) | 19.8 (55) | | 29.8 | | 34.9 | 37.0 | 39.4 | | 41.7 (77.5) | 42.7 c (78.5) | |
+
+Clipped samples, x1 / x2 of 3.1 M: PN 824 / 329 (76), 48117 / 39761 (77);
+CH-f 23680 / 15615 (78); CH-m 228 / 29 (78); CH-s 132 / 6 (78); all three
+chirps 0.25 to 0.34 M at 79.
+
+- **Scale:** the constant-envelope files follow CW, 0.5 to 0.7 dB lower
+  (J/N60 = gain - 35.8 dB below 70 dB, CW gain - 35.2). The cause is not
+  separated here (2 MHz waveforms at 8 MSPS against the CW line at 1 MSPS;
+  N2 was also 0.2 dB below N1); it is inside the +/- 1 dB of the T5 table.
+  Compression as CW from 70 dB.
+- **Clip onset:** chirps at gain 78 (J/N60 41.5 to 41.6), as CW (between
+  41.7 and 42.7); PN 2 dB earlier, at gain 76 (J/N60 39.7), as its 2.9 dB
+  crest factor suggests. Predicted 40 to 42 (Section 2.6). Clean steps for
+  the N runs: PN to J/N60 38.8, chirps to 40.5.
+- **Inter-channel:** phase x2/x1 -90.6 to -90.8 deg, ratio -0.08 to -0.16 dB,
+  coherence to 1.0000 below clipping, as all other waveforms. At gain 79
+  (heavy clipping) CH-f and CH-m move to -91.4 / -91.7 deg and coherence
+  0.995.
+- **Phase slope over L1 +/- 1.2 MHz:** all four +0.20 to +0.22 deg/MHz at
+  J/N60 34 to 41 (standard deviation 0.000 to 0.004), +0.06 to +0.08 at
+  J/N60 29, +0.17 to +0.26 at J/N60 19. The same level dependence as the
+  noise files, with the minimum near J/N60 25 to 29 and +0.2 deg/MHz (tau
+  about -0.55 ns) at the high levels.
+- **LO leakage:** not readable from the chirps: the line search at L1 finds
+  the chirps' own spectral lines (CH-f: lines every 100 kHz, 53 to 70 dB
+  over the floor, the strongest spurs at L1 + 0.6 / + 0.7 / - 0.6 / + 0.5 MHz
+  at gain 75, each 5.4 kHz low as the line offset; CH-m: about 20 dB;
+  CH-s: 1 to 10 dB). PN: no line at L1
+  (2.4 to 3.0 dB, statistical level).
