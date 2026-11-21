@@ -268,3 +268,65 @@ the pulse against N = -42.52 dBFS):
 group W runs). Clean levels for the N runs, J/N60 in the jammer (in-pulse
 for P-x): CW to 41.7, PN to 38.8, chirps to 40.5, Gaussian noise to 30
 (N0.1 to 30.1 by regrowth), pulsed as their base waveform.
+
+## P3: GPS and jammer together, Pluto RX-only (2026-11-21, 14:03 to 14:05)
+
+Plan: `docs/t5b_plan.md`, "P3 plan". Bench as P2; bladeRF plugged back in by
+the user; `bladegps -e brdc3300.18n` (in `~/Work/bladeGPS`, TX gain
+unchanged) through 40 dB, B206mini through 30 + 20 dB. Captures `--passive
+--cw-offset 0,200e3 --cw-span 15e3 --spurs 5 --save tmp/t5b_cap` (N1 steps
+also `--band 0,1.2e6`). Logs `results/t3_t5b_P3_*_20261121-140*.txt`,
+`results/t5b_P3_{cw,N1}_jammer_20261121-140349.txt`,
+`results/t5b_P3_bladegps_20261121-140349.txt`. No clipping; no underflow on
+any of the 12 STATUS / stop lines; `JAMMER OFF` after each jammer;
+`bladegps` stopped with `q` ("Done!"), 71.6 s simulated.
+
+**Carrier phase under a wideband jammer.** The CW line measurement of
+`t3_phase.py` (3 bins of 153 Hz) takes the N1 jammer in those bins with the
+carrier, which pulls the carrier phase towards the jammer phase: 169.5 deg at
+N1 gain 55 and about 185 deg at gain 64 (raw log values -165 to 180; their
+plain mean -80 in the runner output is a wrap artefact). So phi_G was taken
+offline from the saved raw captures (scratch analysis): Hann FFT over the
+whole capture (9.54 Hz bins), carrier = strongest bin within 1 kHz of
+L1, X2 conj(X1) summed over 7 bins, minus the mean cross-spectrum of the
+bins 30 Hz to 3 kHz either side (the jammer at the carrier) times 7;
+circular means. Same method for all steps; for GPS alone and CW it equals the
+raw value within 0.01 deg.
+
+| Step | Sources | Carrier over local background (7 bins) | phi_G x2/x1 (std per capture) | GPS ratio | phi_J x2/x1 | D |
+|---|---|---|---|---|---|---|
+| P3-0 | bladeRF idle | (no carrier: 2.4 dB, noise) | - | - | - | - |
+| P3-1 | GPS alone, 10 captures | 42.8 dB | 167.55 (0.17) | -0.53 dB | - | - |
+| P3-2 | + CW gain 55 (J/N60 about 19.8) | 42.7 dB | 168.12 (0.21) | -0.61 | -90.66 (line, 200 kHz) | **101.2** |
+| P3-3 | CW gain 70 (J/N60 about 34.9) | 40.9 dB | 168.01 (0.26) | -0.60 | -90.55 | **101.4** |
+| P3-4 | N1 gain 55 (J/N60 10.4) | 22.9 dB | 166.77 (2.13; mean +/- 0.55) | -0.60 | -91.07 (local, at L1) | **102.2 +/- 0.6** |
+| P3-5 | N1 gain 64 (J/N60 about 19.3) | 14.2 dB | 166.29 (5.56; mean +/- 1.4) | -0.64 | -90.65 (local) | **103.1 +/- 1.4** |
+| P3-6 | GPS alone, 5 captures | 42.5 dB | 167.33 (0.20) | -0.53 | - | - |
+| P3-7 | `bladegps` stopped | (1.7 dB: no carrier left) | - | - | - | - |
+
+D = 360 - (phi_G - phi_J). The N1 band phase over L1 +/- 0.6 MHz is -91.81
+at gain 55 (biased by the carrier inside the band at J/N60 10) and -90.76 at
+64; P2 without GPS gave -91.14 / -90.8 at the same gains.
+
+- **D in V3 with the B206mini: 101.2 / 101.4 deg (CW), 102.2 +/- 0.6 /
+  103.1 +/- 1.4 deg (N1)**, against 101.6 predicted from the separate
+  measurements and 100.4 / 100.5 in T5 P3 (B205mini, phi_J 0.6 deg more
+  negative). Pass criterion (within 1.5 deg of 101.6): met by all four, N1 at
+  gain 64 at the edge within its uncertainty.
+- phi_G before and after the jammer runs: 167.55 / 167.33 deg (pass: within
+  0.5 deg), against 167.64 in T5b P1 (2026-11-18).
+- With the CW jammer streaming phi_G is 0.5 deg higher (168.1 / 168.0 at
+  J/N60 20 and 35, the same at both levels); T5 P3 saw the same sign
+  (+0.3 to +0.45 deg against P1). Not level-dependent, so not a coupling of
+  the jammer power; possibly the B206mini TX port state (streaming against
+  idle) changing the combiner network. With N1 the shift is not resolved
+  (166.8 +/- 0.6, 166.3 +/- 1.4).
+- Carrier over the floor 1.9 dB lower next to the CW at J/N60 35 (T5: 1.3 dB):
+  the floor rise around the jammer, as in P2.
+- With these D the GPS loss with PI is as in T4 / T5: about +0.4 dB against
+  w = [1, 0] with the jammer off (`docs/t4_plan.md`, Section 5; cos D changes
+  by less than 0.05 between 100.5 and 103 deg).
+- **Tool note for the P and N runs with wideband jammers:** the carrier line
+  phase of `t3_phase.py` is biased once the jammer density in the 3 line bins
+  is within about 20 dB of the carrier; use the saved captures with the
+  background removal above.

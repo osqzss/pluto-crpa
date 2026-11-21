@@ -1,0 +1,14 @@
+2026-11-21T05:04:05.034Z 1795237445.035 t4_jammer.py: --on --ext-att 50 --gain off --log results/t5b_P3_cw_jammer_20261121-140349.txt --max-gain 73
+2026-11-21T05:04:05.035Z 1795237445.035 mode ON (transmit), device 'serial=352F132'
+2026-11-21T05:04:06.574Z 1795237446.575 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T05:04:06.574Z 1795237446.575 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T05:04:06.575Z 1795237446.575 schedule: none; start state off; t0 on the t0 command
+2026-11-21T05:04:06.929Z 1795237446.929 tuned: target 1575620000.0 Hz, actual RF 1575619999.7 Hz, DSP 0.320 Hz, reads 1575620000.0 Hz; rate 1000000.0; antenna TX/RX
+2026-11-21T05:04:06.929Z 1795237446.929 ext-att 50 dB (as stated), max-gain 73 dB, ampl 0.5
+2026-11-21T05:04:06.958Z 1795237446.959 STATE off (start); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T05:04:07.000Z 1795237447.000 STATE gain 55 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:04:18.677Z 1795237458.678 STATE gain 70 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T05:04:30.361Z 1795237470.362 STATUS streaming True, gain reads 70 dB, samples sent 23410000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T05:04:30.876Z 1795237470.877 STATE off (command); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T05:04:31.867Z 1795237471.868 stopping: quit command; samples sent 23930000; underflows 0, seq errors 0, other events 0
+2026-11-21T05:04:32.045Z 1795237472.046 JAMMER OFF: burst ended, gain at minimum, device closed

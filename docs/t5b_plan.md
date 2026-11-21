@@ -515,12 +515,73 @@ J/N60 34 to 41. **P2-d done 2026-11-21:** pulsed files at the in-pulse level
 of the continuous ones (P-CW 19.5 / 29.5, P-N1 19.3 / 29.0), duty 0.10 to
 0.11; finding: off-time level +0.6 dB over the noise at P-N1 gain 74 (B206mini
 output with zero samples at high gain, common to both channels). P2 done for
-group A (P2-W later). Next: P3 (both on, CW and N1, 30 captures; needs the
-bladeRF plugged in and the go), then S-V3 (Section 8).
+group A (P2-W later). **P3 done 2026-11-21:** D 101.2 / 101.4 deg (CW, J/N60
+20 / 35), 102.2 +/- 0.6 / 103.1 +/- 1.4 deg (N1, J/N60 10 / 19), predicted
+101.6; phi_G 167.55 / 167.33 deg before / after. Carrier phase under N1 taken
+offline with the jammer background removed (the 3-bin line phase of
+`t3_phase.py` is biased by a wideband jammer). Next: S-V3 (Section 8; GPS
+off, bladeRF unplugged; needs the go).
 Bench after C3: Pluto
 power-cycled and set once (L1 + 3 MHz, 10 MSPS, 9 MHz, gain 60, TX safe),
 bladeRF unplugged; noise x1 / x2 -42.52 / -42.81 dBFS, L1 +/- 1 MHz
 -49.79 dBFS.
+
+### P3 plan (written 2026-11-21; run the same day, results in `results/t5b.md`)
+
+Purpose: D (GPS carrier phase against jammer phase, x2/x1) in V3 with the
+B206mini, for CW as in T5 P3 and for N1, with both sources on together, and
+a check that neither source changes the other's phase. D sets the GPS loss
+with PI (T4 / T5: D 100.5 deg gives +0.4 dB predicted). Pluto RX-only; no
+`crpa_ctl`; u-blox not used.
+
+**Prediction.** D = 360 - (phi_G - phi_J). From the separate measurements of
+today's bench: phi_G 167.64 deg (T5b P1, 2026-11-18, same cabling) and phi_J
+-90.8 deg (C3 and P2, B206mini) give **D about 101.6 deg** (T5 P3 with the
+B205mini: phi_J -91.2 / -91.3 deg, D 100.4 / 100.5). The 0.5 deg change of
+phi_J between the units and the days is the only expected difference.
+
+**Bench.** As P2 (V3, jammer 30 + 20 dB, Pluto at L1 + 3 MHz, 10 MSPS, 9 MHz,
+gain 60, TX safe, set once after today's power cycle). **The user plugs the
+bladeRF back into USB** (GPS path through 40 dB to SPL1, as in T5b P1). GPS:
+`./bladegps -e brdc3300.18n` in `~/Work/bladeGPS`, TX gain unchanged, stdin
+from a FIFO, stopped with `q` and by PID if needed. Jammer: `t4_jammer.py
+--on --ext-att 50`, FIFO, `quit`.
+
+**Steps** (one run, one go; captures `t3_phase.py --passive --gain 60
+--cw-offset 0,200e3 --cw-span 15e3 --spurs 5 --save tmp/t5b_cap`; `--band
+0,1.2e6 --band-ref=<P2 N1 off step>` for the N1 steps):
+
+| Step | Sources | Captures | Gives |
+|---|---|---|---|
+| P3-0 | bladeRF plugged in, `bladegps` not started, B206mini closed | 3 | noise and any bladeRF carrier before the run |
+| P3-1 | `bladegps` alone | 10 | phi_G, ratio, carrier over the floor, against T5b P1 (167.64 deg, -0.61 dB, 37.8 dB) |
+| P3-2 | + CW jammer, gain 55 (J/N60 about 19.8) | 15 | phi_G and phi_J together: D at J/N60 20 (T5 P3: 100.5 deg) |
+| P3-3 | CW gain 70 (J/N60 about 34.9) | 15 | D at J/N60 35 (T5: 100.4 deg), carrier over the floor next to a strong jammer |
+| P3-4 | CW `quit`; N1 jammer started, gain 55 (J/N60 10.4) | 15 | phi_G at L1 inside the N1 band (carrier about 17 dB over the jammer density), band phase of N1: D for N1 |
+| P3-5 | N1 gain 64 (J/N60 about 19.3) | 15 | as P3-4, carrier about 8 dB over the jammer density |
+| P3-6 | N1 `quit`, `bladegps` alone | 5 | phi_G after the jammer runs |
+| P3-7 | `bladegps` stopped (`q`) | 3 | residual: known bladeRF carrier after exit (`docs/test-equipment.md`, Section 4) |
+
+N1 is not run at J/N60 30: with the carrier about 38 dB over the noise per
+FFT bin and N1 about 29.5 dB over the noise density at J/N60 20, the
+carrier would be under the jammer density at J/N60 30 and its phase not
+readable. The N1 band phase is the same from J/N60 10 to 32 in P2 (-90.7 to
+-91.1 deg), so D at the N run levels follows from P3-4 / P3-5 and P2.
+
+**Evaluation.** D per step from phi_G (line at offset 0) and phi_J (line at
+200 kHz for CW, band phase of `--band 0,1.2e6` for N1); with the saved
+captures also phi_J of N1 in the bins next to L1 (+/- 15 kHz), to compare D
+at L1 with D from the whole band. Pass: D within 1.5 deg of 101.6 for all
+steps and phi_G within 0.5 deg between P3-1 and P3-6.
+
+**Stops.** As P2 (underflow, `JAMMER OFF` not confirmed, TX not safe, any
+error), and `bladegps` exiting before P3-7. Clipping is not expected (CW at
+J/N60 35, N1 at 19.3).
+
+**Time.** About 4 min of RF; raw captures about 0.6 GB.
+
+**After P3.** S-V3 (Section 8): GPS off, so the bladeRF is unplugged again
+before S-V3 (its carrier stays after `bladegps` exits).
 
 ### RX-only runs
 
