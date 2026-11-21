@@ -692,3 +692,42 @@ confirms the scale (step 10: x1 -27.59 dBFS = J/N60 14.8).
 - AGC from 2028 down to 780; the jamming indicator falls from about 110 to
   15 to 45 (it does not rise with noise).
 - Recovery: -0.16 dB, 11 SVs, in the 74 s window after the jammer.
+
+## F-N1b: fixed w = [1, 0], N1 from J/N60 +9, fix-loss point (2026-11-21, 15:57 to 16:08)
+
+Added after F-N1 (decided by the user). As F-N1: idle check (line at L1
+1.37 dB), `bladegps` (carrier 36.9 dB, phase 167.73 deg), `crpa_ctl run --on
+--tx-att 80 --min-tx-att 50 --mode fixed --w 1,0,0,0 --csv-every 10 --out
+/tmp/t5b_FN1b` (user, CONDUCTED, `tx 60`, `tx 50`), `t0` and cold start
+together (T0 1795244315.121), off to 200 s, then gain 53.5 to 74.5 planned
+(J/N60 8.9 to 29.6), `--max-gain 77.5`. **The 30 s fix-loss rule ended the
+ladder at t = 464 s** (fix lost for 32 s at gain 65.5): `off`, 90 s recovery,
+quit. Files: `t5b_F-N1b.ubx` (+ `.idx`), `t5b_F-N1b_jammer.txt`,
+`t5b_F-N1b_bladegps.txt`, `t5b_F-N1b.txt`, `t5b_F-N1b_every100.csv`,
+`t3_t5b_F-N1b_{idle,gps}_*.txt`. No underflow, `JAMMER OFF` confirmed,
+safe state; no missed block, no saturation; x1 confirms the scale (gain
+65.5: -21.74 dBFS = J/N60 20.7).
+
+| Step | Jammer | J/N60 or x1 over ref. | Window (s) | C/N0 against ref. | Against T1 | PRNs | SVs used | 3D fix | AGC | Jamming ind. | x1 / y dBFS | Peak | Sat. blocks | Missed | \|w2\| | STATUS |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | off | +0.0 dB | 60 to 197 | +0.00 dB | -5.27 dB | 11 | 11 to 11 | 138 of 138 | 2028 to 2028 | 59 to 112 | -41.97 / -41.97 | 74 | 0 | 0 | 0.000 | 1 |
+| 1 | 53.5 dB | 8.9 | 217 to 259 | -18.47 dB | -23.74 dB | 11 | 11 to 11 | 41 of 41 | 1248 to 1248 | 22 to 43 | -33.15 / -33.15 | 189 | 0 | 0 | 0.000 | 1 |
+| 2 | 56.5 dB | 11.9 | 279 to 315 | -22.01 dB | -27.28 dB | 11 | 10 to 11 | 36 of 36 | 936 to 936 | 21 to 39 | -30.48 / -30.48 | 246 | 0 | 0 | 0.000 | 1 |
+| 3 | 59.5 dB | 14.9 | 335 to 376 | -25.36 dB | -30.63 dB | 11 | 7 to 11 | 42 of 42 | 780 to 780 | 16 to 49 | -27.62 / -27.62 | 320 | 0 | 0 | 0.000 | 1 |
+| 4 | 62.5 dB | 17.9 | 396 to 438 | -28.36 dB | -33.70 dB | 5 | 3 to 4 | 3 of 41 | 312 to 312 | 13 to 44 | -24.69 / -24.69 | 444 | 0 | 0 | 0.000 | 1 |
+| 5 | 65.5 dB | 20.9 | 458 to 479 | -31.46 dB | -36.93 dB | 3 | 0 to 3 | 0 of 22 | 0 to 0 | 10 to 38 | -21.74 / -21.74 | 623 | 0 | 0 | 0.000 | 1 |
+| 6 | off | -0.0 dB | 499 to 572 | -0.23 dB | -5.51 dB | 11 | 11 to 11 | 72 of 72 | 2106 to 2106 | 68 to 127 | -41.97 / -41.97 | 66 | 0 | 0 | 0.000 | 1 |
+
+(Step 5 window ends at the rule's `off`, 479 s.)
+
+- Reference -5.27 dB against T1 (F-N1: -5.18).
+- **Repeatable:** at J/N60 8.9 / 11.9 / 14.9 the C/N0 is within 0.25 dB
+  of F-N1 (-18.47 / -22.01 / -25.36 against -18.23 / -22.22 / -25.14).
+- **Fix-loss point without suppression: J/N60 +14.9 to +17.9.** At 17.9
+  the 3D fix holds in 3 of 41 epochs (2D, 3 to 4 SVs); at 20.9 no fix
+  (0 to 3 SVs, AGC 0), the rule switched the jammer off after 32 s.
+  The C/N0 at the loss is about 25 to 28 dB under the reference.
+- Recovery -0.23 dB, 11 SVs, 3D fix in all 72 epochs.
+- **F for N1 (F-N1 with F-N1b): 6 dB point J/N60 -6.1 to -3.1, fix lost
+  between +14.9 and +17.9.** T5 CW (G60-F): 6 dB point 13 to 16, so N1
+  is 17 to 19 dB more harmful at the 6 dB point.
