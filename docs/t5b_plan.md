@@ -708,7 +708,7 @@ at the same file and gain (`results/t5b_S-V3a.csv`).
 
 About 3 to 4 min per file, 12 to 25 min per run.
 
-**Status 2026-11-21:** N-a and N-b done (`results/t5b.md`). For the wideband
+**Status 2026-11-21:** N-a, N-b and N-c done (`results/t5b.md`). For the wideband
 null, the y noise must come from the weights (n_y = |w1|^2 n11 + |w2|^2 n22 +
 2 Re(conj(w1) w2 conj(n21))), not from the off step; with it the residual is
 measurable (0.1 to 0.4 dB of the noise at J/N60 30) and the nulls are values.

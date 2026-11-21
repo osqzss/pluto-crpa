@@ -495,3 +495,52 @@ uncertainty (0.02 dB drift, 3 sigma), so all values are values, not bounds.
 - The residual jammer in y at J/N60 30 is 0.09 to 0.36 dB of the noise in
   the band (N1: 0.086 dB, -17 dB): for the u-blox the jammer is gone up to the
   clip onset, as S-V3a predicted.
+
+## N-c: PN and chirp null depth with PI, RX-only (2026-11-21, 15:03 to 15:11)
+
+`crpa_ctl run --mode pi --load 24 --cap-sel --duration 1500 --out
+/tmp/t5b_Nc` (dry run, by the user; quit after the run, safe state
+confirmed, no FRAME_ERR). bladeRF unplugged. PN: off, gains 55 / 60 / 65 /
+70 / 72.5 / 75 / 76 (clip onset) / 78 + / 80 +; CH-f, CH-m, CH-s: off, 55 /
+60 / 65 / 70 / 72.5 / 75 / 77 / 78 (clip onset) / 80 + / 82 +; after step;
+10 captures per step, `--cap y --band 0,2.4e6 --save`. Logs
+`results/t3_t5b_N-c_*_20261121-15*.txt`,
+`results/t5b_N-c_*_jammer_20261121-150314.txt`, `results/t5b_N-c.txt`,
+`results/t5b_N-c_every100.csv`. Levels within 0.1 dB of P2; no underflow;
+`JAMMER OFF` after each file; x1 clipped at the onset steps (PN 431,
+CH-f 20405, CH-m 101, CH-s 62 of 10.5 M; P2: 824 / 23680 / 228 / 132) and
+in the + steps (0.27 to 0.72 M); y never clipped. Null depth with the y noise
+from the weights, as N-b; offline: single weight on the P2 captures of the
+same file and gain (`t5b_stap.py --taps 1`, band 2.4 MHz).
+
+| J/N60 (gain) | PN | CH-f | CH-m | CH-s |
+|---|---|---|---|---|
+| 19 (55) | 35.6 dB (offline 35.7) | 35.6 (35.7) | 35.5 (35.8) | 35.6 (35.4) |
+| 24 (60) | 42.3 | 43.5 | 43.6 | 43.3 |
+| 29 (65) | 48.8 (49.1) | > 51.4 (52.0) | 51.3 (50.9) | > 51.5 (51.6) |
+| 34 (70) | 49.3 (49.3) | 47.5 (47.3) | 47.0 (46.8) | **52.8 (47.2)** |
+| 36 (72.5) | 50.3 | 47.3 | 47.2 | **54.0** |
+| 39 (75) | 49.3 (49.3) | 47.8 (47.7) | 47.8 (47.6) | **54.3 (48.1)** |
+| 39.7 / 40.5 (76 PN, 77 chirps) | 46.7 (onset) | 46.5 | 46.4 | 53.8 |
+| 41.5 (78, chirp onset) | - | 41.5 | 42.6 | 44.4 |
+| + steps (PN 78 / 80, chirps 80 / 82) | 21.8 / 28.4 | 22.2 / 34.2 | 28.3 / 34.6 | 30.9 / 36.9 |
+
+- **PN, CH-f and CH-m: hardware equals the offline single weight within
+  0.6 dB** (criterion 3 dB: met). They fill the 2 MHz within one 1 ms block,
+  so they behave as N2: the null stops at 47 to 50 dB from J/N60 29 up, the
+  delay + amplitude-slope limit at the level-dependent tau of these levels
+  (S-V3a: tau -0.53 to -0.56 ns and -0.05 to -0.06 dB/MHz from J/N60 34; the
+  null dips from 51 to 47 between 65 and 70, as tau moves from -0.2 to
+  -0.55 ns).
+- **CH-s (100 ms sweep): 52.8 to 54.3 dB from J/N60 34 to 40, 5.6 to
+  6.2 dB deeper than one fixed weight over the whole sweep (offline).** The
+  1 ms loop follows the sweep (20 kHz per block), so each block sees a nearly
+  narrowband jammer, as predicted in Section 5. It does not reach the CW null
+  (67 to 75 dB at these levels): what limits it is not resolved here. The
+  per-block y estimate of the CSV shows single blocks about 1 dB high every
+  100 blocks (the 2 MHz jump at the sawtooth wrap) at gain 70; they
+  account for about 5 % of the residual, so the wrap is not the main limit.
+- Residual in y up to the clip onset: 0.05 to 0.8 dB of the noise in
+  the band (PN, CH-f, CH-m up to 2.0 dB at J/N60 40.5); beyond the onset PI
+  no longer helps: y rises by 13 to 25 dB of the band noise at the first +
+  step (y up to -18 dBFS), as CW in T5. PN fails first (crest factor).
