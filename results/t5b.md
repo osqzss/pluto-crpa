@@ -608,3 +608,38 @@ runs: the jammer is under the noise in those blocks.)
   next onset) is the question of the alpha 0.9 run; over the 90 off blocks of
   the 100 ms period it decays to 8e-5, so the onset block would leak there
   as with alpha 0.
+
+## N-e: pulsed N1 with PI and alpha 0.9, RX-only (2026-11-21, 15:29 to 15:31)
+
+Added by the user's decision after N-d. `crpa_ctl run --mode pi --load 24
+--alpha 0.9 --cap-sel --duration 600 --out /tmp/t5b_Ne` (dry run, by the
+user; safe state confirmed, no FRAME_ERR). P-N1-10ms and P-N1-100ms at
+gains 65 / 75 (in the pulse J/N60 20 / 30), as N-d; first-step check off.
+Logs `results/t3_t5b_N-e_*_20261121-153*.txt`,
+`results/t5b_N-e_*_jammer_20261121-152956.txt`, `results/t5b_N-e.txt`,
+`results/t5b_N-e_every100.csv`. No clipping, no underflow, `JAMMER OFF`
+after both files.
+
+| File, gain | Mean y, alpha 0.9 (N-e) | Mean y, alpha 0 (N-d) | \|w2\| before the onset | First block of the pulse: x1 / y | Second block: y |
+|---|---|---|---|---|---|
+| P-N1-10ms, 65 | -39.62 dBFS | -32.65 | 0.87 | -23.0 / -37.1 | -39.7 |
+| P-N1-10ms, 75 | **-39.66** | -24.53 | 0.99 | -13.7 / **-39.1** | -39.7 |
+| P-N1-100ms, 65 | -38.81 | -39.40 | 0.03 | -22.6 / -22.8 | -38.0 (third: -39.2) |
+| P-N1-100ms, 75 | -33.36 | -33.61 | 0.14 | -13.2 / -14.5 | -39.2 |
+
+- **10 ms period: alpha 0.9 holds the weights over the 9 off blocks**
+  (\|w2\| 0.99 at J/N60 30, 0.87 at 20), so the onset block is nulled too:
+  y at the two-channel noise at J/N60 30 (onset block 0.6 dB over it), and
+  about 14 dB suppression in the onset block at J/N60 20. The 1 ms pulses
+  that passed with alpha 0 are removed.
+- **100 ms period: no gain.** After 90 off blocks the jammer part of R has
+  decayed (\|w2\| 0.03 / 0.14 at the onset), so the onset block leaks as
+  with alpha 0; at J/N60 20 the smoothing also slows the convergence (second
+  block 1.7 dB over the noise, third 0.5 dB), mean y 0.6 dB higher than with
+  alpha 0.
+- As predicted from the decay 0.9^n (Section "N-d"): alpha trades the
+  convergence time at an onset for memory over the off time; a pulse period
+  of up to about 20 to 30 blocks at these levels is covered.
+- For the P runs: P-P-N1-10ms with alpha 0 is expected to give the u-blox
+  most of the jammer (the F-run level, mean J/N60 10 dB under the pulse),
+  and with alpha 0.9 to suppress it.

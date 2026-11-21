@@ -1,0 +1,17 @@
+2026-11-21T06:30:46.096Z 1795242646.096 t4_jammer.py: --on --ext-att 50 --gain off --log results/t5b_N-e_P-N1-100ms_jammer_20261121-152956.txt --max-gain 78 --waveform tmp/t5b/P-N1-100ms.sc16 --freq 1575420000
+2026-11-21T06:30:46.096Z 1795242646.096 mode ON (transmit), device 'serial=352F132'
+2026-11-21T06:30:47.611Z 1795242647.612 device: Single USRP: |   Device: B-Series Device |   Mboard 0: B206mini |   RX Channel: 0 |     RX DSP: 0 |     RX Dboard: A |     RX Subdev: FE-RX1 |   TX Channel: 0 |     TX DSP: 0 |     TX Dboard: A |     TX Subdev: FE-TX1
+2026-11-21T06:30:47.612Z 1795242647.612 TX gain range 0 to 89.75 dB, step 0.25; antennas TX/RX; freq 42000000 to 6008000000 Hz
+2026-11-21T06:30:47.612Z 1795242647.613 schedule: none; start state off; t0 on the t0 command
+2026-11-21T06:30:47.612Z 1795242647.613 waveform tmp/t5b/P-N1-100ms.sc16: 8000000 samples at 8000000 Hz (1.000 s), kind noise, rms -25.00 dBFS, crest 11.2 dB, bw99 1000081 Hz, sha256 c75a044531765b79aab9bdf42670015d30834ef7639019502cad5604d923479f
+2026-11-21T06:30:47.613Z 1795242647.613 sidecar: {"bw": 1000000.0, "bw99_hz": 1000081.0, "bytes": 32000000, "centroid_hz": 92.1691196932346, "command": "scripts/t5b_waveform.py noise --bw 1e6 --rate 8e6 --pulse-period 100e-3 --duty 0.1 --out tmp/t5b/P-N1-100ms", "created": "2026-11-18T05:16:31Z", "crest_db": 11.247300605534512, "duty": 0.1, "duty_measured": 0.1, "file": "P-N1-100ms.sc16", "format": "sc16 interleaved int16 I/Q, little endian", "full_scale": 32768.0, "generator": "t5b_waveform.py v1", "kind": "noise", "length": 1.0, "loop_period_samples": 800000, "n": 8000000, "offset": 0.0, "peak_abs_iq": 20306, "peak_dbfs": -3.7526988449817367, "pulse_period": 0.1, "rate": 8000000.0, "rms_dbfs": -24.99999945051625, "rms_dbfs_on": -14.999999450516249, "rms_dbfs_target": -15.0, "seed": 1, "sha256": "c75a044531765b79aab9bdf42670015d30834ef7639019502cad5604d923479f"}
+2026-11-21T06:30:47.969Z 1795242647.970 tuned: target 1575420000.0 Hz, actual RF 1575419999.5 Hz, DSP 0.484 Hz, reads 1575420000.0 Hz; rate 8000000.0; antenna TX/RX
+2026-11-21T06:30:47.969Z 1795242647.970 ext-att 50 dB (as stated), max-gain 78 dB, waveform P-N1-100ms.sc16, LO offset 0 Hz
+2026-11-21T06:30:48.000Z 1795242648.001 STATE off (start); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T06:30:48.173Z 1795242648.174 STATE gain 65 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T06:30:58.259Z 1795242658.260 STATUS streaming True, gain reads 65 dB, samples sent 80740000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T06:30:58.796Z 1795242658.797 STATE gain 75 dB (command); underflows 0, seq errors 0, other events 0
+2026-11-21T06:31:08.902Z 1795242668.902 STATUS streaming True, gain reads 75 dB, samples sent 165880000, t before t0; underflows 0, seq errors 0, other events 0
+2026-11-21T06:31:09.407Z 1795242669.407 STATE off (command); gain reads 0 dB; underflows 0, seq errors 0, other events 0
+2026-11-21T06:31:10.408Z 1795242670.409 stopping: quit command; samples sent 169920000; underflows 0, seq errors 0, other events 0
+2026-11-21T06:31:10.531Z 1795242670.531 JAMMER OFF: burst ended, gain at minimum, device closed
