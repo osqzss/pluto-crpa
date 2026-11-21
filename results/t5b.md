@@ -731,3 +731,49 @@ safe state; no missed block, no saturation; x1 confirms the scale (gain
 - **F for N1 (F-N1 with F-N1b): 6 dB point J/N60 -6.1 to -3.1, fix lost
   between +14.9 and +17.9.** T5 CW (G60-F): 6 dB point 13 to 16, so N1
   is 17 to 19 dB more harmful at the 6 dB point.
+
+## P-N1: PI, load 24, cold start under N1, receiver run (2026-11-21, 16:10 to 16:21)
+
+As T5 G60-P: idle check (1.60 dB), `bladegps` (carrier 36.5 dB, phase
+167.51 deg), `ubx_log.py`, then the jammer on at gain 70 (J/N60 25.5) from
+16:10:42, before `crpa_ctl`; the user started `crpa_ctl run --on --tx-att
+80 --min-tx-att 50 --mode pi --load 24 --csv-every 10 --out /tmp/t5b_PN1`,
+CONDUCTED, `tx 60`, `tx 50`; then `t0` and the cold start (T0
+1795245075.073). Steps by stdin from t0: 70 to 140 s, then 72.5 / 74.5 / 76
+(clip onset) / 78 + / 80 + / 70, about 60 s each, off at 504 s, quit at
+598 s; `--max-gain 83`. Files: `t5b_P-N1.ubx` (+ `.idx`),
+`t5b_P-N1_jammer.txt`, `t5b_P-N1_bladegps.txt`, `t5b_P-N1.txt`,
+`t5b_P-N1_every100.csv`, `t3_t5b_P-N1_{idle,gps}_*.txt`. No underflow,
+`JAMMER OFF`, safe state; no missed block, no saturated block, no FRAME_ERR;
+PEAK 2048 only at 78 and 80 (marked +). Table from `t5_steps.py`
+(reference: step 6, the return to 70; first window from 30 s); "Against
+F-N1" is against the F-N1 reference window (-5.18 dB against T1), as T5.
+
+| Step | Gain | J/N60 | Against F-N1 | Against T1 | SVs used | 3D fix | AGC | Jamming ind. | x1 / y (dBFS) | Peak | \|w2\| |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 (cold start) | 70 | 25.5 | +0.26 dB | -4.92 dB | 0 to 11 | 105 of 108 | 1950 | 90 to 103 | -17.19 / -38.95 | 1054 | 1.011 |
+| 1 | 72.5 | 27.6 | +0.32 | -4.86 | 11 | 41 of 41 | 1950 | 91 to 101 | -15.12 / -38.96 | 1331 | 1.012 |
+| 2 | 74.5 | 29.6 | +0.30 | -4.88 | 11 | 41 of 41 | 1950 | 91 to 100 | -13.20 / -38.96 | 1653 | 1.013 |
+| 3 | 76 | 30.9 (onset) | +0.29 | -4.89 | 11 | 36 of 36 | 1950 | 91 to 101 | -11.83 / -38.94 | 2005 | 1.013 |
+| 4 + | 78 | 32.9 | +0.14 | -5.04 | 11 | 42 of 42 | 1950 | 90 to 100 | -9.87 / -38.82 | 2048 | 1.013 |
+| 5 + | 80 | 34.9 | +0.01 | -5.17 | 11 | 41 of 41 | 1950 | 92 to 103 | -7.92 / -37.24 | 2048 | 1.013 |
+| 6 | 70 | 25.5 | +0.09 | -5.09 | 11 | 42 of 42 | 1950 | 90 to 101 | -17.23 / -38.97 | 1071 | 1.011 |
+| 7 | off | - | -1.34 | -6.52 | 11 | 73 of 73 | 2106 | 115 to 125 | -41.99 / -42.07 | 72 | 0.125 |
+
+- **TTFF under N1 at J/N60 25.5: 31.3 s** (NAV-STATUS; F-N1 / F-N1b
+  without jammer: 30.2 / 30.7 s).
+- **3D fix with 11 SVs at every level up to J/N60 34.9** (two steps past the
+  clip onset), C/N0 +0.26 to +0.32 dB against the fixed-weight reference up
+  to the onset: the PI gain for D about 101 deg (prediction +0.4 dB, T5
+  G60-P +0.3 to +0.7), so the jammer costs nothing measurable. y stays at
+  -38.95 dBFS (the two-channel noise) to the onset, as in N-b.
+- Past the onset: +0.14 dB at 32.9 and 0.0 dB at 34.9 (y -37.24 dBFS, the
+  null about 40 dB, N-b): clipping costs 0.15 to 0.3 dB here.
+- Recovery at 70: +0.09 dB. Jammer off with PI: -1.34 dB against F-N1
+  (T4 V3-P: -0.9 dB): with no jammer the weights adapt to GPS and noise
+  (\|w2\| 0.125).
+- **N1, PI against fixed weights: 6 dB point from J/N60 -6.1 to -3.1 (F) to
+  beyond 34.9 (P, not reached): improvement more than 38 dB; fix loss from
+  14.9 to 17.9 (F) to beyond 34.9: more than 17 to 20 dB.** Both lower
+  bounds, limited by the jammer level (the B206mini gain of the + steps).
+  T5 CW at gain 60: 26 to 29 dB and more than 14 to 21 dB.
