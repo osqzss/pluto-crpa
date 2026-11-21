@@ -1,0 +1,37 @@
+# t3_phase.py 20261121-134623, seq one, label 't5b_P2_N2_g75'
+# command: scripts/t3_phase.py --passive --count 3 --gain 60 --label t5b_P2_N2_g75 --note T5b P2-b, V3, jammer B206mini through 30+20 dB, bladeRF unplugged, RX gain 60 --cw-offset 0,200e3 --cw-span 15e3 --spurs 5 --band 0,2.4e6 --save tmp/t5b_cap --band-ref=-49.03,-49.27
+# note: T5b P2-b, V3, jammer B206mini through 30+20 dB, bladeRF unplugged, RX gain 60
+# band 0,2.4e6, band-ref -49.03,-49.27
+# raw captures saved to tmp/t5b_cap
+# start (passive, nothing written): TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 15000 Hz of -delta + cw_offset (0,200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db,clip1,clip2,skirt1_20k_db,skirt1_100k_db,skirt1_500k_db,skirt2_20k_db,skirt2_100k_db,skirt2_500k_db,band1_dbfs,band2_dbfs,band1_ex_dbfs,band2_ex_dbfs,band_ratio_db,band_phase_deg,band_rho,band_slope_deg_mhz
+0,t5b_P2_N2_g75,one,0.8,1578420000,10000000,60,32.5,-12.71,-12.81,-0.097,0.9989,-90.63,-2991028,2.6,-0.095,-90.61,1641,0,2.6,0,0,36.0,36.4,36.0,36.6,36.9,36.5,-12.70,-12.79,-12.70,-12.80,-0.096,-90.62,0.9998,0.1322
+# spurs,row=0,ch=01,-2580719:40.2,-2118530:40.0,-2482910:39.9,-2405853:39.7,-2152710:39.7
+# spurs,row=0,ch=23,-2580719:40.7,-2118530:40.5,-2482910:40.4,-2405853:40.3,-2152710:40.2
+1,t5b_P2_N2_g75,one,0.8,1578420000,10000000,60,32.5,-12.71,-12.81,-0.097,0.9989,-90.63,-2812958,2.8,-0.108,-90.59,1641,200000,2.8,0,0,36.5,36.6,36.1,37.0,37.2,36.6,-12.70,-12.79,-12.70,-12.80,-0.096,-90.62,0.9998,0.1322
+2,t5b_P2_N2_g75,one,1.5,1578420000,10000000,60,32.5,-12.72,-12.82,-0.097,0.9989,-90.63,-3000183,2.6,-0.078,-90.79,1701,0,2.7,0,0,35.9,35.8,36.0,36.5,36.3,36.5,-12.73,-12.83,-12.73,-12.83,-0.097,-90.63,0.9998,0.1307
+# spurs,row=2,ch=01,-2511292:39.9,-2480774:39.7,-2394409:39.5,-2936707:39.5,-2058105:39.5
+# spurs,row=2,ch=23,-2511292:40.4,-2480774:40.2,-2394409:40.1,-2936707:40.0,-2058105:40.0
+3,t5b_P2_N2_g75,one,1.5,1578420000,10000000,60,32.5,-12.72,-12.82,-0.097,0.9989,-90.63,-2799225,2.2,-0.083,-90.77,1701,200000,2.2,0,0,35.8,36.4,36.3,36.4,36.9,36.8,-12.73,-12.83,-12.73,-12.83,-0.097,-90.63,0.9998,0.1307
+4,t5b_P2_N2_g75,one,2.2,1578420000,10000000,60,32.5,-12.73,-12.83,-0.098,0.9989,-90.62,-3005066,2.6,-0.079,-90.62,1661,0,2.6,0,0,35.9,36.3,36.5,36.5,36.9,37.0,-12.73,-12.83,-12.73,-12.83,-0.097,-90.62,0.9998,0.1324
+# spurs,row=4,ch=01,-2073517:39.9,-2310333:39.9,-2229919:39.8,-2375641:39.8,-2278442:39.8
+# spurs,row=4,ch=23,-2073517:40.5,-2310333:40.4,-2375641:40.4,-2229919:40.3,-2278442:40.3
+5,t5b_P2_N2_g75,one,2.2,1578420000,10000000,60,32.5,-12.73,-12.83,-0.098,0.9989,-90.62,-2792969,2.5,-0.055,-90.82,1661,200000,2.5,0,0,36.7,36.5,36.1,37.3,37.1,36.6,-12.73,-12.83,-12.73,-12.83,-0.097,-90.62,0.9998,0.1324
+# wideband phase: mean -90.62 deg, std 0.01, max deviation 0.01 (3 captures)
+# wideband x2/x1: mean -0.097 dB, std 0.000, range -0.098 to -0.097
+# CW phase (offset +0 Hz): mean -90.67 deg, std 0.08, max deviation 0.11 (3 captures)
+# CW x2/x1 (offset +0 Hz): mean -0.084 dB, std 0.008, range -0.095 to -0.078
+# CW line over the floor (offset +0 Hz): ch0/1 2.6 dB, ch2/3 2.6 dB (means), at -3000183 Hz
+# CW phase (offset +200000 Hz): mean -90.73 deg, std 0.10, max deviation 0.14 (3 captures)
+# CW x2/x1 (offset +200000 Hz): mean -0.082 dB, std 0.022, range -0.108 to -0.055
+# CW line over the floor (offset +200000 Hz): ch0/1 2.5 dB, ch2/3 2.5 dB (means), at -2799225 Hz
+# clipped samples: ch0/1 0, ch2/3 0 over 3 captures
+# skirt at 20 / 100 / 500 kHz from the line (offset +0 Hz): ch0/1 36.0 / 36.2 / 36.1 dB, ch2/3 36.5 / 36.7 / 36.7 dB
+# skirt at 20 / 100 / 500 kHz from the line (offset +200000 Hz): ch0/1 36.3 / 36.5 / 36.2 dB, ch2/3 36.9 / 37.1 / 36.7 dB
+# band +0 Hz, 2400000 Hz wide: ch0/1 -12.72 dBFS, ch2/3 -12.82 dBFS; excess -12.72 / -12.82 dBFS; ratio -0.10 dB (std 0.00); phase -90.62 deg, rho 0.9998, slope 0.1318 deg/MHz (std 0.0008)
+# |rho|: mean 0.9989, range 0.9989 to 0.9989; peak |x| 1701 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_t5b_P2_N2_g75_20261121-134623.txt

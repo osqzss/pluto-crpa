@@ -96,3 +96,66 @@ For the N1 N run: J/N60 20 / 25 / 30 at gain about 64.6 / 69.6 / 75, clip
 onset at gain 76 (J/N60 30.9); the + steps (clip onset + 2 and + 4 dB of
 J/N60) need gains above 77, beyond this ladder, and are set from the
 compression seen here when that run is planned.
+
+### P2-b N0.1, N0.5, N2 (2026-11-21, 13:44 to 13:46)
+
+One run, the three files in turn, each with its own jammer start, off step
+(band reference) and `quit`. Files (Gaussian noise, -15 dBFS rms, 8 MSPS,
+1 s, centre L1, no LO offset): N0.1 (bw99 99.96 kHz, crest 11.7 dB, sha256
+`bcedbdf8...`), N0.5 (500.0 kHz, 12.1 dB, `7bdca228...`), N2 (1999.9 kHz,
+12.3 dB, `ce56c059...`); full sha256 in the jammer logs. Captures as P2-a
+with `--band 0,0.12e6` / `0,0.6e6` / `0,2.4e6` and the band reference from
+the off step of the same file. Logs `results/t3_t5b_P2_{N0.1,N0.5,N2}_*.txt`,
+`results/t5b_P2_{N0.1,N0.5,N2}_jammer_20261121-134404.txt`. 8 MSPS exact,
+no underflow, sequence error or other event; `JAMMER OFF` after each file;
+no line after each `quit`.
+
+J/N60 per gain (N1 from P2-a for comparison):
+
+| Gain (dB) | 55 | 60 | 65 | 67.5 | 70 | 72.5 | 74 | 75 | 76 | 77 | 78 | 79 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N0.1 | 10.4 | 15.4 | 20.5 | 23.2 | 25.5 | 27.6 | 29.1 | 30.1 | 30.9 | 32.0 | 32.9 c | 33.8 c |
+| N0.5 | 10.4 | 15.4 | 20.4 | 23.1 | 25.5 | 27.6 | 29.1 | 30.0 | 30.9 | 31.9 c | 32.9 c | |
+| N1 | 10.4 | 15.4 | 20.4 | 23.1 | 25.5 | 27.6 | 29.1 | 30.0 | 30.9 c | 31.9 c | | |
+| N2 | 10.2 | 15.2 | 20.2 | 22.9 | 25.3 | 27.4 | 28.8 | 29.8 | 30.7 | 31.7 c | 32.7 c | |
+
+(c: clipped samples in the step.) Clipped samples, x1 / x2 of 3.1 M, at the
+first two clipped steps: N0.1 93 / 82 (78), 523 / 445 (79); N0.5 14 / 10
+(77), 58 / 46 (78); N1 2 / 0 (76), 9 / 9 (77); N2 5 / 4 (77), 46 / 31 (78).
+
+- **One scale for all noise widths:** J/N60 within 0.1 dB for N0.1 to N1;
+  N2 0.2 dB lower (its band edge at L1 - 1 MHz is 0.5 MHz from the Pluto
+  passband edge). J/N60 = gain - 44.6 dB to 70 dB for all.
+- **Gaussian clip onset:** first clipped samples at J/N60 30.9 to 32.9
+  (gain 76 to 78), predicted about 31. The step where the first few samples
+  clip is a matter of chance at this count; 5 to 93 clipped samples per
+  3.1 M are reached at J/N60 31.7 to 32.9 for all four. N runs: steps up to J/N60 30
+  are clean for every width.
+- **Spectral regrowth (N0.1, skirt at 100 kHz from L1, outside its band):**
+  +0.6 / +0.8 / +1.2 / +1.6 dB at gain 74 / 75 / 76 / 77, before any
+  clipping, then +3.4 and +11.9 dB at 78 and 79 (clipped). By the rule of
+  Section 2.6 (no use above a skirt rise of 1 dB), **N0.1 is limited to gain
+  75 (J/N60 30.1)**. N0.5 (skirt at 500 kHz): +0.7 / +0.9 / +1.2 dB at 76 /
+  77 / 78, limit gain 77 (J/N60 31.9, already clipped). N1 and N2 have no
+  skirt point outside their band within the analysis (500 kHz); their
+  regrowth is not measured here.
+- **Inter-channel:** phase x2/x1 -90.6 to -91.2 deg, ratio -0.05 to -0.14 dB
+  in band, coherence to 0.9999 / 1.0000 for all, as N1 and CW.
+- **Phase slope:** N2 over L1 +/- 1.2 MHz: +0.10 to +0.17 deg/MHz from
+  J/N60 23 up (standard deviation of 3 captures 0.001 to 0.008), N0.5 +0.06
+  to +0.17; N0.1 too narrow for a slope (spread 0.03 to 0.16). Same as N1:
+  **tau about -0.3 to -0.45 ns**, not 1.2 ns. All widths show the same level
+  dependence: highest at J/N60 10 (+0.38 to +0.57), lowest near J/N60 25
+  (+0.06 to +0.10), rising again to +0.17 at the clip onset. The jammer path
+  up to the splitter is common to both channels, so a level-dependent slope
+  must come from the Pluto (or the correlated noise of the two channels at
+  low J/N, |rho| about 0.01 without a jammer). Open for the S runs.
+- **LO leakage at L1:** visible with N2 (lowest spectral density): the
+  strongest bin within 15 kHz of L1 is 7.0 / 5.0 / 5.7 / 5.4 dB over the
+  jammer spectrum at gain 55 / 60 / 70 / 72.5 dB, 2.6 to 3.5 dB elsewhere
+  (statistical level). Estimated about -35 to -37 dBc against the total
+  jammer power; N0.1, N0.5: not visible. Below -30 dBc: no LO offset.
+
+**P2 so far, for the N runs:** CW and all Gaussian noise widths have one
+gain scale (noise 9.6 dB more gain than CW for the same J/N60); clean up to
+J/N60 30 (noise) and 41.7 (CW); N0.1 limited to J/N60 30.1 by regrowth.
