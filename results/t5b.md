@@ -643,3 +643,52 @@ after both files.
 - For the P runs: P-P-N1-10ms with alpha 0 is expected to give the u-blox
   most of the jammer (the F-run level, mean J/N60 10 dB under the pulse),
   and with alpha 0.9 to suppress it.
+
+## F-N1: fixed w = [1, 0], N1 ladder, receiver run (2026-11-21, 15:37 to 15:54)
+
+Host side (Claude Code, `f_run.sh`, temporary): idle check with the
+bladeRF plugged in (line at L1 1.97 dB: quiet), `bladegps -e brdc3300.18n`
+(carrier 37.9 dB, phase 167.66 deg), `ubx_log.py`, `t4_jammer.py --on
+--ext-att 50 --max-gain 63 --gain off --waveform tmp/t5b/N1.sc16`. The user
+started `crpa_ctl run --on --tx-att 80 --min-tx-att 50 --mode fixed --w
+1,0,0,0 --csv-every 10 --out /tmp/t5b_FN1`, CONDUCTED, `tx 60`, `tx 50`;
+then `t0` and the cold start together (T0 1795243121.224). Jammer steps by
+stdin commands from t0 (not `--schedule`, so that the 30 s fix-loss rule's
+`off` is final): off to 200 s, then gain 32.5 to 59.5 in 3 dB steps (J/N60
+-12.1 to +14.9 by gain - 44.6), about 60 s each, off at 804 s, quit at
+898 s. Files: `t5b_F-N1.ubx` (+ `.idx`), `t5b_F-N1_jammer.txt`,
+`t5b_F-N1_bladegps.txt`, `t5b_F-N1.txt` (crpa_ctl), `t5b_F-N1_every100.csv`,
+`t3_t5b_F-N1_{idle,gps}_*.txt`. No underflow, `JAMMER OFF` confirmed,
+`bladegps` "Done", safe state; no FRAME_ERR, no missed block, no
+saturation. Table from `t5_steps.py --cal` (gain - 44.6); the x1 column
+confirms the scale (step 10: x1 -27.59 dBFS = J/N60 14.8).
+
+| Step | Jammer | J/N60 or x1 over ref. | Window (s) | C/N0 against ref. | Against T1 | PRNs | SVs used | 3D fix | AGC | Jamming ind. | x1 / y dBFS | Peak | Sat. blocks | Missed | \|w2\| | STATUS |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | off | +0.0 dB | 60 to 197 | +0.00 dB | -5.18 dB | 11 | 11 to 11 | 137 of 137 | 2028 to 2028 | 63 to 112 | -41.91 / -41.91 | 71 | 0 | 0 | 0.000 | 1 |
+| 1 | 32.5 dB | -12.1 | 217 to 258 | -1.74 dB | -6.92 dB | 11 | 11 to 11 | 41 of 41 | 2028 to 2028 | 62 to 111 | -41.71 / -41.71 | 70 | 0 | 0 | 0.000 | 1 |
+| 2 | 35.5 dB | -9.1 | 278 to 315 | -3.11 dB | -8.29 dB | 11 | 11 to 11 | 37 of 37 | 2028 to 2028 | 102 to 111 | -41.51 / -41.51 | 72 | 0 | 0 | 0.000 | 1 |
+| 3 | 38.5 dB | -6.1 | 335 to 376 | -4.57 dB | -9.75 dB | 11 | 11 to 11 | 41 of 41 | 2028 to 2028 | 103 to 111 | -41.15 / -41.15 | 79 | 0 | 0 | 0.000 | 1 |
+| 4 | 41.5 dB | -3.1 | 396 to 438 | -6.86 dB | -12.04 dB | 11 | 11 to 11 | 42 of 42 | 2028 to 2028 | 104 to 111 | -40.49 / -40.49 | 83 | 0 | 0 | 0.000 | 1 |
+| 5 | 44.5 dB | -0.1 | 458 to 499 | -9.24 dB | -14.42 dB | 11 | 11 to 11 | 41 of 41 | 1872 to 1872 | 80 to 87 | -39.40 / -39.40 | 88 | 0 | 0 | 0.000 | 1 |
+| 6 | 47.5 dB | 2.9 | 519 to 556 | -12.15 dB | -17.34 dB | 11 | 11 to 11 | 37 of 37 | 1872 to 1872 | 47 to 86 | -37.80 / -37.80 | 113 | 0 | 0 | 0.000 | 1 |
+| 7 | 50.5 dB | 5.9 | 576 to 618 | -15.14 dB | -20.32 dB | 11 | 11 to 11 | 42 of 42 | 1482 to 1482 | 33 to 49 | -35.62 / -35.62 | 142 | 0 | 0 | 0.000 | 1 |
+| 8 | 53.5 dB | 8.9 | 638 to 675 | -18.23 dB | -23.41 dB | 11 | 11 to 11 | 37 of 37 | 1326 to 1326 | 26 to 41 | -33.12 / -33.12 | 184 | 0 | 0 | 0.000 | 1 |
+| 9 | 56.5 dB | 11.9 | 695 to 737 | -22.22 dB | -27.40 dB | 11 | 9 to 11 | 42 of 42 | 936 to 936 | 17 to 45 | -30.45 / -30.45 | 264 | 0 | 0 | 0.000 | 1 |
+| 10 | 59.5 dB | 14.9 | 757 to 799 | -25.14 dB | -30.39 dB | 9 | 7 to 9 | 42 of 42 | 780 to 780 | 15 to 45 | -27.59 / -27.59 | 371 | 0 | 0 | 0.000 | 1 |
+| 11 | off | -0.1 dB | 819 to 893 | -0.16 dB | -5.34 dB | 11 | 11 to 11 | 74 of 74 | 2106 to 2106 | 113 to 124 | -41.96 / -41.97 | 69 | 0 | 0 | 0.000 | 1 |
+
+- **Reference: -5.18 dB against T1** (T5 G60-F: -5.13 dB), 11 SVs.
+- **6 dB point without suppression: J/N60 -6.1 to -3.1 (about -3.5 by
+  interpolation)**, predicted -4 to -2 (Section 6, "F runs"): N1 noise
+  costs the u-blox 17 to 19 dB more than CW (T5 G60-F: 13 to 16), as the
+  overlap with the C/A main lobe and the M8's CW removal suggest.
+- From J/N60 -3 up the C/N0 falls about 1 dB per dB of jammer (the jammer
+  dominates the noise).
+- **The fix was not lost up to J/N60 +14.9** (C/N0 -25.1 dB against the
+  reference, 7 to 9 SVs used, 3D fix in every epoch): the fix-loss point is
+  a lower bound, above +15. The ladder was too short (planned to end about 2
+  steps after the predicted loss, but the loss came later than assumed).
+- AGC from 2028 down to 780; the jamming indicator falls from about 110 to
+  15 to 45 (it does not rise with noise).
+- Recovery: -0.16 dB, 11 SVs, in the 74 s window after the jammer.

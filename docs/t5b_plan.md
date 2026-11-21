@@ -735,7 +735,7 @@ does not blank pulses.
 | F-CH-s | J/N60 -12 to +30 (gain 23.8 to 65.8), 60 s each | 69 |
 | F-P-N1-10ms | in the pulse -6 to +30 (gain 38.6 to 75) | 78 |
 
-The 30 s fix-loss rule of Section 3 ends every F ladder after the fix is lost
+Changed after F-N1 (decided by the user 2026-11-21: the fix held to J/N60 +15): F-N1b, a second N1 run with a cold start and J/N60 +9 to +30 (gain 53.5 to 74.5) for the fix-loss point; F-N2 and F-PN from J/N60 -12 to +30. The 30 s fix-loss rule of Section 3 ends every F ladder after the fix is lost
 (`off`, then the recovery part), so the long ladders cost time only while the
 fix holds. Run time up to 15 to 20 min.
 
