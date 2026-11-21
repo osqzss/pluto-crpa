@@ -1,0 +1,34 @@
+# t3_phase.py 20261121-132955, seq one, label 'b206mini_C3_cw_g78.5'
+# command: scripts/t3_phase.py --passive --count 3 --gain 60 --label b206mini_C3_cw_g78.5 --note B206mini C3, V3, jammer att 30+20 dB (user confirmed cabling), bladeRF unplugged, RX gain 60 --cw-offset 0,200e3 --cw-span 50e3 --spurs 5
+# note: B206mini C3, V3, jammer att 30+20 dB (user confirmed cabling), bladeRF unplugged, RX gain 60
+# start (passive, nothing written): TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 50000 Hz of -delta + cw_offset (0,200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db,clip1,clip2,skirt1_20k_db,skirt1_100k_db,skirt1_500k_db,skirt2_20k_db,skirt2_100k_db,skirt2_500k_db,band1_dbfs,band2_dbfs,band1_ex_dbfs,band2_ex_dbfs,band_ratio_db,band_phase_deg,band_rho,band_slope_deg_mhz
+0,b206mini_C3_cw_g78.5,one,0.7,1578420000,10000000,60,26.3,0.21,0.16,-0.050,0.9994,-90.64,-3037109,2.6,0.064,-92.89,2049,0,2.7,332483,286544,4.1,4.7,3.4,4.0,4.5,3.2,nan,nan,nan,nan,nan,nan,nan,nan
+# spurs,row=0,ch=01,4389496:47.8,-4389496:45.2,-1584167:39.7,-4026337:38.0,-363159:36.6
+# spurs,row=0,ch=23,4389496:46.9,-4389496:46.6,-1584167:36.2,-4026337:34.4,-363159:33.5
+1,b206mini_C3_cw_g78.5,one,0.7,1578420000,10000000,60,26.3,0.21,0.16,-0.050,0.9994,-90.64,-2805328,79.0,-0.050,-90.62,2049,200000,78.7,332483,286544,4.3,3.7,3.1,4.0,3.7,3.4,nan,nan,nan,nan,nan,nan,nan,nan
+2,b206mini_C3_cw_g78.5,one,1.4,1578420000,10000000,60,26.3,0.18,0.13,-0.049,0.9994,-90.64,-3011169,2.0,1.661,-92.71,2048,0,3.6,303287,253058,4.8,4.4,3.8,4.5,4.4,3.5,nan,nan,nan,nan,nan,nan,nan,nan
+# spurs,row=2,ch=01,4389496:47.4,-4389496:44.7,-1584167:38.2,-4026337:36.6,-363159:35.5
+# spurs,row=2,ch=23,4389496:46.6,-4389496:46.4,-1584167:34.1,-4026337:32.4,-363159:31.8
+3,b206mini_C3_cw_g78.5,one,1.4,1578420000,10000000,60,26.3,0.18,0.13,-0.049,0.9994,-90.64,-2805328,79.1,-0.050,-90.62,2048,200000,78.9,303287,253058,4.4,3.8,3.4,3.9,4.2,3.6,nan,nan,nan,nan,nan,nan,nan,nan
+4,b206mini_C3_cw_g78.5,one,2.2,1578420000,10000000,60,25.4,0.16,0.11,-0.049,0.9995,-90.63,-3037109,4.2,-2.607,-94.60,2048,0,0.8,276025,220450,4.8,4.5,4.0,4.3,4.3,3.3,nan,nan,nan,nan,nan,nan,nan,nan
+# spurs,row=4,ch=01,4389496:47.1,-4389496:44.4,-1584167:36.4,-4026337:35.1,-363159:34.0
+# spurs,row=4,ch=23,4389496:46.3,-4389496:46.2,-1584167:32.1,-4026337:30.3,-363159:29.9
+5,b206mini_C3_cw_g78.5,one,2.2,1578420000,10000000,60,25.4,0.16,0.11,-0.049,0.9995,-90.63,-2805328,79.3,-0.050,-90.62,2048,200000,78.9,276025,220450,3.8,4.1,3.9,3.7,3.8,3.6,nan,nan,nan,nan,nan,nan,nan,nan
+# wideband phase: mean -90.64 deg, std 0.00, max deviation 0.00 (3 captures)
+# wideband x2/x1: mean -0.050 dB, std 0.000, range -0.050 to -0.049
+# CW phase (offset +0 Hz): mean -93.40 deg, std 0.85, max deviation 1.20 (3 captures)
+# CW x2/x1 (offset +0 Hz): mean -0.294 dB, std 1.761, range -2.607 to 1.661
+# CW line over the floor (offset +0 Hz): ch0/1 3.0 dB, ch2/3 2.4 dB (means), at -3037109 Hz
+# CW phase (offset +200000 Hz): mean -90.62 deg, std 0.00, max deviation 0.00 (3 captures)
+# CW x2/x1 (offset +200000 Hz): mean -0.050 dB, std 0.000, range -0.050 to -0.050
+# CW line over the floor (offset +200000 Hz): ch0/1 79.1 dB, ch2/3 78.8 dB (means), at -2805328 Hz
+# clipped samples: ch0/1 911795, ch2/3 760052 over 3 captures
+# skirt at 20 / 100 / 500 kHz from the line (offset +0 Hz): ch0/1 4.5 / 4.5 / 3.7 dB, ch2/3 4.3 / 4.4 / 3.3 dB
+# skirt at 20 / 100 / 500 kHz from the line (offset +200000 Hz): ch0/1 4.2 / 3.9 / 3.5 dB, ch2/3 3.8 / 3.9 / 3.6 dB
+# |rho|: mean 0.9994, range 0.9994 to 0.9995; peak |x| 2049 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_b206mini_C3_cw_g78.5_20261121-132955.txt

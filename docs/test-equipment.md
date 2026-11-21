@@ -6,7 +6,8 @@ on the development host and may be used for pluto-crpa testing (T1 and later,
 and is referenced from `CLAUDE.md`.
 
 Items marked `<TBD>` are not yet recorded. Fill them in on first use (Section 8)
-and commit the update. Values below were last checked on 2026-11-06.
+and commit the update. Values below were last checked on 2026-11-06
+(Section 5: 2026-11-21).
 
 ---
 
@@ -16,7 +17,7 @@ and commit the update. Values below were last checked on 2026-11-06.
 |---|---|---|---|
 | gps-sdr-sim | Generates GPS L1 C/A baseband IQ files | - | `~/Work/gps-sdr-sim/gps-sdr-sim` (not on PATH) |
 | bladeRF x40 | GPS simulator TX (primary) | USB | libbladeRF, `bladeRF-cli` |
-| USRP B205mini | GPS simulator TX (alternative), or RX capture for checks | USB 3 | UHD (`uhd_find_devices`, `uhd_usrp_probe`, `tx_samples_from_file`, ...) |
+| USRP B206mini (B205mini until 2026-11-21) | Jammer (T4 and later), GPS simulator TX (alternative), or RX capture for checks | USB 3 | UHD (`uhd_find_devices`, `uhd_usrp_probe`, `tx_samples_from_file`, ...) |
 | u-blox M8T | COTS GNSS receiver under test (C/N0, fix, TTFF) | USB (CDC ACM) | gpsd, `gpspipe`, `ubxtool` |
 | PlutoSDR Rev C | CRPA device under test | USB (network 192.168.2.1) | libiio, `scripts/*.py` |
 
@@ -27,7 +28,7 @@ Claude Code. Before first use in a session, check that they are present
 Test setup for T1 (conducted only):
 
 ```
-bladeRF or B205mini TX -> fixed attenuator -> 2-way splitter -> Pluto RX1, RX2
+bladeRF or B206mini TX -> fixed attenuator -> 2-way splitter -> Pluto RX1, RX2
 Pluto TX1 -> DC block -> u-blox M8T, with TX attenuation 50 dB set in the Pluto
 Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
 ```
@@ -37,7 +38,7 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
 ## 2. Safety Rules (highest priority)
 
 - **Conducted or shielded tests only. Never radiate GPS signals.** Every TX
-  output (bladeRF, B205mini, Pluto) must be cabled to its load through
+  output (bladeRF, B206mini, Pluto) must be cabled to its load through
   attenuators. Exception, Pluto TX1 only: the attenuation may be inside the
   Pluto. A DC block is always required, and external attenuation plus TX
   attenuation must stay at 50 dB or more. `t1_passthrough.py --on` enforces this
@@ -114,53 +115,76 @@ Baseline: simulator TX -> attenuators -> u-blox M8T (Pluto not in path)
 
 ---
 
-## 5. USRP B205mini (UHD)
+## 5. USRP B206mini (UHD), jammer
 
-**Replaced by a B206mini on 2026-11-21** (serial `352F132`, name `B206i`,
-FW 8.0, FPGA 7.0, same image `usrp_b205mini_fpga.bin`). It needs UHD >= 4.9:
-UHD 4.10.0.0 is built from source (`scripts/build_uhd.sh`) and installed in
-`/usr/local`, next to the Ubuntu UHD 4.6 packages (kept for GNU Radio);
-tools in `/usr/local/bin`, Python module in
-`/usr/local/lib/python3.12/dist-packages`, images in
-`/usr/local/share/uhd/images`, udev rule
-`/etc/udev/rules.d/60-uhd-usrp-local.rules`. `t4_jammer.py` defaults to the
-B206mini. Enumeration and dry runs match the B205mini; the levels below
-(gain to J/N60, line offset, off-state) are B205mini values until the RF
-check C3 of `docs/b206mini_check.md` (results `results/b206mini_check.md`).
-This section is rewritten after C3.
+The B206mini replaced the B205mini on 2026-11-21 and was checked against it
+(`docs/b206mini_check.md`, results `results/b206mini_check.md`): same
+behaviour in every check. B205mini history at the end of this section.
 
-- UHD 4.6.0 from the Ubuntu packages (`uhd-host`
-  4.6.0.0+ds1-5.1ubuntu0.24.04.1). FPGA images: `/usr/share/uhd/images`
-  (the B205mini loads `usrp_b205mini_fpga.bin` at runtime).
-- Serial: `3297659` (name `B205i`, FW 8.0, FPGA 7.0).
-- Probe: `uhd_find_devices`, `uhd_usrp_probe`.
-- TX from file: UHD example `tx_samples_from_file`
-  (path `/usr/libexec/uhd/examples/tx_samples_from_file`), e.g.
-  `--args "serial=<serial>" --file <file> --type short --rate <fs>
-  --freq 1575.42e6 --gain <dB> --repeat`. Check `--help` first.
-- Connect to a USB 3 port; USB 2 limits the sample rate.
-- CW jammer for T4 (2026-11-10 and 11, `results/t4.md`):
-  `scripts/t4_jammer.py`, port `TX/RX`, 1575.62 MHz (L1 + 200 kHz), rate
-  1 MSPS, amplitude 0.5, always through 30 + 30 dB (the script refuses less
-  than 50 dB stated and any gain above `--max-gain`). TX gain range 0 to
-  89.75 dB. Through 60 dB, a splitter and a combiner, gains 35 / 45 / 55 /
-  65 / 75 dB give J/N -9 / 1 / 10 to 11 / 20 to 21 / 30 dB in 9 MHz at the
-  Pluto with RX gain 60 dB (`docs/t4_plan.md`, Section 2.2); the last 5 dB
-  of gain give 4.6 dB. The line is 5.6 kHz below nominal at the Pluto.
-- T5 (2026-11-18, `docs/t5_plan.md`, Sections 2.0b and 2.0c): the floor of
-  `--ext-att` is 40 dB (AD9363 RF input absolute maximum +2.5 dBm peak,
-  datasheet Rev. D, Table 10; worst case -27 dBm). Through 30 + 20 dB at RX
-  gain 60: gain 65 / 70 / 75 / 77.5 dB gives J/N60 30.0 / 35.0 / 39.5 /
-  41.9 dB, the ADC clips from 78 dB. Through 20 + 20 dB: 72.5 / 75 / 77.5 dB
-  give J/N60 47.1 / 49.5 / 51.8 dB. The line steps 2.2 to 2.6 dB per 2.5 dB
-  up to 85 dB. The jammer carries sidebands at +/-4 kHz and a floor that
-  rises up to +9.6 dB next to the line at J/N60 52 (both Pluto channels
-  alike).
-- After `off` and after the script exits no line is left at the Pluto, on
-  both days and after every run: the B205mini need not be unplugged between
-  runs. After SIGKILL or a crash the state is unknown: unplug it.
-- The first open after power-up takes about 12 s (FPGA load), later ones
+- Serial `352F132` (name `B206i`, USB 2500:0023, FW 8.0, FPGA 7.0, revision
+  2). It loads the same FPGA image as the B205mini, `usrp_b205mini_fpga.bin`.
+- **Needs UHD >= 4.9.** UHD 4.10.0.0-0-g2af4ddb9 is built from source
+  (`~/Work/uhd`, branch `UHD-4.10` at tag v4.10.0.0, `scripts/build_uhd.sh`)
+  and installed in `/usr/local`: tools `/usr/local/bin`, Python module
+  `/usr/local/lib/python3.12/dist-packages/uhd`, images
+  `/usr/local/share/uhd/images`, udev rule
+  `/etc/udev/rules.d/60-uhd-usrp-local.rules`. The Ubuntu UHD 4.6 packages stay
+  installed for GNU Radio (which cannot open the B206mini); `/usr/local` comes
+  first in PATH, `sys.path` and the library path. Rollback:
+  `docs/b206mini_check.md`, Section 2.1. Check with `uhd_config_info
+  --version` and `python3 -c "import uhd; print(uhd.get_version_string())"`.
+- Probe: `uhd_find_devices`, `uhd_usrp_probe --args serial=352F132`.
+- Connect to a USB 3 port. The FX3 boot loader enumerates at USB 2 (480);
+  after UHD loads the firmware the link is USB 3 (5000). Check
+  `/sys/bus/usb/devices/*/speed` after a probe, not before.
+- TX gain 0 to 89.75 dB, step 0.25; port `TX/RX` (`RX2` unused, unconnected);
+  TX rate 31.25 kHz to 16 MSPS at the default master clock (16 MHz).
+- Maximum TX power (NI specifications): 16.06 dBm at 70 MHz to 4 GHz,
+  9.16 dBm at 4 to 5.9 GHz. The B205mini was assumed at +20 dBm.
+- Jammer script: `scripts/t4_jammer.py` (UHD Python API, system Python),
+  default `--args serial=352F132`; `--args serial=3297659` for the B205mini.
+  CW at L1 + 200 kHz, 1 MSPS, amplitude 0.5, or `--waveform` files of
+  `t5b_waveform.py`. `--ext-att` (attenuators as stated by the operator) is
+  refused below 40 dB (T5; AD9363 RF input absolute maximum +2.5 dBm peak,
+  datasheet Rev. D, Table 10). With the B206mini at full gain and 40 dB:
+  CW about -24 dBm, Gaussian noise (12 dB crest) about -19 dBm peak at the
+  Pluto RX.
+- **Levels (C3, 2026-11-21, through 30 + 20 dB, RX gain 60):** CW gain
+  35 / 45 / 55 / 65 / 70 / 72.5 / 75 / 77.5 dB gives J/N60 -0.3 / 9.6 / 19.8 /
+  29.8 / 34.9 / 37.0 / 39.4 / 41.7 dB, within 0.4 dB of the B205mini (T5:
+  J/N60 = gain - 35 below 70 dB). The ADC clips from 78.5 dB (B205mini: from
+  78). N1 noise file: J/N60 = gain - 44.5 dB. The T4 / T5 / T5b level tables
+  apply unchanged.
+- The line is 5.2 to 5.3 kHz below nominal at the Pluto (B205mini 5.6 kHz),
+  with sidebands at +/-3.9 kHz (about 18 dB over the floor at gain 65) as the
+  B205mini. Lines at +/-4.39 MHz in the Pluto baseband at high jammer levels
+  are the jammer's second harmonic aliased at 10 MSPS (Pluto side, seen
+  with the B205mini in T5 as well).
+- LO leakage at the jammer centre: about -40 dBc (N10 at 16 MSPS); with N1 not
+  visible above the jammer spectrum. No LO offset needed (limit -30 dBc).
+- 8 and 16 MSPS waveform files stream for 60 s with no underflow.
+- After `off` and after the script exits no line is left at the Pluto: no
+  unplugging between runs. After SIGKILL or a crash the state is unknown:
+  unplug it.
+- The first open after power-up takes about 10 s (FPGA load), later ones
   2 s: wait for the `STATE` line of the jammer log before sending commands.
+- TX from file with the UHD example `tx_samples_from_file`
+  (`/usr/local/lib/uhd/examples/tx_samples_from_file` for UHD 4.10) is not
+  used; `t4_jammer.py --waveform` replaced it in T5b.
+
+**B205mini history** (serial `3297659`, name `B205i`, FW 8.0, FPGA 7.0,
+UHD 4.6.0 from the Ubuntu packages, images `/usr/share/uhd/images`), used for
+T4 and T5:
+- T4 (2026-11-10 and 11, `results/t4.md`): through 60 dB, a splitter and a
+  combiner, gains 35 / 45 / 55 / 65 / 75 dB gave J/N -9 / 1 / 10 to 11 / 20
+  to 21 / 30 dB in 9 MHz at the Pluto with RX gain 60 dB
+  (`docs/t4_plan.md`, Section 2.2); the last 5 dB of gain gave 4.6 dB.
+- T5 (2026-11-18, `docs/t5_plan.md`, Sections 2.0b and 2.0c): through 30 + 20
+  dB at RX gain 60, gain 65 / 70 / 75 / 77.5 dB gave J/N60 30.0 / 35.0 / 39.5
+  / 41.9 dB, the ADC clipped from 78 dB. Through 20 + 20 dB: 72.5 / 75 / 77.5
+  dB gave J/N60 47.1 / 49.5 / 51.8 dB. The line stepped 2.2 to 2.6 dB per
+  2.5 dB up to 85 dB. Sidebands at +/-4 kHz and a floor up to +9.6 dB next to
+  the line at J/N60 52 (both Pluto channels alike).
 
 ---
 
@@ -247,7 +271,7 @@ This section is rewritten after C3.
 ## 7. PlutoSDR (device under test)
 
 - URI `ip:192.168.2.1`; ssh host `pluto` (`~/.ssh/config`).
-- The simulator SDRs are bladeRF and B205mini, so there is no address
+- The simulator SDRs are bladeRF and B206mini, so there is no address
   conflict. If a second Pluto is ever connected, stop and ask the user.
 - See `docs/pluto-crpa-plan.md` (Sections 4, 7, 9.3) and
   `docs/interface.md` for configuration and scripts.

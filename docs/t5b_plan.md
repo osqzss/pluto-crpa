@@ -494,6 +494,18 @@ confirmed, TX not safe, any unexpected error. Clipping is not a stop
 condition in P2: each ladder ends one step past the first clipped step. Raw
 captures about 1.5 GB in `tmp/t5b_cap/`.
 
+**Jammer replaced (2026-11-21).** The B205mini was replaced by a B206mini
+(serial 352F132; `docs/b206mini_check.md`, results `results/b206mini_check.md`).
+Its check C3 is the CW part of P2-a: CW gain 65 gives J/N60 29.8 (same-day
+check met), every CW step within 0.4 dB of the B205mini, clip from 78.5 dB;
+the ladders above apply unchanged, with "B205mini gain" read as B206mini
+gain. C3 also gave N1 at 65 / 75 dB (J/N60 20.6 / 30.2, one clipped sample at
+75), N10 at 16 MSPS without underflow, LO leakage about -40 dBc (no LO
+offset). P2-a continues with the N1 ladder. Bench after C3: Pluto
+power-cycled and set once (L1 + 3 MHz, 10 MSPS, 9 MHz, gain 60, TX safe),
+bladeRF unplugged; noise x1 / x2 -42.52 / -42.81 dBFS, L1 +/- 1 MHz
+-49.79 dBFS.
+
 ### RX-only runs
 
 | Run | Pluto | Jammer | Gives |

@@ -1,0 +1,34 @@
+# t3_phase.py 20261121-132924, seq one, label 'b206mini_C3_cw_off'
+# command: scripts/t3_phase.py --passive --count 3 --gain 60 --label b206mini_C3_cw_off --note B206mini C3, V3, jammer att 30+20 dB (user confirmed cabling), bladeRF unplugged, RX gain 60 --cw-offset 0,200e3 --cw-span 50e3 --spurs 5
+# note: B206mini C3, V3, jammer att 30+20 dB (user confirmed cabling), bladeRF unplugged, RX gain 60
+# start (passive, nothing written): TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# RX LO 1578419998 Hz (L1 +3000000), fs 10000000, rf_bw 9000000, gain 60.000000 dB / 60.000000 dB, 1048576 samples per capture
+# tracking: quadrature 1, rf_dc 1, bb_dc 1
+# phase = arg(sum x2 conj(x1)), ratio = x2/x1 power; cw_* in the 3 bins of the strongest line within 50000 Hz of -delta + cw_offset (0,200e3)
+row,label,step,t_s,rxlo_hz,fs_hz,gain_db,temp_c,p1_dbfs,p2_dbfs,ratio_db,rho,phase_deg,f_cw_hz,cw_snr_db,cw_ratio_db,cw_phase_deg,peak,cw_offset_hz,cw_snr2_db,clip1,clip2,skirt1_20k_db,skirt1_100k_db,skirt1_500k_db,skirt2_20k_db,skirt2_100k_db,skirt2_500k_db,band1_dbfs,band2_dbfs,band1_ex_dbfs,band2_ex_dbfs,band_ratio_db,band_phase_deg,band_rho,band_slope_deg_mhz
+0,b206mini_C3_cw_off,one,0.7,1578420000,10000000,60,26.3,-42.53,-42.81,-0.277,0.0072,-151.16,-3048859,2.4,-0.343,-19.90,59,0,2.1,0,0,-0.1,-0.3,-0.3,0.1,0.2,-0.6,nan,nan,nan,nan,nan,nan,nan,nan
+# spurs,row=0,ch=01,-153:19.8,610:15.6,-916:13.1,1580048:10.7,1526:10.0
+# spurs,row=0,ch=23,153:19.8,-1221:12.8,1221:10.8,2747:10.0,-2594:8.9
+1,b206mini_C3_cw_off,one,0.7,1578420000,10000000,60,26.3,-42.53,-42.81,-0.277,0.0072,-151.16,-2778015,1.1,1.038,9.58,59,200000,2.6,0,0,-0.4,-0.2,-0.2,0.7,-0.1,0.3,nan,nan,nan,nan,nan,nan,nan,nan
+2,b206mini_C3_cw_off,one,1.4,1578420000,10000000,60,26.3,-42.53,-42.80,-0.279,0.0065,-150.08,-3002014,2.7,-1.007,-81.34,61,0,1.7,0,0,-0.5,-0.1,0.0,-0.3,-0.5,-0.0,nan,nan,nan,nan,nan,nan,nan,nan
+# spurs,row=2,ch=01,0:19.3,916:13.4,-916:12.9,1831:10.9,1580048:10.6
+# spurs,row=2,ch=23,-153:19.7,1221:12.4,-1221:11.3,1984:10.9,-2289:10.8
+3,b206mini_C3_cw_off,one,1.4,1578420000,10000000,60,26.3,-42.53,-42.80,-0.279,0.0065,-150.08,-2752838,-0.4,3.116,47.86,61,200000,3.4,0,0,-0.2,0.3,-0.1,-0.1,0.1,0.5,nan,nan,nan,nan,nan,nan,nan,nan
+4,b206mini_C3_cw_off,one,2.1,1578420000,10000000,60,27.2,-42.53,-42.80,-0.271,0.0068,-150.05,-3045959,2.7,-0.422,-152.16,52,0,1.7,0,0,-0.0,-0.2,0.1,-0.3,-0.2,-0.3,nan,nan,nan,nan,nan,nan,nan,nan
+# spurs,row=4,ch=01,0:18.5,763:12.9,1580048:11.4,1678:10.9,-1678:10.6
+# spurs,row=4,ch=23,0:20.1,610:13.4,1526:11.9,-2441:11.2,-1373:10.4
+5,b206mini_C3_cw_off,one,2.1,1578420000,10000000,60,27.2,-42.53,-42.80,-0.271,0.0068,-150.05,-2840729,2.3,0.358,-129.91,52,200000,2.6,0,0,0.1,0.0,-0.3,-0.0,0.6,0.4,nan,nan,nan,nan,nan,nan,nan,nan
+# wideband phase: mean -150.43 deg, std 0.52, max deviation 0.73 (3 captures)
+# wideband x2/x1: mean -0.276 dB, std 0.003, range -0.279 to -0.271
+# CW phase (offset +0 Hz): mean -83.44 deg, std 54.04, max deviation 68.72 (3 captures)
+# CW x2/x1 (offset +0 Hz): mean -0.591 dB, std 0.296, range -1.007 to -0.343
+# CW line over the floor (offset +0 Hz): ch0/1 2.6 dB, ch2/3 1.8 dB (means), at -3045959 Hz
+# CW phase (offset +200000 Hz): mean 7.91 deg, std 76.40, max deviation 137.82 (3 captures)
+# CW x2/x1 (offset +200000 Hz): mean 1.504 dB, std 1.173, range 0.358 to 3.116
+# CW line over the floor (offset +200000 Hz): ch0/1 1.0 dB, ch2/3 2.9 dB (means), at -2778015 Hz
+# clipped samples: ch0/1 0, ch2/3 0 over 3 captures
+# skirt at 20 / 100 / 500 kHz from the line (offset +0 Hz): ch0/1 -0.2 / -0.2 / -0.1 dB, ch2/3 -0.2 / -0.2 / -0.3 dB
+# skirt at 20 / 100 / 500 kHz from the line (offset +200000 Hz): ch0/1 -0.2 / 0.0 / -0.2 dB, ch2/3 0.2 / 0.2 / 0.4 dB
+# |rho|: mean 0.0068, range 0.0065 to 0.0072; peak |x| 61 LSB
+# end: TX LO powerdown 1 at 2450000000 Hz, TX attenuation 89.75 / 89.75 dB
+# log: results/t3_b206mini_C3_cw_off_20261121-132924.txt

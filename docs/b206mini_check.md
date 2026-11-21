@@ -1,5 +1,9 @@
 # B206mini compatibility check (replaces the B205mini)
 
+**Status: done 2026-11-21, all checks passed** (C1, C2, C3;
+`results/b206mini_check.md`). The B206mini is compatible with the B205mini
+for T5b; the T4 / T5 / T5b level tables apply unchanged.
+
 The USRP B205mini (serial `3297659`) used as the jammer in T4, T5 and T5b is
 replaced by a B206mini. Ettus describes the two as the same design. This plan
 confirms that before the B206mini is used in T5b P2, and decides which B205mini
